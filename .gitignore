@@ -1,0 +1,11 @@
+node_modules/
+dist/
+
+# build outputs that are regenerated, not source
+fiver.html
+fiver-standalone.html
+fiver-site.zip
+
+# screenshots from `npm run shots`
+s-*.png
+shot-*.png
