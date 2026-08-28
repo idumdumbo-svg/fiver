@@ -1,5 +1,8 @@
 /* Logic tests for FIVER. Run: node test.js */
 var L = require('./logic.js');
+var D = require('./dates.js');
+// date helpers moved to their own module; keep the old L.* spellings working
+Object.assign(L, D);
 
 var pass = 0, fail = 0, failures = [];
 function eq(name, got, want) {

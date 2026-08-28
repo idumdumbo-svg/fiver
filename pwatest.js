@@ -104,7 +104,7 @@ const server = http.createServer((req, res) => {
     await page.textContent('#heroVal'));
 
   /* ---- storage persistence + install copy ---- */
-  await page.click('.tab[data-view="setup"]');
+  await page.click('#moneyTabs .tab[data-view="setup"]');
   await page.waitForTimeout(400);
   const storage = await page.textContent('#storageLabel');
   check('storage status reported', /protected|backup/.test(storage), storage);

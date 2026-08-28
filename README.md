@@ -1,10 +1,17 @@
 # Fiver
 
-Round every spend up to the next five. Watch the day fill up. Keep the difference.
+Two small trackers sharing one shell, switched with a toggle in the top bar.
 
-A deliberately small spending tracker. One big number for today, the day drawn
-as a wall of $5 blocks, and the gap between what you spent and what you logged
+**Money** — round every spend up to the next five. Watch the day fill up as a
+wall of $5 blocks. The gap between what you spent and what you logged gets
 swept somewhere you won't spend it.
+
+**Food** — calorie estimates against a daily budget. One tap for a snack or a
+meal, and anything you eat often becomes its own chip.
+
+Same idea both sides: one big number for today, an average of the days you
+actually logged, and rounding that always goes **up** so you never flatter
+yourself.
 
 No accounts, no bank connection, no server. Everything lives in the browser on
 your device.
@@ -43,19 +50,29 @@ measure of whether the logging habit is sticking.
 ## Layout
 
 ```
-logic.js         all the money maths — pure functions, no DOM, fully tested
+dates.js         day/week helpers shared by both trackers
+logic.js         the money maths — pure functions, no DOM, fully tested
+calories.js      the food maths — same deal, and deliberately isolated
 template.html    the app: markup, styles, and the UI layer over logic.js
 sw-template.js   service worker; the build stamps a version into it
 build.js         assembles the three outputs below
 icons.py         regenerates assets/icons — run only when the mark changes
 assets/          committed icons and favicon
-test.js          157 logic tests
-uitest.js        65 browser tests against the built app
+test.js          157 money logic tests
+test-cal.js      77 food logic tests
+uitest.js        83 browser tests against the built app
 pwatest.js       16 tests that the hosted build installs and works offline
 ```
 
-`logic.js` is deliberately separate and DOM-free so the money maths can be
-tested exhaustively without a browser. `build.js` inlines it into the page.
+`logic.js` and `calories.js` are DOM-free so the maths can be tested
+exhaustively without a browser. `build.js` concatenates `dates.js`, then both,
+into the page.
+
+**The food side is built to be liftable.** It has its own state shape, its own
+`localStorage` key (`fiver.food.v1`), and reads nothing from the spending
+state — the one thing it borrows is the day-boundary setting, so both halves
+agree on when "today" ends. Moving it to its own service means taking
+`calories.js`, `dates.js` and that key; nothing has to be untangled first.
 
 ### Build outputs
 

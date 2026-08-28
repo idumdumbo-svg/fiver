@@ -34,8 +34,10 @@ jobs:
       - run: node build.js
 
       # Nothing ships unless all three suites pass.
-      - name: Logic tests
+      - name: Logic tests (money)
         run: node test.js
+      - name: Logic tests (food)
+        run: node test-cal.js
       - name: App tests
         run: node uitest.js
       - name: Offline / installability tests

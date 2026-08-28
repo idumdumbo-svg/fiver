@@ -5,7 +5,11 @@
 
 var STEP = 500; // $5.00 in cents
 
-function pad2(n) { return (n < 10 ? '0' : '') + n; }
+/* Concatenated after dates.js in the browser build; under node the
+   helpers are pulled onto the global so both paths look identical. */
+if (typeof dayKey === 'undefined' && typeof require === 'function') {
+  Object.assign(globalThis, require('./dates.js'));
+}
 
 /* Round a spend UP to the next $5. Exact multiples stay put.
    $2.00 -> $5.00   $14.00 -> $15.00   $15.00 -> $15.00 */
@@ -19,38 +23,6 @@ function roundUp(cents, step) {
 function roundUpDelta(cents, step) {
   return roundUp(cents, step) - Math.max(0, Math.round(cents || 0));
 }
-
-/* Which day does a timestamp belong to?
-   dayStartHour lets a 1am kebab count as the previous night. */
-function dayKey(ts, dayStartHour) {
-  var d = new Date(ts - (dayStartHour || 0) * 3600000);
-  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-}
-
-/* Parse a day key at local noon — immune to DST shifts. */
-function keyToDate(key) {
-  var p = key.split('-');
-  return new Date(+p[0], +p[1] - 1, +p[2], 12, 0, 0, 0);
-}
-
-function shiftDay(key, n) {
-  var d = keyToDate(key);
-  d.setDate(d.getDate() + n);
-  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-}
-
-function daysApart(a, b) {
-  return Math.round((keyToDate(b) - keyToDate(a)) / 86400000);
-}
-
-/* Monday-start week key, matching NZ/AU convention. */
-function weekStart(key) {
-  var d = keyToDate(key);
-  var dow = (d.getDay() + 6) % 7; // Mon = 0
-  return shiftDay(key, -dow);
-}
-
-function monthKey(key) { return key.slice(0, 7); }
 
 /* ---------------- day aggregates ---------------- */
 
@@ -248,8 +220,6 @@ function parseAmount(str) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     STEP: STEP, roundUp: roundUp, roundUpDelta: roundUpDelta,
-    dayKey: dayKey, shiftDay: shiftDay, daysApart: daysApart,
-    weekStart: weekStart, monthKey: monthKey,
     dayTotals: dayTotals, isTracked: isTracked, baselineFor: baselineFor,
     compareToBaseline: compareToBaseline, trackingStreak: trackingStreak,
     winsIn: winsIn, sweptOn: sweptOn, sweepOffer: sweepOffer,

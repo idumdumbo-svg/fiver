@@ -66,6 +66,28 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .topbar h1{margin:0;font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 78;
   font-weight:800;font-size:17px;letter-spacing:.02em;text-transform:uppercase}
 .topbar h1 span{color:var(--accent-ink)}
+.modesw{display:flex;gap:3px;padding:3px;border-radius:999px;background:var(--sunk);
+  border:1px solid var(--line)}
+.mode-btn{padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--muted);
+  transition:background .14s,color .14s}
+.mode-btn.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.hero-amount .unit{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
+  align-self:flex-end;margin:0 0 12px 8px;letter-spacing:.04em}
+.meter{height:14px;border-radius:7px;background:var(--block-empty);overflow:hidden;margin:16px 0 10px;
+  position:relative}
+.meter .fill{display:block;height:100%;border-radius:7px;background:var(--block);
+  transition:width .35s cubic-bezier(.32,.72,0,1)}
+.meter .fill.over{background:var(--block-over)}
+@media (prefers-reduced-motion:reduce){.meter .fill{transition:none}}
+.foodrow{display:flex;align-items:center;gap:12px;padding:11px 2px;
+  border-bottom:1px solid var(--line-soft);width:100%;text-align:left}
+.foodrow:last-child{border-bottom:0}
+.foodrow .fname{flex:1;min-width:0;font-weight:600;font-size:14px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foodrow .fkcal{font-family:"Archivo",sans-serif;font-weight:700;font-variation-settings:"wdth" 112;
+  font-variant-numeric:tabular-nums;flex:none}
+.foodrow .fuses{font-size:11px;color:var(--muted);font-family:"IBM Plex Mono",monospace;
+  flex:none;width:52px;text-align:right}
 .chip-streak{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;
   background:var(--surface);border:1px solid var(--line);font-size:12px;color:var(--ink-2);
   box-shadow:var(--shadow)}
@@ -402,7 +424,10 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 <div id="app">
   <div class="topbar">
     <h1>FIV<span>E</span>R</h1>
-    <div id="streakChip" class="chip-streak"><span class="dot cold"></span><span>No streak yet</span></div>
+    <div class="modesw" id="modeSw">
+      <button class="mode-btn on" data-mode="money">Money</button>
+      <button class="mode-btn" data-mode="food">Food</button>
+    </div>
   </div>
 
   <main>
@@ -571,6 +596,97 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
       </div>
     </section>
 
+    <!-- ============ FOOD: TODAY ============ -->
+    <section class="view" id="v-eat">
+      <div class="card hero">
+        <div class="hero-date">
+          <span class="eyebrow" id="eatLabel">TODAY</span>
+          <span class="eyebrow" id="eatStreak"></span>
+        </div>
+        <div class="hero-amount">
+          <span class="val" id="eatVal">0</span><span class="unit">kcal</span>
+        </div>
+        <div class="hero-sub" id="eatSub">Nothing logged yet</div>
+
+        <div class="meter" id="eatMeter"><span class="fill" id="eatFill"></span></div>
+        <div class="blocks-legend">
+          <span id="eatLeft"></span>
+          <span id="eatBudgetNote"></span>
+        </div>
+      </div>
+
+      <div id="eatVerdict" class="verdict neutral">
+        <span class="arrow">•</span><span>Set a daily budget in Foods to get a line to track against.</span>
+      </div>
+
+      <div class="card">
+        <h2>Quick log</h2>
+        <p class="note-line" style="margin:2px 0 10px">One tap. These are estimates and always will be — that's the point.</p>
+        <div class="chips" id="quickKcal"></div>
+        <div id="favWrap" class="hidden" style="margin-top:12px">
+          <span class="eyebrow" style="display:block;margin-bottom:7px">THINGS YOU EAT</span>
+          <div class="chips" id="favChips"></div>
+        </div>
+        <button class="btn wide" id="openEat" style="margin-top:12px">Something else…</button>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:4px">
+          <h2>Today</h2>
+          <span class="eyebrow" id="eatCount"></span>
+        </div>
+        <div class="entries" id="eatEntries"></div>
+        <div class="empty" id="eatEmpty"><p>Nothing logged yet today.</p></div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:6px">
+          <h2>Last 14 days</h2>
+          <span class="eyebrow" id="eatAvg"></span>
+        </div>
+        <div class="chart" id="eatChart"></div>
+        <div class="chart-x" id="eatChartX"></div>
+        <div class="ledger" style="margin-top:12px">
+          <div class="lrow"><span class="k">Days under budget</span><span class="v" id="eatUnder">—</span></div>
+          <div class="lrow"><span class="k">This week</span><span class="v" id="eatWeek">—</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FOOD: FOODS ============ -->
+    <section class="view" id="v-foods">
+      <div class="card stack">
+        <h2>Budget</h2>
+        <div class="field">
+          <label for="dailyBudget">Daily</label>
+          <input class="input" id="dailyBudget" inputmode="numeric" placeholder="2200">
+        </div>
+        <div class="field">
+          <label for="weeklyBudget">Weekly (optional)</label>
+          <input class="input" id="weeklyBudget" inputmode="numeric" placeholder="">
+          <span class="note-line" id="weeklyHint"></span>
+        </div>
+      </div>
+
+      <div class="card stack">
+        <h2>Things you eat often</h2>
+        <span class="note-line">Save anything you log more than once. It becomes a one-tap chip on the Today screen.</span>
+        <div class="btn-row" style="gap:8px">
+          <input class="input" id="foodName" placeholder="Porridge" maxlength="30" style="flex:2">
+          <input class="input" id="foodKcal" inputmode="numeric" placeholder="350" style="flex:1">
+        </div>
+        <button class="btn primary wide" id="addFood">Save it</button>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:4px">
+          <h2>Saved</h2>
+          <span class="eyebrow" id="foodCount"></span>
+        </div>
+        <div id="foodList"></div>
+      </div>
+    </section>
+
     <!-- ============ SETUP ============ -->
     <section class="view" id="v-setup">
       <div class="card stack">
@@ -653,7 +769,12 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         </button>
         <button class="addbtn earned" id="openIncome">Earned</button>
       </div>
-      <div class="tabs">
+      <div class="tabs" id="foodTabs" style="display:none">
+        <button class="tab on" data-view="eat"><svg viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 003 3v7"/><path d="M6 3v5M9 3v5"/><path d="M17 3c-1.5 2-2 4-2 6s.5 3 2 3v9"/></svg>Today</button>
+        <button class="tab" data-view="foods"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2.5"/></svg>Foods</button>
+        <button class="tab" data-view="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Setup</button>
+      </div>
+      <div class="tabs" id="moneyTabs">
         <button class="tab on" data-view="today"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20V9M12 20V4M18 20v-7"/></svg>Today</button>
         <button class="tab" data-view="trends"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 7-9"/><path d="M15 6h5v5"/></svg>Trends</button>
         <button class="tab" data-view="savings"><svg viewBox="0 0 24 24"><path d="M3 10h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2v-9z"/><path d="M3 10l3-6h12l3 6"/><path d="M12 14v3"/></svg>Money</button>
@@ -793,6 +914,9 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
    state
    ============================================================ */
 var KEY = 'fiver.v1';
+var FOOD_KEY = 'fiver.food.v1';     // its own key — lift the food app out by taking this
+var MODE_KEY = 'fiver.mode';
+var mode = 'money';
 var CATS = [
   {name:'Groceries', tag:'GROC', fixed:false},
   {name:'Eating out', tag:'FOOD', fixed:false},
@@ -879,6 +1003,36 @@ function today(){ return dayKey(Date.now(), state.settings.dayStartHour); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 /* ============================================================
+   food — a separate app sharing the shell. Its own state, its own
+   storage key, no reads of the spending state. The only thing it
+   borrows is the day-boundary setting, so both halves agree on
+   when "today" ends.
+   ============================================================ */
+var foodState = loadFood();
+
+function blankFood(){
+  return { version:1, entries:[], foods:[], settings:{ dailyBudget:2200, weeklyBudget:null } };
+}
+function loadFood(){
+  try{
+    var raw = localStorage.getItem(FOOD_KEY);
+    if(!raw) return blankFood();
+    var f = JSON.parse(raw), b = blankFood();
+    f.entries = Array.isArray(f.entries) ? f.entries : [];
+    f.foods = Array.isArray(f.foods) ? f.foods : [];
+    f.settings = Object.assign(b.settings, f.settings || {});
+    return f;
+  }catch(e){ return blankFood(); }
+}
+function saveFood(){
+  try{ localStorage.setItem(FOOD_KEY, JSON.stringify(foodState)); }
+  catch(e){ toast("Couldn't save — this browser's storage is full."); }
+}
+/* The one thing the two halves share. */
+function foodDayStart(){ return state.settings.dayStartHour || 0; }
+function foodToday(){ return dayKey(Date.now(), foodDayStart()); }
+
+/* ============================================================
    small helpers
    ============================================================ */
 function $(id){ return document.getElementById(id); }
@@ -919,6 +1073,8 @@ function hideToast(){ $('toast').classList.remove('on'); }
    ============================================================ */
 function render(){
   renderWelcome();
+  renderMode();
+  if(mode === 'food'){ renderEat(); renderFoods(); return; }
   renderNudge();
   renderToday();
   renderTrends();
@@ -932,7 +1088,9 @@ function renderToday(){
   var c = compareToBaseline(state, k);
 
   $('todayLabel').textContent = prettyDay(k).toUpperCase() + ' · ' + shortDate(k);
-  $('todayCount').textContent = t.count === 1 ? '1 ENTRY' : t.count + ' ENTRIES';
+  var streak = trackingStreak(state, k);
+  $('todayCount').textContent = (streak > 0 ? streak + ' DAY' + (streak===1?'':'S') + ' · ' : '') +
+    (t.count === 1 ? '1 ENTRY' : t.count + ' ENTRIES');
   $('heroVal').textContent = fmt(t.total, {decimals:false}).replace('$','');
 
   var blocks = Math.round(t.flex / 500);
@@ -1366,16 +1524,271 @@ function renderSavings(){
   });
 }
 
+/* ============================================================
+   food rendering
+   ============================================================ */
+function renderMode(){
+  document.querySelectorAll('.mode-btn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.mode === mode);
+  });
+  $('moneyTabs').style.display = mode === 'money' ? '' : 'none';
+  $('foodTabs').style.display = mode === 'food' ? '' : 'none';
+  $('openAdd').parentNode.style.display = mode === 'money' ? '' : 'none';
+}
+
+function renderEat(){
+  var k = foodToday();
+  var t = dayKcal(foodState, k);
+  var c = compareToBudget(foodState, k);
+  var streak = loggingStreak(foodState, k);
+
+  $('eatLabel').textContent = prettyDay(k).toUpperCase() + ' · ' + shortDate(k);
+  $('eatStreak').textContent = streak > 0 ? streak + ' DAY' + (streak===1?'':'S') + ' LOGGED' : '';
+  $('eatVal').textContent = fmtKcal(t.total);
+  $('eatCount').textContent = t.count === 1 ? '1 ENTRY' : t.count + ' ENTRIES';
+
+  var avg = avgKcal(foodState, k, 7);
+  var sub = [];
+  if(c.budget) sub.push('of <b>' + fmtKcal(c.budget) + '</b>');
+  if(t.count === 0) sub.push('nothing logged yet');
+  else if(avg) sub.push('your average is <b>' + fmtKcal(avg.value) + '</b>');
+  $('eatSub').innerHTML = sub.join(' &nbsp;·&nbsp; ') || 'Nothing logged yet';
+
+  // meter
+  var fill = $('eatFill');
+  if(c.budget){
+    var pct = Math.min(100, (t.total / c.budget) * 100);
+    fill.style.width = pct + '%';
+    fill.classList.toggle('over', c.over);
+    $('eatLeft').innerHTML = c.over
+      ? '<b style="color:var(--over)">' + fmtKcal(c.diff) + ' over</b>'
+      : '<b>' + fmtKcal(c.left) + '</b> left today';
+    $('eatBudgetNote').textContent = c.pct + '% of budget';
+  } else {
+    fill.style.width = '0%';
+    $('eatLeft').textContent = 'no budget set';
+    $('eatBudgetNote').textContent = '';
+  }
+
+  // verdict
+  var v = $('eatVerdict');
+  if(!c.budget){
+    v.className = 'verdict neutral';
+    v.innerHTML = '<span class="arrow">•</span><span>Set a daily budget in <b>Foods</b> to get a line to track against.</span>';
+  } else if(t.count === 0){
+    v.className = 'verdict neutral';
+    v.innerHTML = '<span class="arrow">•</span><span>Whole budget still there. <b>' + fmtKcal(c.budget) + '</b> to play with.</span>';
+  } else if(c.over){
+    v.className = 'verdict bad';
+    v.innerHTML = '<span class="arrow">▲</span><span><b>' + fmtKcal(c.diff) + ' over</b> your daily budget <span class="why">(' + fmtKcal(c.budget) + ')</span></span>';
+  } else {
+    v.className = 'verdict good';
+    v.innerHTML = '<span class="arrow">▼</span><span><b>' + fmtKcal(c.left) + ' left</b> of your daily budget <span class="why">(' + fmtKcal(c.budget) + ')</span></span>';
+  }
+
+  // quick chips
+  var qc = $('quickKcal'); qc.innerHTML = '';
+  QUICK_KCAL.forEach(function(q){
+    var b = el('button','chip', q.label + ' ' + q.kcal);
+    b.onclick = function(){ logKcal(q.kcal, q.label, null); };
+    qc.appendChild(b);
+  });
+
+  // favourites
+  var favs = sortedFoods(foodState).slice(0, 8);
+  $('favWrap').classList.toggle('hidden', favs.length === 0);
+  var fc = $('favChips'); fc.innerHTML = '';
+  favs.forEach(function(f){
+    var b = el('button','chip', f.name + ' ' + f.kcal);
+    b.onclick = function(){ logKcal(f.kcal, f.name, f.id); };
+    fc.appendChild(b);
+  });
+
+  // entries
+  var list = $('eatEntries'); list.innerHTML = '';
+  var todays = foodState.entries.filter(function(e){ return e.day === k; })
+    .sort(function(a,b){ return b.ts - a.ts; });
+  todays.forEach(function(e){ list.appendChild(eatRow(e)); });
+  $('eatEmpty').classList.toggle('hidden', todays.length > 0);
+
+  // 14-day chart
+  var ser = kcalSeries(foodState, k, 14);
+  var vals = ser.map(function(d){ return d.kcal; }).filter(function(x){ return x != null; });
+  var max = Math.max.apply(null, vals.concat([c.budget || 0, 500]));
+  var chart = $('eatChart'); chart.innerHTML = '';
+  ser.forEach(function(d){
+    var wrap = el('div','bwrap');
+    if(d.kcal == null){
+      wrap.appendChild(el('div','gap'));
+      wrap.title = prettyDay(d.day) + ' — not logged';
+    } else {
+      var cls = 'bar';
+      if(d.day === k) cls += ' today';
+      else if(c.budget && d.kcal > c.budget) cls += ' over';
+      var bar = el('div', cls);
+      bar.style.height = Math.max(2, (d.kcal/max)*88) + 'px';
+      wrap.title = prettyDay(d.day) + ' — ' + fmtKcal(d.kcal);
+      wrap.appendChild(bar);
+    }
+    chart.appendChild(wrap);
+  });
+  if(c.budget){
+    var line = el('div','baseline-line');
+    line.style.bottom = ((c.budget/max)*88) + 'px';
+    line.appendChild(el('span','baseline-tag','budget ' + fmtKcal(c.budget)));
+    chart.appendChild(line);
+  }
+  var xs = $('eatChartX'); xs.innerHTML = '';
+  ser.forEach(function(d,i){
+    var lab = el('span', null, (i%2===0 || i===13) ? d.day.slice(8) : '');
+    if(d.day === k){ lab.style.color = 'var(--accent-ink)'; lab.style.fontWeight = '600'; }
+    xs.appendChild(lab);
+  });
+
+  $('eatAvg').textContent = avg ? 'AVG ' + fmtKcal(avg.value) : '';
+  var du = daysUnder(foodState, k, 7);
+  $('eatUnder').textContent = c.budget ? du.under + ' of ' + du.of + ' logged days' : '—';
+  var wp = weekProgress(foodState, k);
+  $('eatWeek').textContent = wp.budget
+    ? fmtKcal(wp.total) + ' of ' + fmtKcal(wp.budget)
+    : fmtKcal(wp.total);
+}
+
+function eatRow(e){
+  var b = el('button','entry');
+  b.appendChild(el('span','badge','KCAL'));
+  var body = el('span','body');
+  body.appendChild(el('span','cat', e.label || 'Something'));
+  body.appendChild(el('span','meta', timeOf(e.ts)));
+  b.appendChild(body);
+  var amt = el('span','amt');
+  amt.appendChild(el('span','r', fmtKcal(e.kcal)));
+  b.appendChild(amt);
+  b.onclick = function(){ removeKcal(e.id); };
+  return b;
+}
+
+function renderFoods(){
+  $('dailyBudget').value = foodState.settings.dailyBudget || '';
+  $('weeklyBudget').value = foodState.settings.weeklyBudget || '';
+  var wb = weeklyBudget(foodState);
+  $('weeklyHint').textContent = wb && !wb.explicit
+    ? 'Leave blank and it is seven days of your daily budget — ' + fmtKcal(wb.value) + '.'
+    : 'Leave blank and it is seven days of your daily budget.';
+
+  var foods = sortedFoods(foodState);
+  $('foodCount').textContent = foods.length ? foods.length + ' SAVED' : '';
+  var box = $('foodList'); box.innerHTML = '';
+  if(!foods.length){
+    box.appendChild(el('div','empty','Nothing saved yet. Add the things you eat most.'));
+    return;
+  }
+  foods.forEach(function(f){
+    var r = el('button','foodrow');
+    r.appendChild(el('span','fname', f.name));
+    r.appendChild(el('span','fuses', (f.uses||0) + '×'));
+    r.appendChild(el('span','fkcal', fmtKcal(f.kcal)));
+    r.onclick = function(){ confirmDeleteFood(f); };
+    box.appendChild(r);
+  });
+}
+
+/* A custom amount is rare next to the one-tap chips, so it borrows
+   the plain modal rather than earning a keypad of its own. */
+function openEatSheet(){
+  ask({
+    title:'Something else',
+    hint:'Roughly how many calories? Estimate — it rounds up to the nearest 10.',
+    value:'', placeholder:'450', okLabel:'Log it',
+    onOk: function(v){
+      var kcal = parseKcal(v);
+      if(!kcal) return;
+      askName(roundKcal(kcal));
+    }
+  });
+}
+function askName(kcal){
+  ask({
+    title:'Call it what?',
+    hint: fmtKcal(kcal) + ' kcal. Leave blank for "Something". Naming it saves it as a one-tap chip.',
+    value:'', placeholder:'Chicken roll', okLabel:'Log it',
+    onOk: function(name){
+      name = String(name || '').trim();
+      if(!name){ logKcal(kcal, 'Something', null); return; }
+      var existing = foodByName(foodState, name);
+      if(existing){ logKcal(existing.kcal, existing.name, existing.id); return; }
+      var f = { id: uid(), name: name, kcal: kcal, uses: 0, lastUsed: 0 };
+      foodState.foods.push(f);
+      logKcal(kcal, name, f.id);
+    }
+  });
+}
+
+function saveNewFood(){
+  var name = $('foodName').value.trim();
+  var kcal = roundKcal(parseKcal($('foodKcal').value));
+  if(!name || !kcal){ toast('Needs a name and a rough calorie count'); return; }
+  var existing = foodByName(foodState, name);
+  if(existing){ existing.kcal = kcal; toast('Updated ' + existing.name); }
+  else { foodState.foods.push({ id: uid(), name: name, kcal: kcal, uses: 0, lastUsed: 0 }); toast('Saved ' + name); }
+  $('foodName').value = ''; $('foodKcal').value = '';
+  saveFood(); render();
+}
+
+/* ---------------- food actions ---------------- */
+function logKcal(kcal, label, savedId){
+  var amount = roundKcal(kcal);
+  if(amount <= 0) return;
+  var ts = Date.now();
+  foodState.entries.push({
+    id: uid(), ts: ts, day: dayKey(ts, foodDayStart()),
+    kcal: amount, label: label || 'Something', savedId: savedId || null
+  });
+  if(savedId){
+    var f = findFood(foodState, savedId);
+    if(f){ f.uses = (f.uses || 0) + 1; f.lastUsed = ts; }
+  }
+  saveFood(); render();
+  toast('Logged ' + fmtKcal(amount) + ' kcal', 'Undo', function(){
+    foodState.entries = foodState.entries.filter(function(x){ return x.ts !== ts; });
+    if(savedId){ var g = findFood(foodState, savedId); if(g) g.uses = Math.max(0,(g.uses||1)-1); }
+    saveFood(); render();
+  });
+}
+
+function removeKcal(id){
+  var idx = -1;
+  for(var i=0;i<foodState.entries.length;i++) if(foodState.entries[i].id===id) idx = i;
+  if(idx < 0) return;
+  var gone = foodState.entries[idx];
+  ask({
+    title:'Remove this?', hint: gone.label + ' — ' + fmtKcal(gone.kcal) + ' kcal',
+    input:false, okLabel:'Remove', danger:true,
+    onOk: function(){
+      foodState.entries.splice(idx,1); saveFood(); render();
+      toast('Removed', 'Undo', function(){ foodState.entries.push(gone); saveFood(); render(); });
+    }
+  });
+}
+
+function confirmDeleteFood(f){
+  ask({
+    title: f.name, hint: fmtKcal(f.kcal) + ' kcal · logged ' + (f.uses||0) + ' times. Removing it leaves past entries alone.',
+    input:false, okLabel:'Remove from list', danger:true,
+    onOk: function(){
+      foodState.foods = foodState.foods.filter(function(x){ return x.id !== f.id; });
+      saveFood(); render(); toast('Removed ' + f.name);
+    }
+  });
+}
+
 /* ---------------- setup ---------------- */
 function renderSetup(){
   $('baseMode').value = state.settings.baselineMode;
   $('dayStart').value = String(state.settings.dayStartHour);
   $('goalDaily').value = state.settings.goalDaily ? (state.settings.goalDaily/100) : '';
   var s = trackingStreak(state, today());
-  var chip = $('streakChip');
-  chip.innerHTML = s > 0
-    ? '<span class="dot"></span><span><b>' + s + '</b> day' + (s===1?'':'s') + ' tracked</span>'
-    : '<span class="dot cold"></span><span>No streak yet</span>';
+  $('todayCount').dataset.streak = s;
 }
 
 /* ============================================================
@@ -1709,6 +2122,33 @@ function wire(){
       window.scrollTo({top:0, behavior:'instant'});
     };
   });
+
+  // mode switch
+  document.querySelectorAll('.mode-btn').forEach(function(b){
+    b.onclick = function(){
+      mode = b.dataset.mode;
+      try{ localStorage.setItem(MODE_KEY, mode); }catch(e){}
+      var tabs = mode === 'food' ? $('foodTabs') : $('moneyTabs');
+      tabs.querySelectorAll('.tab').forEach(function(x,i){ x.classList.toggle('on', i===0); });
+      document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
+      $(mode === 'food' ? 'v-eat' : 'v-today').classList.add('on');
+      window.scrollTo({top:0, behavior:'instant'});
+      render();
+    };
+  });
+
+  // food
+  $('openEat').onclick = openEatSheet;
+  $('addFood').onclick = saveNewFood;
+  $('dailyBudget').oninput = function(){
+    foodState.settings.dailyBudget = parseKcal(this.value) || null;
+    saveFood(); renderEat(); $('weeklyHint').textContent =
+      'Leave blank and it is seven days of your daily budget.';
+  };
+  $('weeklyBudget').oninput = function(){
+    foodState.settings.weeklyBudget = parseKcal(this.value) || null;
+    saveFood(); renderEat();
+  };
 
   $('openAdd').onclick = function(){ openAdd('spend'); };
   $('openIncome').onclick = function(){ openAdd('income'); };
@@ -2108,6 +2548,11 @@ function wirePWA(){
 wire();
 wireSignIn();
 wirePWA();
+try{ mode = localStorage.getItem(MODE_KEY) === 'food' ? 'food' : 'money'; }catch(e){}
+if(mode === 'food'){
+  document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
+  $('v-eat').classList.add('on');
+}
 render();
 
 // If the day rolls over while the app is open, redraw.

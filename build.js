@@ -11,6 +11,22 @@ for (var i = 0; i < lines.length; i++) {
 if (skipping) throw new Error('unterminated module.exports block in logic.js');
 if (!stripped) throw new Error('no module.exports block found — check logic.js');
 var logic = out.join('\n');
+
+// dates first (both domain modules use it), then money, then food
+function moduleSource(file) {
+  var lines = fs.readFileSync(file, 'utf8').split('\n');
+  var keep = [], skipping = false, stripped = 0;
+  for (var i = 0; i < lines.length; i++) {
+    if (!skipping && /^if \(typeof module/.test(lines[i])) { skipping = true; stripped++; continue; }
+    if (skipping) { if (lines[i] === '}') skipping = false; continue; }
+    // the node-only require shim is dead weight in the bundle
+    if (/^if \(typeof dayKey === 'undefined'/.test(lines[i])) { skipping = true; continue; }
+    keep.push(lines[i]);
+  }
+  if (!stripped) throw new Error('no module.exports block found in ' + file);
+  return keep.join('\n');
+}
+logic = moduleSource('dates.js') + '\n' + logic + '\n' + moduleSource('calories.js');
 ['roundUp','dayTotals','baselineFor','sweepOffer','dayIncome','rangeIncome',
  'netFor','totalSwept','sweptByDest','series','fmt'].forEach(function (fn) {
   if (logic.indexOf('function ' + fn + '(') === -1) throw new Error('logic.js lost ' + fn);

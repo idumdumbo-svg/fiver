@@ -58,12 +58,12 @@ function launchOpts() {
   check('welcome does not come back', (await page.locator('#welcome.on').count()) === 0);
 
   check('hero starts at $0', (await page.textContent('#heroVal')) === '0', await page.textContent('#heroVal'));
-  await page.click('.tab[data-view="savings"]');
+  await page.click('#moneyTabs .tab[data-view="savings"]');
   await page.waitForTimeout(250);
   check('total cash starts unset', (await page.textContent('#cashVal')) === '—', await page.textContent('#cashVal'));
   check('unset cash explains itself', /banking app/.test(await page.textContent('#cashLedger')),
     await page.textContent('#cashLedger'));
-  await page.click('.tab[data-view="today"]');
+  await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(200);
 
   /* ---- log $14.00 via the keypad ---- */
@@ -96,7 +96,7 @@ function launchOpts() {
   /* ---- jar + sweep ---- */
   const jar = await page.textContent('#jarToday');
   check('jar shows $1 of round-up change', /\$1/.test(jar), jar);
-  await page.click('.tab[data-view="savings"]');
+  await page.click('#moneyTabs .tab[data-view="savings"]');
   await page.waitForTimeout(250);
   check('sweep button offers the jar', /\$1/.test(await page.textContent('#doSweep')), await page.textContent('#doSweep'));
   await page.click('#doSweep');
@@ -130,7 +130,7 @@ function launchOpts() {
 
   /* ---- demo data, trends, baselines ---- */
   page.on('dialog', d => d.accept());
-  await page.click('.tab[data-view="setup"]');
+  await page.click('#moneyTabs .tab[data-view="setup"]');
   await page.waitForTimeout(200);
   await page.click('#demoBtn');
   await page.waitForTimeout(400);
@@ -139,7 +139,7 @@ function launchOpts() {
   await page.waitForTimeout(700);
   const verdict = await page.textContent('#verdict');
   check('verdict compares against a baseline', /under|over/.test(verdict), verdict);
-  await page.click('.tab[data-view="trends"]');
+  await page.click('#moneyTabs .tab[data-view="trends"]');
   await page.waitForTimeout(300);
   check('chart drew 14 columns', (await page.locator('#chart .bwrap').count()) === 14,
     await page.locator('#chart .bwrap').count());
@@ -152,25 +152,25 @@ function launchOpts() {
     await page.locator('#history .daygroup').count());
 
   /* ---- baseline mode switch ---- */
-  await page.click('.tab[data-view="setup"]');
+  await page.click('#moneyTabs .tab[data-view="setup"]');
   await page.selectOption('#baseMode', 'yesterday');
   await page.waitForTimeout(300);
-  await page.click('.tab[data-view="today"]');
+  await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(250);
   check('yesterday mode changes the verdict copy', /yesterday/.test(await page.textContent('#verdict')),
     await page.textContent('#verdict'));
 
   /* ---- goal line ---- */
-  await page.click('.tab[data-view="setup"]');
+  await page.click('#moneyTabs .tab[data-view="setup"]');
   await page.fill('#goalDaily', '40');
   await page.waitForTimeout(300);
-  await page.click('.tab[data-view="today"]');
+  await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(250);
   check('goal sets the block line', /target line/.test(await page.textContent('#lineNote')),
     await page.textContent('#lineNote'));
 
   /* ---- total cash (prompt() is unreliable in a sandboxed frame, so it's in-page) ---- */
-  await page.click('.tab[data-view="savings"]');
+  await page.click('#moneyTabs .tab[data-view="savings"]');
   await page.waitForTimeout(250);
   await page.click('#setBal');
   await page.waitForTimeout(400);
@@ -197,7 +197,7 @@ function launchOpts() {
   check('yesterday card clears once swept', (await page.locator('#ydayCard.hidden').count()) === 1);
   check('total cash still untouched after a sweep', (await page.textContent('#cashVal')) === cashBefore,
     (await page.textContent('#cashVal')) + ' was ' + cashBefore);
-  await page.click('.tab[data-view="today"]');
+  await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(250);
 
   /* ---- income ---- */
@@ -216,7 +216,7 @@ function launchOpts() {
   const heroBeforeIncome = await page.textContent('#heroVal');
   await page.click('#saveEntry');
   await page.waitForTimeout(450);
-  await page.click('.tab[data-view="today"]');
+  await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(300);
   check('income does not change the day total', (await page.textContent('#heroVal')) === heroBeforeIncome,
     (await page.textContent('#heroVal')) + ' was ' + heroBeforeIncome);
@@ -225,12 +225,12 @@ function launchOpts() {
   check('income row in the day list', (await page.locator('.badge.in').count()) >= 1);
   const verdictAfter = await page.textContent('#verdict');
   check('income does not change the verdict', /under|over/.test(verdictAfter), verdictAfter);
-  await page.click('.tab[data-view="trends"]');
+  await page.click('#moneyTabs .tab[data-view="trends"]');
   await page.waitForTimeout(300);
   check('in vs out card populated', /in/.test(await page.textContent('#flows')) && (await page.locator('.netpill').count()) === 2,
     await page.locator('.netpill').count());
   /* ---- income and spending move total cash; the round-up gap does not ---- */
-  await page.click('.tab[data-view="savings"]');
+  await page.click('#moneyTabs .tab[data-view="savings"]');
   await page.waitForTimeout(300);
   const cashPre = await page.textContent('#cashVal');
   await page.click('#openIncome');
@@ -238,7 +238,7 @@ function launchOpts() {
   for (const kk of ['1','0','0']) await page.click(`.key:text-is("${kk}")`);
   await page.click('#saveEntry');
   await page.waitForTimeout(400);
-  await page.click('.tab[data-view="savings"]');
+  await page.click('#moneyTabs .tab[data-view="savings"]');
   await page.waitForTimeout(300);
   const cashAfterIncome = await page.textContent('#cashVal');
   check('income raises total cash', cashAfterIncome !== cashPre, cashAfterIncome + ' was ' + cashPre);
@@ -250,13 +250,13 @@ function launchOpts() {
   for (const kk of ['1','2']) await page.click(`.key:text-is("${kk}")`);
   await page.click('#saveEntry');
   await page.waitForTimeout(400);
-  await page.click('.tab[data-view="savings"]');
+  await page.click('#moneyTabs .tab[data-view="savings"]');
   await page.waitForTimeout(300);
   const ledger = await page.textContent('#cashLedger');
   check('cash comes off by the real amount, not the rounded one',
     /−\$12(\D|$)/.test(ledger.replace(/\s+/g, ' ')) || /12\.00/.test(ledger), ledger);
 
-  await page.click('.tab[data-view="today"]');
+  await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(250);
 
   /* ---- backdating ---- */
@@ -272,13 +272,87 @@ function launchOpts() {
   await page.waitForTimeout(450);
   check('a backdated spend does not touch today', (await page.textContent('#heroVal')) === heroBeforeBackdate,
     (await page.textContent('#heroVal')) + ' was ' + heroBeforeBackdate);
-  await page.click('.tab[data-view="trends"]');
+  await page.click('#moneyTabs .tab[data-view="trends"]');
   await page.waitForTimeout(300);
   check('backdated spend lands in history', /Yesterday/.test(await page.textContent('#history')));
   check('date picker refuses the future',
     (await page.locator('#dayPick').getAttribute('max')) !== null);
-  await page.click('.tab[data-view="today"]');
+  await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(250);
+
+  /* ---- food: a separate app in the same shell ---- */
+  const moneyHero = await page.textContent('#heroVal');   // snapshot before we touch food
+  await page.click('.mode-btn[data-mode="food"]');
+  await page.waitForTimeout(400);
+  check('food mode swaps the views', (await page.locator('#v-eat.on').count()) === 1);
+  check('food tabs replace the money tabs',
+    (await page.locator('#moneyTabs').isVisible()) === false && await page.locator('#foodTabs').isVisible());
+  check('food starts at zero', (await page.textContent('#eatVal')) === '0', await page.textContent('#eatVal'));
+
+  await page.click('.chip:text-is("Meal 600")');
+  await page.waitForTimeout(400);
+  check('one tap logs a meal', (await page.textContent('#eatVal')) === '600', await page.textContent('#eatVal'));
+  await page.click('.chip:text-is("Snack 200")');
+  await page.waitForTimeout(400);
+  check('taps add up', (await page.textContent('#eatVal')) === '800', await page.textContent('#eatVal'));
+  check('budget verdict shown', /left/.test(await page.textContent('#eatVerdict')),
+    await page.textContent('#eatVerdict'));
+  check('entries listed', (await page.locator('#eatEntries .entry').count()) === 2,
+    await page.locator('#eatEntries .entry').count());
+
+  // saving a food, then logging it in one tap
+  await page.click('#foodTabs .tab[data-view="foods"]');
+  await page.waitForTimeout(300);
+  await page.fill('#foodName', 'Porridge');
+  await page.fill('#foodKcal', '347');
+  await page.click('#addFood');
+  await page.waitForTimeout(400);
+  check('saved food rounds up to 350', /350/.test(await page.textContent('#foodList')),
+    await page.textContent('#foodList'));
+  await page.click('#foodTabs .tab[data-view="eat"]');
+  await page.waitForTimeout(300);
+  check('saved food appears as a chip', (await page.locator('#favChips .chip').count()) === 1);
+  await page.click('#favChips .chip >> nth=0');
+  await page.waitForTimeout(400);
+  check('one tap logs the saved food', (await page.textContent('#eatVal')) === '1,150',
+    await page.textContent('#eatVal'));
+
+  // budget
+  await page.click('#foodTabs .tab[data-view="foods"]');
+  await page.waitForTimeout(300);
+  await page.fill('#dailyBudget', '1000');
+  await page.waitForTimeout(400);
+  await page.click('#foodTabs .tab[data-view="eat"]');
+  await page.waitForTimeout(300);
+  check('going over is flagged', /over/.test(await page.textContent('#eatVerdict')),
+    await page.textContent('#eatVerdict'));
+  check('meter fills', (await page.locator('#eatFill').getAttribute('style')).includes('width'),
+    await page.locator('#eatFill').getAttribute('style'));
+
+  // the two apps are genuinely separate
+  await page.click('.mode-btn[data-mode="money"]');
+  await page.waitForTimeout(400);
+  check('money side is untouched by food logging', (await page.textContent('#heroVal')) === moneyHero,
+    (await page.textContent('#heroVal')) + ' was ' + moneyHero);
+  const keys = await page.evaluate(() => Object.keys(localStorage));
+  check('food has its own storage key', keys.includes('fiver.food.v1'), keys.join(','));
+  check('money key untouched', keys.includes('fiver.v1'), keys.join(','));
+  const noLeak = await page.evaluate(() => {
+    const money = JSON.parse(localStorage.getItem('fiver.v1'));
+    return !JSON.stringify(money).includes('Porridge') && !('foods' in money);
+  });
+  check('no food data leaked into the money state', noLeak);
+
+  // mode survives a reload
+  await page.click('.mode-btn[data-mode="food"]');
+  await page.waitForTimeout(300);
+  await page.reload();
+  await page.waitForTimeout(600);
+  check('mode is remembered', (await page.locator('#v-eat.on').count()) === 1);
+  check('food data survives a reload', (await page.textContent('#eatVal')) === '1,150',
+    await page.textContent('#eatVal'));
+  await page.click('.mode-btn[data-mode="money"]');
+  await page.waitForTimeout(300);
 
   /* ---- no horizontal scroll ---- */
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -286,11 +360,11 @@ function launchOpts() {
 
   /* ---- screenshots, both themes ---- */
   await page.screenshot({ path: 'shot-today-light.png', fullPage: false });
-  await page.click('.tab[data-view="trends"]'); await page.waitForTimeout(300);
+  await page.click('#moneyTabs .tab[data-view="trends"]'); await page.waitForTimeout(300);
   await page.screenshot({ path: 'shot-trends-light.png' });
-  await page.click('.tab[data-view="savings"]'); await page.waitForTimeout(300);
+  await page.click('#moneyTabs .tab[data-view="savings"]'); await page.waitForTimeout(300);
   await page.screenshot({ path: 'shot-savings-light.png' });
-  await page.click('.tab[data-view="today"]'); await page.waitForTimeout(200);
+  await page.click('#moneyTabs .tab[data-view="today"]'); await page.waitForTimeout(200);
   await page.click('#openAdd'); await page.waitForTimeout(450);
   await page.screenshot({ path: 'shot-add-light.png' });
   await page.click('#closeAdd'); await page.waitForTimeout(300);

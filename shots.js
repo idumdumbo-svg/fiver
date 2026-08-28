@@ -26,22 +26,22 @@ function launchOpts() {
     await page.screenshot({ path: `s-welcome-${scheme}.png` });
     await page.click('#useLocal');
     await page.waitForTimeout(400);
-    await page.click('.tab[data-view="setup"]');
+    await page.click('#moneyTabs .tab[data-view="setup"]');
     await page.click('#demoBtn');
     await page.waitForTimeout(400);
-    await page.click('.tab[data-view="today"]');
+    await page.click('#moneyTabs .tab[data-view="today"]');
     await page.waitForTimeout(3600); // let the toast clear
     await page.screenshot({ path: `s-today-${scheme}.png` });
     await page.evaluate(() => window.scrollTo(0, 99999));
     await page.waitForTimeout(300);
     await page.screenshot({ path: `s-today-bottom-${scheme}.png` });
-    await page.click('.tab[data-view="trends"]'); await page.waitForTimeout(400);
+    await page.click('#moneyTabs .tab[data-view="trends"]'); await page.waitForTimeout(400);
     await page.screenshot({ path: `s-trends-${scheme}.png` });
     await page.evaluate(() => window.scrollTo(0, 99999)); await page.waitForTimeout(300);
     await page.screenshot({ path: `s-trends-bottom-${scheme}.png` });
-    await page.click('.tab[data-view="savings"]'); await page.waitForTimeout(400);
+    await page.click('#moneyTabs .tab[data-view="savings"]'); await page.waitForTimeout(400);
     await page.screenshot({ path: `s-savings-${scheme}.png` });
-    await page.click('.tab[data-view="today"]'); await page.waitForTimeout(200);
+    await page.click('#moneyTabs .tab[data-view="today"]'); await page.waitForTimeout(200);
     await page.click('#openAdd'); await page.waitForTimeout(600);
     for (const k of ['1','4']) await page.click(`.key:text-is("${k}")`);
     await page.waitForTimeout(300);
@@ -51,10 +51,25 @@ function launchOpts() {
     await page.waitForTimeout(300);
     await page.screenshot({ path: `s-income-${scheme}.png` });
     await page.click('#closeAdd'); await page.waitForTimeout(350);
-    await page.click('.tab[data-view="savings"]'); await page.waitForTimeout(300);
+    await page.click('#moneyTabs .tab[data-view="savings"]'); await page.waitForTimeout(300);
     await page.click('#doSweep'); await page.waitForTimeout(600);
     await page.screenshot({ path: `s-dest-${scheme}.png` });
     await page.click('#closeDest'); await page.waitForTimeout(300);
+
+    // food side
+    await page.click('.mode-btn[data-mode="food"]'); await page.waitForTimeout(400);
+    await page.click('.chip:text-is("Meal 600")'); await page.waitForTimeout(300);
+    await page.click('.chip:text-is("Snack 200")'); await page.waitForTimeout(300);
+    await page.click('#foodTabs .tab[data-view="foods"]'); await page.waitForTimeout(300);
+    await page.fill('#foodName', 'Porridge'); await page.fill('#foodKcal', '350');
+    await page.click('#addFood'); await page.waitForTimeout(300);
+    await page.fill('#foodName', 'Flat white'); await page.fill('#foodKcal', '120');
+    await page.click('#addFood'); await page.waitForTimeout(300);
+    await page.screenshot({ path: `s-foods-${scheme}.png` });
+    await page.click('#foodTabs .tab[data-view="eat"]'); await page.waitForTimeout(3500);
+    await page.screenshot({ path: `s-eat-${scheme}.png` });
+    await page.evaluate(() => window.scrollTo(0, 99999)); await page.waitForTimeout(400);
+    await page.screenshot({ path: `s-eat-bottom-${scheme}.png` });
     await ctx.close();
   }
   await run('light');
