@@ -30,9 +30,29 @@ function launchOpts() {
   });
   const page = await ctx.newPage();
   // font requests fail in this sandbox; only real script errors matter
-  const ignorable = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|net::ERR_INTERNET_DISCONNECTED|fonts\.googleapis/.test(t);
-  page.on('console', m => { if (m.type() === 'error' && !ignorable(m.text())) errors.push(m.text()); });
+  // Fonts and the rate API are third-party fetches the app is designed to
+  // survive losing. A failed request to either is not a JS error — and the
+  // browser's message for one says nothing about which URL failed, so the
+  // check has to look at where the message came from.
+  const THIRD_PARTY = /fonts\.googleapis|fonts\.gstatic|frankfurter/;
+  const ignorable = m => {
+    const t = m.text();
+    if (/ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|net::ERR_INTERNET_DISCONNECTED/.test(t)) return true;
+    if (THIRD_PARTY.test(t)) return true;
+    const loc = m.location && m.location();
+    return !!(loc && loc.url && THIRD_PARTY.test(loc.url));
+  };
+  page.on('console', m => { if (m.type() === 'error' && !ignorable(m)) errors.push(m.text()); });
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
+
+  // Block the rate API for the whole run. The tests must behave identically
+  // on a laptop with no signal and on a CI runner with a fat pipe, and a
+  // third-party API having a bad day must never fail this build. Rates are
+  // injected directly where the tests need them.
+  // A 503 rather than an abort: it exercises the same failure path without
+  // logging a network error the "no JS errors" check would then trip over.
+  await page.route('**/api.frankfurter.dev/**', route =>
+    route.fulfill({ status: 503, contentType: 'text/plain', body: 'blocked in tests' }));
 
   await page.goto('file://' + path.join(__dirname, 'fiver-standalone.html'));
   await page.waitForTimeout(600);
@@ -400,7 +420,7 @@ function launchOpts() {
     await page.locator('#curChips .chip').count());
   check('NZD selected by default', (await page.locator('#curChips .chip.on').textContent()).includes('NZD'),
     await page.locator('#curChips .chip.on').textContent());
-  check('rates degrade gracefully with no network',
+  check('rates degrade gracefully when the API is unreachable',
     /unavailable|not fetched/.test(await page.textContent('#fxLabel')), await page.textContent('#fxLabel'));
 
   // with rates cached, switching converts the history instead of rewriting it
