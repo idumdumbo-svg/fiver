@@ -75,7 +75,8 @@ function launchOpts() {
   await page.click('.chip:text-is("Eating out")');
   await page.click('#saveEntry');
   await page.waitForTimeout(400);
-  check('hero shows $15 after logging $14', (await page.textContent('#heroVal')) === '15', await page.textContent('#heroVal'));
+  check('hero shows 15 after logging 14', (await page.textContent('#heroVal')) === '15', await page.textContent('#heroVal'));
+  check('hero shows the NZ$ symbol', (await page.textContent('#heroCur')) === 'NZ$', await page.textContent('#heroCur'));
   check('3 blocks rendered', (await page.locator('.blk:not(.ghost):not(.more)').count()) === 3,
     await page.locator('.blk:not(.ghost):not(.more)').count());
 
@@ -106,7 +107,7 @@ function launchOpts() {
   await page.fill('#destNote', 'Japan fund');
   await page.click('#destConfirm');
   await page.waitForTimeout(400);
-  check('banked-by-app total is $1', (await page.textContent('#bankVal')) === '$1', await page.textContent('#bankVal'));
+  check('banked-by-app total is NZ$1', (await page.textContent('#bankVal')) === 'NZ$1', await page.textContent('#bankVal'));
   check('destination recorded', /Wise savings/.test(await page.textContent('#dests')), await page.textContent('#dests'));
   check('note recorded in the log', /Japan fund/.test(await page.textContent('#sweepLog')), await page.textContent('#sweepLog'));
   check('jar cannot be swept twice', await page.locator('#doSweep').isDisabled(), await page.textContent('#doSweep'));
@@ -178,9 +179,9 @@ function launchOpts() {
   await page.fill('#askInput', '3000');
   await page.click('#askOk');
   await page.waitForTimeout(350);
-  check('cash anchored from the modal', (await page.textContent('#cashVal')) === '$3,000', await page.textContent('#cashVal'));
+  check('cash anchored from the modal', (await page.textContent('#cashVal')) === 'NZ$3,000', await page.textContent('#cashVal'));
   const bankedNow = await page.textContent('#bankVal');
-  check('sweeps do not change total cash', (await page.textContent('#cashVal')) === '$3,000' && bankedNow !== '$0',
+  check('sweeps do not change total cash', (await page.textContent('#cashVal')) === 'NZ$3,000' && bankedNow !== 'NZ$0',
     (await page.textContent('#cashVal')) + ' / ' + bankedNow);
   check('yesterday card offers unswept money', (await page.locator('#ydayCard:not(.hidden)').count()) === 1,
     await page.locator('#ydayCard').getAttribute('class'));
@@ -254,7 +255,7 @@ function launchOpts() {
   await page.waitForTimeout(300);
   const ledger = await page.textContent('#cashLedger');
   check('cash comes off by the real amount, not the rounded one',
-    /−\$12(\D|$)/.test(ledger.replace(/\s+/g, ' ')) || /12\.00/.test(ledger), ledger);
+    /−NZ\$12(\D|$)/.test(ledger.replace(/\s+/g, ' ')) || /12\.00/.test(ledger), ledger);
 
   await page.click('#moneyTabs .tab[data-view="today"]');
   await page.waitForTimeout(250);
@@ -289,12 +290,28 @@ function launchOpts() {
     (await page.locator('#moneyTabs').isVisible()) === false && await page.locator('#foodTabs').isVisible());
   check('food starts at zero', (await page.textContent('#eatVal')) === '0', await page.textContent('#eatVal'));
 
-  await page.click('.chip:text-is("Meal 600")');
+  /* ---- the slider ---- */
+  check('log button starts disabled', await page.locator('#logSlider').isDisabled());
+  check('slider steps in 50s', (await page.locator('#kcalSlider').getAttribute('step')) === '50');
+  check('slider tops out at 1000', (await page.locator('#kcalSlider').getAttribute('max')) === '1000');
+  await page.locator('#kcalSlider').fill('600');
+  await page.waitForTimeout(250);
+  check('slider readout follows', (await page.textContent('#sliderVal')) === '600',
+    await page.textContent('#sliderVal'));
+  check('log button lights up once set', !(await page.locator('#logSlider').isDisabled()));
+  check('log button names the amount', /600/.test(await page.textContent('#logSlider')),
+    await page.textContent('#logSlider'));
+  await page.click('#logSlider');
   await page.waitForTimeout(400);
-  check('one tap logs a meal', (await page.textContent('#eatVal')) === '600', await page.textContent('#eatVal'));
-  await page.click('.chip:text-is("Snack 200")');
+  check('slider logs the amount', (await page.textContent('#eatVal')) === '600', await page.textContent('#eatVal'));
+  check('slider resets after logging', (await page.textContent('#sliderVal')) === '0',
+    await page.textContent('#sliderVal'));
+  check('log button disabled again', await page.locator('#logSlider').isDisabled());
+  await page.locator('#kcalSlider').fill('200');
+  await page.waitForTimeout(200);
+  await page.click('#logSlider');
   await page.waitForTimeout(400);
-  check('taps add up', (await page.textContent('#eatVal')) === '800', await page.textContent('#eatVal'));
+  check('amounts add up', (await page.textContent('#eatVal')) === '800', await page.textContent('#eatVal'));
   check('budget verdict shown', /left/.test(await page.textContent('#eatVerdict')),
     await page.textContent('#eatVerdict'));
   check('entries listed', (await page.locator('#eatEntries .entry').count()) === 2,
@@ -311,11 +328,33 @@ function launchOpts() {
     await page.textContent('#foodList'));
   await page.click('#foodTabs .tab[data-view="eat"]');
   await page.waitForTimeout(300);
-  check('saved food appears as a chip', (await page.locator('#favChips .chip').count()) === 1);
-  await page.click('#favChips .chip >> nth=0');
+  check('saved food appears as a chip', (await page.locator('#favChips .chip').count()) >= 1,
+    await page.locator('#favChips .chip').count());
+  const beforeChip = await page.textContent('#eatVal');
+  await page.click('#favChips .chip:text-is("Porridge 350")');
   await page.waitForTimeout(400);
-  check('one tap logs the saved food', (await page.textContent('#eatVal')) === '1,150',
+  check('one tap logs the saved food', (await page.textContent('#eatVal')) !== beforeChip,
+    (await page.textContent('#eatVal')) + ' was ' + beforeChip);
+
+  /* ---- naming a food must give a text keyboard, not a number pad ---- */
+  await page.click('#openEat');
+  await page.waitForTimeout(400);
+  check('amount step asks for digits',
+    (await page.locator('#askInput').getAttribute('inputmode')) === 'decimal',
+    await page.locator('#askInput').getAttribute('inputmode'));
+  await page.fill('#askInput', '450');
+  await page.click('#askOk');
+  await page.waitForTimeout(400);
+  check('name step asks for letters',
+    (await page.locator('#askInput').getAttribute('inputmode')) === 'text',
+    await page.locator('#askInput').getAttribute('inputmode'));
+  await page.fill('#askInput', 'Chicken roll');
+  await page.click('#askOk');
+  await page.waitForTimeout(400);
+  check('named entry logged', (await page.textContent('#eatVal')) === '1,600',
     await page.textContent('#eatVal'));
+  check('naming it saved it as a chip',
+    /Chicken roll/.test(await page.textContent('#favChips')), await page.textContent('#favChips'));
 
   // budget
   await page.click('#foodTabs .tab[data-view="foods"]');
@@ -349,10 +388,79 @@ function launchOpts() {
   await page.reload();
   await page.waitForTimeout(600);
   check('mode is remembered', (await page.locator('#v-eat.on').count()) === 1);
-  check('food data survives a reload', (await page.textContent('#eatVal')) === '1,150',
+  check('food data survives a reload', (await page.textContent('#eatVal')) === '1,600',
     await page.textContent('#eatVal'));
   await page.click('.mode-btn[data-mode="money"]');
   await page.waitForTimeout(300);
+
+  /* ---- currency ---- */
+  await page.click('#moneyTabs .tab[data-view="setup"]');
+  await page.waitForTimeout(300);
+  check('three currencies offered', (await page.locator('#curChips .chip').count()) === 3,
+    await page.locator('#curChips .chip').count());
+  check('NZD selected by default', (await page.locator('#curChips .chip.on').textContent()).includes('NZD'),
+    await page.locator('#curChips .chip.on').textContent());
+  check('rates degrade gracefully with no network',
+    /unavailable|not fetched/.test(await page.textContent('#fxLabel')), await page.textContent('#fxLabel'));
+
+  // with rates cached, switching converts the history instead of rewriting it
+  await page.evaluate(() => {
+    localStorage.setItem('fiver.rates.v1', JSON.stringify({
+      today: { NZD: 1.6, AUD: 1.5, JPY: 150 },
+      prev:  { NZD: 1.62, AUD: 1.5, JPY: 151 },
+      date: '2026-08-28', fetchedAt: Date.now()
+    }));
+  });
+  await page.reload();
+  await page.waitForTimeout(600);
+  await page.click('#moneyTabs .tab[data-view="setup"]');
+  await page.waitForTimeout(300);
+  check('rate line shows USD value', /US\$/.test(await page.textContent('#fxLabel')),
+    await page.textContent('#fxLabel'));
+  check('daily move against USD shown', /▲|▼|flat/.test(await page.textContent('#fxLabel')),
+    await page.textContent('#fxLabel'));
+
+  await page.click('#moneyTabs .tab[data-view="today"]');
+  await page.waitForTimeout(300);
+  const nzTotal = await page.textContent('#heroVal');
+  await page.click('#moneyTabs .tab[data-view="setup"]');
+  await page.waitForTimeout(250);
+  await page.click('#curChips .chip:has-text("JPY")');
+  await page.waitForTimeout(500);
+  await page.click('#moneyTabs .tab[data-view="today"]');
+  await page.waitForTimeout(400);
+  check('symbol switches to yen', (await page.textContent('#heroCur')) === '¥',
+    await page.textContent('#heroCur'));
+  const jpyTotal = await page.textContent('#heroVal');
+  check('history converts rather than staying put', jpyTotal !== nzTotal, jpyTotal + ' vs ' + nzTotal);
+  check('yen total is roughly 94x the NZ one',
+    Math.abs((parseFloat(jpyTotal.replace(/,/g,'')) / parseFloat(nzTotal.replace(/,/g,''))) - 93.75) < 5,
+    jpyTotal + ' / ' + nzTotal);
+
+  // the round-up step follows the currency
+  await page.click('#openAdd');
+  await page.waitForTimeout(400);
+  for (const kk of ['1','3','2','0']) await page.click(`.key:text-is("${kk}")`);
+  const yenNote = await page.textContent('#amtNote');
+  check('yen rounds up to the next 500', /1,500/.test(yenNote), yenNote);
+  await page.click('#closeAdd');
+  await page.waitForTimeout(300);
+
+  // and the stored data is untouched by the display switch
+  const untouched = await page.evaluate(() => {
+    const m = JSON.parse(localStorage.getItem('fiver.v1'));
+    return m.entries.every(e => e.currency === 'NZD');
+  });
+  check('stored entries keep the currency they were logged in', untouched);
+
+  await page.click('#moneyTabs .tab[data-view="setup"]');
+  await page.waitForTimeout(250);
+  await page.click('#curChips .chip:has-text("NZD")');
+  await page.waitForTimeout(400);
+  await page.click('#moneyTabs .tab[data-view="today"]');
+  await page.waitForTimeout(300);
+  check('switching back restores the original total', (await page.textContent('#heroVal')) === nzTotal,
+    (await page.textContent('#heroVal')) + ' was ' + nzTotal);
 
   /* ---- no horizontal scroll ---- */
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

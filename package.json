@@ -5,8 +5,8 @@
   "description": "Two small trackers in one shell: round-up spending, and calorie estimates.",
   "scripts": {
     "build": "node build.js",
-    "test": "node test.js && node test-cal.js && node uitest.js && node pwatest.js",
-    "test:logic": "node test.js && node test-cal.js",
+    "test": "node test.js && node test-cal.js && node test-fx.js && node uitest.js && node pwatest.js",
+    "test:logic": "node test.js && node test-cal.js && node test-fx.js",
     "test:app": "node uitest.js",
     "test:offline": "node pwatest.js",
     "icons": "python3 icons.py",

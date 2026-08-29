@@ -38,6 +38,8 @@ jobs:
         run: node test.js
       - name: Logic tests (food)
         run: node test-cal.js
+      - name: Logic tests (currency)
+        run: node test-fx.js
       - name: App tests
         run: node uitest.js
       - name: Offline / installability tests

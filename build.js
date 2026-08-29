@@ -26,9 +26,9 @@ function moduleSource(file) {
   if (!stripped) throw new Error('no module.exports block found in ' + file);
   return keep.join('\n');
 }
-logic = moduleSource('dates.js') + '\n' + logic + '\n' + moduleSource('calories.js');
+logic = moduleSource('dates.js') + '\n' + moduleSource('currency.js') + '\n' + logic + '\n' + moduleSource('calories.js');
 ['roundUp','dayTotals','baselineFor','sweepOffer','dayIncome','rangeIncome',
- 'netFor','totalSwept','sweptByDest','series','fmt'].forEach(function (fn) {
+ 'netFor','totalSwept','sweptByDest','series','fmt','convert','fmtMoneyIn','dailyMove'].forEach(function (fn) {
   if (logic.indexOf('function ' + fn + '(') === -1) throw new Error('logic.js lost ' + fn);
 });
 var tpl = fs.readFileSync('template.html', 'utf8');

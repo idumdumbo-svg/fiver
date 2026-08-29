@@ -79,6 +79,29 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
   transition:width .35s cubic-bezier(.32,.72,0,1)}
 .meter .fill.over{background:var(--block-over)}
 @media (prefers-reduced-motion:reduce){.meter .fill{transition:none}}
+.slider-val{font-family:"Archivo",sans-serif;font-weight:800;font-size:26px;line-height:1;
+  font-variation-settings:"wdth" 118;font-variant-numeric:tabular-nums;color:var(--muted);
+  transition:color .15s}
+.slider-val.set{color:var(--ink)}
+.slider-val::after{content:" kcal";font-family:"IBM Plex Mono",monospace;font-size:11px;
+  font-weight:400;color:var(--muted);letter-spacing:.04em}
+.slider{-webkit-appearance:none;appearance:none;width:100%;height:34px;background:transparent;
+  display:block;cursor:pointer}
+.slider:focus{outline:none}
+.slider:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--accent-soft)}
+.slider::-webkit-slider-runnable-track{height:10px;border-radius:5px;background:var(--block-empty)}
+.slider::-moz-range-track{height:10px;border-radius:5px;background:var(--block-empty)}
+.slider::-moz-range-progress{height:10px;border-radius:5px;background:var(--block)}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:28px;height:28px;
+  border-radius:50%;background:var(--surface);border:2px solid var(--block);margin-top:-9px;
+  box-shadow:var(--shadow);transition:transform .1s,border-color .15s}
+.slider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--surface);
+  border:2px solid var(--block);box-shadow:var(--shadow)}
+.slider:active::-webkit-slider-thumb{transform:scale(1.12)}
+.slider.set::-webkit-slider-thumb{border-color:var(--accent);background:var(--accent)}
+.slider.set::-moz-range-thumb{border-color:var(--accent);background:var(--accent)}
+.slider-scale{display:flex;justify-content:space-between;margin-top:-2px;padding:0 2px}
+.slider-scale span{font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--muted)}
 .foodrow{display:flex;align-items:center;gap:12px;padding:11px 2px;
   border-bottom:1px solid var(--line-soft);width:100%;text-align:left}
 .foodrow:last-child{border-bottom:0}
@@ -438,7 +461,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
           <span class="eyebrow" id="todayLabel">TODAY</span>
           <span class="eyebrow" id="todayCount">0 ENTRIES</span>
         </div>
-        <div class="hero-amount"><span class="cur">$</span><span class="val" id="heroVal">0</span></div>
+        <div class="hero-amount"><span class="cur" id="heroCur">$</span><span class="val" id="heroVal">0</span></div>
         <div class="hero-sub" id="heroSub">Nothing logged yet</div>
 
         <div class="blocks" id="blocks"></div>
@@ -620,14 +643,25 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
       </div>
 
       <div class="card">
-        <h2>Quick log</h2>
-        <p class="note-line" style="margin:2px 0 10px">One tap. These are estimates and always will be — that's the point.</p>
-        <div class="chips" id="quickKcal"></div>
-        <div id="favWrap" class="hidden" style="margin-top:12px">
+        <div class="row" style="margin-bottom:2px">
+          <h2>Quick log</h2>
+          <span class="slider-val" id="sliderVal">0</span>
+        </div>
+        <p class="note-line" style="margin:2px 0 14px">Slide to roughly what it was. Estimates, always — that's the point.</p>
+
+        <input type="range" class="slider" id="kcalSlider" min="0" max="1000" step="50" value="0"
+               aria-label="Calorie estimate">
+        <div class="slider-scale" id="sliderScale"></div>
+
+        <div class="btn-row" style="margin-top:14px">
+          <button class="btn primary" id="logSlider" disabled style="flex:2">Log it</button>
+          <button class="btn" id="openEat" style="flex:1">Enter amount</button>
+        </div>
+
+        <div id="favWrap" class="hidden" style="margin-top:16px">
           <span class="eyebrow" style="display:block;margin-bottom:7px">THINGS YOU EAT</span>
           <div class="chips" id="favChips"></div>
         </div>
-        <button class="btn wide" id="openEat" style="margin-top:12px">Something else…</button>
       </div>
 
       <div class="card">
@@ -672,7 +706,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         <h2>Things you eat often</h2>
         <span class="note-line">Save anything you log more than once. It becomes a one-tap chip on the Today screen.</span>
         <div class="btn-row" style="gap:8px">
-          <input class="input" id="foodName" placeholder="Porridge" maxlength="30" style="flex:2">
+          <input class="input" id="foodName" type="text" inputmode="text" placeholder="Porridge" maxlength="30" style="flex:2">
           <input class="input" id="foodKcal" inputmode="numeric" placeholder="350" style="flex:1">
         </div>
         <button class="btn primary wide" id="addFood">Save it</button>
@@ -704,6 +738,13 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
           <input class="input" id="goalDaily" inputmode="decimal" placeholder="e.g. 40">
           <span class="note-line">Sets a hard line on the block grid. Leave blank to just race your own average.</span>
         </div>
+      </div>
+
+      <div class="card stack">
+        <h2>Currency</h2>
+        <div class="chips" id="curChips"></div>
+        <div class="acct" id="fxRow"><span class="dot"></span><span id="fxLabel">Checking rates…</span></div>
+        <span class="note-line">Amounts you log are stamped with the currency you logged them in. Switching converts older entries for display at today's rate — it never rewrites what you actually spent.</span>
       </div>
 
       <div class="card stack">
@@ -826,7 +867,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
           <button class="btn sm ghost hidden" id="photoClear" style="color:var(--over)">Remove</button>
           <input type="file" accept="image/*" capture="environment" id="photoInp" class="hidden">
         </div>
-        <input class="input" id="noteInp" placeholder="Note — e.g. lunch with the crew" maxlength="60">
+        <input class="input" id="noteInp" type="text" inputmode="text" placeholder="Note — e.g. lunch with the crew" maxlength="60">
         <div class="toggle" id="fixedToggle">
           <span class="t-copy">
             <span class="t-label">Fixed cost</span>
@@ -850,7 +891,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
   <div class="sheet-head"><h3 id="askTitle">—</h3><button class="x" id="closeDetail" aria-label="Close">×</button></div>
   <div class="stack">
     <p class="note-line" id="askHint"></p>
-    <input class="input" id="askInput" inputmode="decimal" autocomplete="off">
+    <input class="input" id="askInput" type="text" inputmode="decimal" autocomplete="off">
     <textarea class="input hidden" id="askText" rows="7" readonly style="font-family:'IBM Plex Mono',monospace;font-size:11px;resize:vertical"></textarea>
     <div class="btn-row">
       <button class="btn" id="askCancel">Cancel</button>
@@ -869,8 +910,8 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
       <label>Where is it going?</label>
       <div class="chips" id="destChips"></div>
     </div>
-    <input class="input" id="destNew" placeholder="Somewhere else — name it" maxlength="28">
-    <input class="input" id="destNote" placeholder="What for? (optional)" maxlength="60">
+    <input class="input" id="destNew" type="text" inputmode="text" placeholder="Somewhere else — name it" maxlength="28">
+    <input class="input" id="destNote" type="text" inputmode="text" placeholder="What for? (optional)" maxlength="60">
     <button class="btn brass wide" id="destConfirm">Move it</button>
   </div>
 </div>
@@ -916,6 +957,8 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 var KEY = 'fiver.v1';
 var FOOD_KEY = 'fiver.food.v1';     // its own key — lift the food app out by taking this
 var MODE_KEY = 'fiver.mode';
+var RATES_KEY = 'fiver.rates.v1';
+var RATES_URL = 'https://api.frankfurter.dev/v1/';   // ECB reference rates, no key, CORS-open
 var mode = 'money';
 var CATS = [
   {name:'Groceries', tag:'GROC', fixed:false},
@@ -944,10 +987,10 @@ var catRange = 'week';
 function blank(){
   return {
     version:3, entries:[], income:[], sweeps:[], noSpend:[],
-    cash:{ anchor:null, ts:0, day:null, lastDrift:null },
+    cash:{ anchor:null, ts:0, day:null, lastDrift:null, currency:'NZD' },
     destinations:DEFAULT_DESTS.slice(),
     account:null, onboarded:false, lastExport:null, backupSnooze:0,
-    settings:{ baselineMode:'week7', dayStartHour:0, goalDaily:null }
+    settings:{ baselineMode:'week7', dayStartHour:0, goalDaily:null, currency:'NZD' }
   };
 }
 /* One migration path, used by both load and import, so an old backup
@@ -971,6 +1014,13 @@ function migrate(s){
   delete s.savings; delete s.savingsSet;
   if(typeof s.cash.anchor === 'undefined') s.cash.anchor = null;
   s.settings = Object.assign(b.settings, s.settings || {});
+  if(!CURRENCIES[s.settings.currency]) s.settings.currency = 'NZD';
+  // everything logged before currencies existed was in the base currency
+  var base = s.settings.currency;
+  s.entries.forEach(function(e){ if(!e.currency) e.currency = base; });
+  s.income.forEach(function(e){ if(!e.currency) e.currency = base; });
+  s.sweeps.forEach(function(w){ if(!w.currency) w.currency = base; });
+  if(s.cash && !s.cash.currency) s.cash.currency = base;
   s.account = s.account || null;
   if(typeof s.onboarded !== 'boolean') s.onboarded = s.entries.length > 0;
   s.version = b.version;
@@ -1033,6 +1083,73 @@ function foodDayStart(){ return state.settings.dayStartHour || 0; }
 function foodToday(){ return dayKey(Date.now(), foodDayStart()); }
 
 /* ============================================================
+   currency — one setting changes the symbol, the decimals and
+   the round-up step. Entries keep the currency they were logged
+   in; the display converts them at today's rate rather than
+   rewriting what you actually spent.
+   ============================================================ */
+var rates = loadRates();
+var view = state;                    // state expressed in the display currency
+function refreshView(){ view = viewState(); }
+
+function displayCur(){ return state.settings.currency || 'NZD'; }
+
+function loadRates(){
+  try{ return JSON.parse(localStorage.getItem(RATES_KEY)) || null; }catch(e){ return null; }
+}
+function saveRates(r){ try{ localStorage.setItem(RATES_KEY, JSON.stringify(r)); }catch(e){} }
+function rateTable(){ return rates && rates.today ? rates.today : null; }
+
+/* Every existing fmt()/roundUp()/parseAmount() call site becomes
+   currency-aware by swapping the implementations once, rather than
+   by touching a hundred places. */
+var fmtBase = fmt, roundUpBase = roundUp, parseAmountBase = parseAmount;
+fmt = function(minor, opts){ return fmtMoneyIn(minor, displayCur(), opts); };
+roundUp = function(minor, step){
+  return step ? roundUpBase(minor, step) : roundUpIn(minor, displayCur());
+};
+parseAmount = function(str){ return parseMoneyIn(str, displayCur()); };
+
+/* A copy of the money state with every amount expressed in the
+   display currency, so the aggregation logic never has to know
+   currencies exist. */
+function viewState(){
+  var to = displayCur(), tbl = rateTable();
+  function conv(minor, from){
+    if(!from || from === to) return minor;
+    var v = convert(minor, from, to, tbl);
+    return v === null ? 0 : v;
+  }
+  var foreign = function(e){ return e.currency && e.currency !== to; };
+  if(!state.entries.some(foreign) && !state.income.some(foreign) && !state.sweeps.some(foreign)){
+    return state;   // nothing to convert — the common case
+  }
+  var v = Object.create(state);
+  v.entries = state.entries.map(function(e){
+    if(!foreign(e)) return e;
+    var c = Object.create(e);
+    c.actual = e.actual == null ? null : conv(e.actual, e.currency);
+    c.rounded = conv(e.rounded, e.currency);
+    return c;
+  });
+  v.income = state.income.map(function(e){
+    if(!foreign(e)) return e;
+    var c = Object.create(e); c.cents = conv(e.cents, e.currency); return c;
+  });
+  v.sweeps = state.sweeps.map(function(w){
+    if(!foreign(w)) return w;
+    var c = Object.create(w); c.cents = conv(w.cents, w.currency); return c;
+  });
+  if(state.cash && state.cash.anchor != null && foreign(state.cash)){
+    v.cash = Object.create(state.cash);
+    v.cash.anchor = conv(state.cash.anchor, state.cash.currency);
+    v.cash.lastDrift = state.cash.lastDrift == null ? null
+      : conv(state.cash.lastDrift, state.cash.currency);
+  }
+  return v;
+}
+
+/* ============================================================
    small helpers
    ============================================================ */
 function $(id){ return document.getElementById(id); }
@@ -1072,6 +1189,7 @@ function hideToast(){ $('toast').classList.remove('on'); }
    render
    ============================================================ */
 function render(){
+  refreshView();
   renderWelcome();
   renderMode();
   if(mode === 'food'){ renderEat(); renderFoods(); return; }
@@ -1084,18 +1202,20 @@ function render(){
 
 function renderToday(){
   var k = today();
-  var t = dayTotals(state, k);
-  var c = compareToBaseline(state, k);
+  var t = dayTotals(view, k);
+  var c = compareToBaseline(view, k);
 
   $('todayLabel').textContent = prettyDay(k).toUpperCase() + ' · ' + shortDate(k);
-  var streak = trackingStreak(state, k);
+  var streak = trackingStreak(view, k);
   $('todayCount').textContent = (streak > 0 ? streak + ' DAY' + (streak===1?'':'S') + ' · ' : '') +
     (t.count === 1 ? '1 ENTRY' : t.count + ' ENTRIES');
-  $('heroVal').textContent = fmt(t.total, {decimals:false}).replace('$','');
+  var sym = currencyOf(displayCur()).symbol;
+  $('heroCur').textContent = sym;
+  $('heroVal').textContent = fmt(t.total, {decimals:false}).split(sym).join('');
 
   var blocks = Math.round(t.flex / 500);
   var sub = [];
-  if(t.count === 0 && isTracked(state,k)) sub.push('<b>No-spend day</b> — nothing logged, on purpose');
+  if(t.count === 0 && isTracked(view,k)) sub.push('<b>No-spend day</b> — nothing logged, on purpose');
   else if(t.count === 0) sub.push('Nothing logged yet');
   else sub.push('<b>' + blocks + '</b> block' + (blocks===1?'':'s') + ' of day-to-day spending');
   if(t.jar > 0) sub.push('<b>' + fmt(t.jar) + '</b> rounded up');
@@ -1152,7 +1272,7 @@ function renderToday(){
   } else fb.classList.add('hidden');
 
   // --- income strip ---
-  var inToday = dayIncome(state, k);
+  var inToday = dayIncome(view, k);
   var ib = $('incomeBar');
   if(inToday > 0){
     var srcs = state.income.filter(function(e){ return e.day===k; }).map(function(e){ return e.source; });
@@ -1171,7 +1291,7 @@ function renderToday(){
     .sort(function(a,b){ return b.ts - a.ts; });
   todays.forEach(function(x){ list.appendChild(x.node()); });
   $('todayEmpty').classList.toggle('hidden', t.count > 0);
-  if(isTracked(state,k) && t.count===0){
+  if(isTracked(view,k) && t.count===0){
     $('todayEmpty').innerHTML = '<p style="color:var(--good);font-weight:600">No-spend day logged. Nice one.</p>' +
       '<button class="btn sm" id="undoNoSpend">Undo</button>';
     $('undoNoSpend').onclick = function(){
@@ -1186,7 +1306,7 @@ function renderToday(){
   // --- sweep card ---
   // At 11am, "you're $101 under your average" is not money — it's a day that
   // hasn't happened yet. The bonus is only advertised once the day is done.
-  var off = sweepOffer(state, k);
+  var off = sweepOffer(view, k);
   var done = dayOver();
   var sc = $('sweepCard');
   if(off.jar > 0 || (done && off.total > 0)){
@@ -1220,7 +1340,7 @@ function resetEmpty(){
 
 function trackedDaysBeforeCount(k){
   var n = 0;
-  for(var i=0;i<=30;i++){ if(isTracked(state, shiftDay(k,-i))) n++; }
+  for(var i=0;i<=30;i++){ if(isTracked(view, shiftDay(k,-i))) n++; }
   return n;
 }
 function shortDate(key){
@@ -1275,9 +1395,9 @@ function entryRow(e){
 function renderTrends(){
   var k = today();
   var ws = weekStart(k);
-  var wk = rangeTotals(state, ws, k);
+  var wk = rangeTotals(view, ws, k);
   var ms = k.slice(0,8) + '01';
-  var mo = rangeTotals(state, ms, k);
+  var mo = rangeTotals(view, ms, k);
 
   $('wkTotal').textContent = fmt(wk.total,{decimals:false});
   $('wkSub').textContent = fmt(wk.avgFlex,{decimals:false}) + '/day day-to-day · ' + wk.trackedDays + ' day' + (wk.trackedDays===1?'':'s') + ' tracked';
@@ -1287,8 +1407,8 @@ function renderTrends(){
   // in vs out
   var flows = $('flows'); flows.innerHTML = '';
   [['This week', ws], ['This month', ms]].forEach(function(pair){
-    var inn = rangeIncome(state, pair[1], k).total;
-    var out = rangeTotals(state, pair[1], k).total;
+    var inn = rangeIncome(view, pair[1], k).total;
+    var out = rangeTotals(view, pair[1], k).total;
     var net = inn - out;
     var r = el('div','flowrow');
     r.appendChild(el('span','lbl', pair[0]));
@@ -1302,15 +1422,15 @@ function renderTrends(){
     flows.appendChild(r);
   });
 
-  var b = baselineFor(state, k);
+  var b = baselineFor(view, k);
   $('avgVal').textContent = b ? fmt(b.value,{decimals:false}) : '—';
-  var w = winsIn(state, k, 7);
+  var w = winsIn(view, k, 7);
   $('winsVal').textContent = w.wins + '/' + w.of;
   $('winsSub').textContent = w.of ? 'of your last ' + w.of + ' tracked days, under baseline' : 'needs a few tracked days';
 
   // 14-day bar chart
   var goal = state.settings.goalDaily;
-  var ser = series(state, k, 14);
+  var ser = series(view, k, 14);
   var vals = ser.map(function(d){ return d.cents; }).filter(function(v){ return v != null; });
   var max = Math.max.apply(null, vals.concat([b ? b.value : 0, 500]));
   var chart = $('chart'); chart.innerHTML = '';
@@ -1348,7 +1468,7 @@ function renderTrends(){
 
   // categories
   var from = catRange === 'week' ? ws : ms;
-  var cats = categoryTotals(state, from, k);
+  var cats = categoryTotals(view, from, k);
   var box = $('cats'); box.innerHTML = '';
   if(!cats.length){ box.appendChild(el('div','empty','Nothing logged in this period yet.')); }
   else {
@@ -1374,7 +1494,7 @@ function renderTrends(){
   var keys = Object.keys(days).sort().reverse().slice(0,60);
   if(!keys.length){ h.appendChild(el('div','empty','No history yet.')); return; }
   keys.forEach(function(key){
-    var t = dayTotals(state, key);
+    var t = dayTotals(view, key);
     var g = el('div','daygroup');
     var dh = el('div','dh');
     dh.appendChild(el('span','d', prettyDay(key)));
@@ -1392,8 +1512,8 @@ var sweepPick = { jar:true, bonus:false };
 function renderSavings(){
   var k = today();
   // --- money you have ---
-  var cash = cashNow(state);
-  var mv = cashMovement(state);
+  var cash = cashNow(view);
+  var mv = cashMovement(view);
   var cv = $('cashVal');
   cv.textContent = cash === null ? '—' : fmt(cash, {decimals: Math.abs(cash) % 100 !== 0});
   cv.classList.toggle('neg', cash !== null && cash < 0);
@@ -1426,7 +1546,7 @@ function renderSavings(){
   }
 
   // --- saved by fiver ---
-  var banked = totalSwept(state);
+  var banked = totalSwept(view);
   $('bankVal').textContent = fmt(banked);
   var jarSwept = 0, bonusSwept = 0;
   (state.sweeps||[]).forEach(function(sw){
@@ -1444,7 +1564,7 @@ function renderSavings(){
 
   // where it went
   var dbox = $('dests'); dbox.innerHTML = '';
-  var dests = sweptByDest(state);
+  var dests = sweptByDest(view);
   if(!dests.length){ dbox.appendChild(el('div','empty','Nothing moved yet.')); }
   else {
     var top = dests[0].cents;
@@ -1462,16 +1582,16 @@ function renderSavings(){
     });
   }
 
-  var off = sweepOffer(state, k);
+  var off = sweepOffer(view, k);
   $('jarAmt').textContent = fmt(off.jar);
   $('bonusAmt').textContent = fmt(off.bonus,{decimals:false});
 
-  var t = dayTotals(state, k);
+  var t = dayTotals(view, k);
   $('jarHint').textContent = off.jar > 0
     ? 'You spent ' + fmt(t.total - t.jar) + ' but logged ' + fmt(t.total,{decimals:false}) + '. This is the gap.'
     : (t.count ? 'Nothing left to move today.' : 'Log a spend to build this up.');
 
-  var c = compareToBaseline(state, k);
+  var c = compareToBaseline(view, k);
   $('bonusHint').textContent = c.diff === null
     ? 'Needs a few tracked days before this means anything.'
     : (off.bonus > 0
@@ -1497,9 +1617,9 @@ function renderSavings(){
   // Yesterday's numbers are final, so anything left there is worth catching
   // before it quietly disappears.
   var yk = shiftDay(k, -1);
-  var yoff = sweepOffer(state, yk);
+  var yoff = sweepOffer(view, yk);
   var yc = $('ydayCard');
-  if(yoff.total > 0 && isTracked(state, yk)){
+  if(yoff.total > 0 && isTracked(view, yk)){
     yc.classList.remove('hidden');
     var yp = [];
     if(yoff.jar>0) yp.push('<b>' + fmt(yoff.jar) + '</b> of round-up change');
@@ -1586,13 +1706,11 @@ function renderEat(){
     v.innerHTML = '<span class="arrow">▼</span><span><b>' + fmtKcal(c.left) + ' left</b> of your daily budget <span class="why">(' + fmtKcal(c.budget) + ')</span></span>';
   }
 
-  // quick chips
-  var qc = $('quickKcal'); qc.innerHTML = '';
-  QUICK_KCAL.forEach(function(q){
-    var b = el('button','chip', q.label + ' ' + q.kcal);
-    b.onclick = function(){ logKcal(q.kcal, q.label, null); };
-    qc.appendChild(b);
-  });
+  // the scale under the slider is drawn once
+  var sc = $('sliderScale');
+  if(!sc.children.length){
+    [0,250,500,750,1000].forEach(function(n){ sc.appendChild(el('span', null, String(n))); });
+  }
 
   // favourites
   var favs = sortedFoods(foodState).slice(0, 8);
@@ -1693,7 +1811,17 @@ function renderFoods(){
   });
 }
 
-/* A custom amount is rare next to the one-tap chips, so it borrows
+/* The slider gives a number, not a name. Reuse the old quick-log
+   labels so the day's list reads like food rather than arithmetic. */
+function labelForKcal(v){
+  var best = QUICK_KCAL[0];
+  for(var i=0;i<QUICK_KCAL.length;i++){
+    if(Math.abs(QUICK_KCAL[i].kcal - v) < Math.abs(best.kcal - v)) best = QUICK_KCAL[i];
+  }
+  return best.label;
+}
+
+/* A custom amount is rare next to the slider, so it borrows
    the plain modal rather than earning a keypad of its own. */
 function openEatSheet(){
   ask({
@@ -1711,7 +1839,7 @@ function askName(kcal){
   ask({
     title:'Call it what?',
     hint: fmtKcal(kcal) + ' kcal. Leave blank for "Something". Naming it saves it as a one-tap chip.',
-    value:'', placeholder:'Chicken roll', okLabel:'Log it',
+    value:'', placeholder:'Chicken roll', okLabel:'Log it', inputmode:'text',
     onOk: function(name){
       name = String(name || '').trim();
       if(!name){ logKcal(kcal, 'Something', null); return; }
@@ -1784,10 +1912,11 @@ function confirmDeleteFood(f){
 
 /* ---------------- setup ---------------- */
 function renderSetup(){
+  renderCurrency();
   $('baseMode').value = state.settings.baselineMode;
   $('dayStart').value = String(state.settings.dayStartHour);
   $('goalDaily').value = state.settings.goalDaily ? (state.settings.goalDaily/100) : '';
-  var s = trackingStreak(state, today());
+  var s = trackingStreak(view, today());
   $('todayCount').dataset.streak = s;
 }
 
@@ -1924,7 +2053,8 @@ function commitEntry(){
     } else {
       var its = timestampForDay(draft.day, Date.now(), state.settings.dayStartHour);
       state.income.push({ id: uid(), ts: its, day: dayKey(its, state.settings.dayStartHour),
-        cents: cents, source: draft.source, note: draft.note, photo: draft.photo });
+        cents: cents, currency: displayCur(), source: draft.source,
+        note: draft.note, photo: draft.photo });
       toast('Logged +' + fmt(cents) + ' in' + (draft.day !== today() ? ' on ' + prettyDay(draft.day) : ''));
     }
     save(); hideSheet(); render();
@@ -1950,8 +2080,8 @@ function commitEntry(){
     var k = dayKey(ts, state.settings.dayStartHour);
     state.entries.push({
       id: uid(), ts: ts, day: k,
-      actual: cents, rounded: rounded, category: draft.category,
-      fixed: draft.fixed, note: draft.note, photo: draft.photo
+      actual: cents, rounded: rounded, currency: displayCur(),
+      category: draft.category, fixed: draft.fixed, note: draft.note, photo: draft.photo
     });
     // logging a spend cancels a no-spend mark for that day
     state.noSpend = (state.noSpend||[]).filter(function(d){ return d !== k; });
@@ -2053,11 +2183,11 @@ function confirmDest(){
   var note = $('destNote').value.trim();
   var ts = Date.now(), moved = 0;
   if(pendingSweep.jar > 0){
-    state.sweeps.push({id:uid(), day:pendingSweep.day, kind:'jar', cents:pendingSweep.jar, ts:ts, dest:dest, note:note});
+    state.sweeps.push({id:uid(), day:pendingSweep.day, kind:'jar', cents:pendingSweep.jar, currency:displayCur(), ts:ts, dest:dest, note:note});
     moved += pendingSweep.jar;
   }
   if(pendingSweep.bonus > 0){
-    state.sweeps.push({id:uid(), day:pendingSweep.day, kind:'bonus', cents:pendingSweep.bonus, ts:ts+1, dest:dest, note:note});
+    state.sweeps.push({id:uid(), day:pendingSweep.day, kind:'bonus', cents:pendingSweep.bonus, currency:displayCur(), ts:ts+1, dest:dest, note:note});
     moved += pendingSweep.bonus;
   }
   pendingSweep = null;
@@ -2083,6 +2213,10 @@ function ask(opts){
   $('askHint').textContent = opts.hint || '';
   $('askHint').classList.toggle('hidden', !opts.hint);
   var inp = $('askInput'), txt = $('askText');
+  // A text prompt must get a text keyboard. Leaving this on "decimal"
+  // is why naming a food gave you a keypad with no letters on it.
+  inp.setAttribute('inputmode', opts.inputmode || 'decimal');
+  inp.setAttribute('autocapitalize', opts.inputmode === 'text' ? 'sentences' : 'off');
   txt.classList.add('hidden');
   if(opts.readonlyText != null){
     inp.classList.add('hidden');
@@ -2138,6 +2272,33 @@ function wire(){
   });
 
   // food
+  var slider = $('kcalSlider');
+  function syncSlider(){
+    var v = +slider.value;
+    $('sliderVal').textContent = fmtKcal(v);
+    $('sliderVal').classList.toggle('set', v > 0);
+    slider.classList.toggle('set', v > 0);
+    var btn = $('logSlider');
+    btn.disabled = v <= 0;
+    btn.textContent = v > 0 ? 'Log ' + fmtKcal(v) : 'Log it';
+    // webkit has no ::-moz-range-progress, so the filled track is painted here
+    var pct = (v / 1000) * 100;
+    slider.style.background =
+      'linear-gradient(to right, var(--block) ' + pct + '%, transparent ' + pct + '%)';
+    slider.style.backgroundSize = '100% 10px';
+    slider.style.backgroundPosition = '0 12px';
+    slider.style.backgroundRepeat = 'no-repeat';
+  }
+  slider.oninput = syncSlider;
+  slider.onchange = syncSlider;
+  $('logSlider').onclick = function(){
+    var v = +slider.value;
+    if(v <= 0) return;
+    logKcal(v, labelForKcal(v), null);
+    slider.value = 0; syncSlider();
+  };
+  syncSlider();
+
   $('openEat').onclick = openEatSheet;
   $('addFood').onclick = saveNewFood;
   $('dailyBudget').oninput = function(){
@@ -2222,7 +2383,7 @@ function wire(){
   };
   $('doSweep').onclick = function(){
     var k = today();
-    var off = sweepOffer(state, k);
+    var off = sweepOffer(view, k);
     openDest(k, {
       jar: sweepPick.jar ? off.jar : 0,
       bonus: sweepPick.bonus ? off.bonus : 0
@@ -2232,11 +2393,11 @@ function wire(){
   $('destConfirm').onclick = confirmDest;
   $('ydaySweep').onclick = function(){
     var yk = shiftDay(today(), -1);
-    var off = sweepOffer(state, yk);
+    var off = sweepOffer(view, yk);
     openDest(yk, { jar: off.jar, bonus: off.bonus }, 'yesterday');
   };
   $('setBal').onclick = function(){
-    var predicted = cashNow(state);
+    var predicted = cashNow(view);
     ask({
       title: predicted === null ? 'What have you got?' : 'What does it actually say?',
       hint: predicted === null
@@ -2251,6 +2412,7 @@ function wire(){
         var ts = Date.now();
         state.cash = {
           anchor: real, ts: ts, day: dayKey(ts, state.settings.dayStartHour),
+          currency: displayCur(),
           lastDrift: predicted === null ? null : real - predicted
         };
         save(); render();
@@ -2544,10 +2706,85 @@ function wirePWA(){
   requestPersistence();
 }
 
+/* ============================================================
+   exchange rates — one call a day, cached, and never in the way.
+   Logging must work with no signal, so a failed fetch is silent
+   and the app carries on with whatever it last knew.
+   ============================================================ */
+function renderCurrency(){
+  var cur = displayCur();
+  var box = $('curChips'); box.innerHTML = '';
+  CURRENCY_ORDER.forEach(function(code){
+    var c = CURRENCIES[code];
+    var b = el('button','chip' + (cur === code ? ' on' : ''), c.symbol + ' ' + code);
+    b.onclick = function(){ setCurrency(code); };
+    box.appendChild(b);
+  });
+
+  var lbl = $('fxLabel'), dot = $('fxRow').querySelector('.dot');
+  var tbl = rateTable();
+  if(!tbl || !tbl[cur]){
+    lbl.textContent = rates === null
+      ? 'Rates not fetched yet — conversions unavailable offline.'
+      : 'Rates unavailable. Amounts still log fine in ' + cur + '.';
+    dot.style.background = 'var(--muted)';
+    return;
+  }
+  var mv = dailyMove(cur, tbl[cur], rates.prev ? rates.prev[cur] : null);
+  var usd = (1 / tbl[cur]).toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+  var stale = ratesAreStale(rates, Date.now());
+  var bits = ['1 ' + cur + ' = US$' + usd];
+  if(mv && mv.dir !== 'flat'){
+    bits.push('<b style="color:var(--' + (mv.dir === 'up' ? 'good' : 'over') + ')">' +
+      (mv.dir === 'up' ? '▲' : '▼') + ' ' + Math.abs(mv.pct).toFixed(2) + '%</b> today');
+  } else if(mv){ bits.push('flat today'); }
+  bits.push(stale ? '<span style="color:var(--over)">rates from ' + (rates.date || 'a while ago') + '</span>'
+                  : (rates.date || ''));
+  lbl.innerHTML = bits.filter(Boolean).join(' &nbsp;·&nbsp; ');
+  dot.style.background = stale ? 'var(--over)' : 'var(--good)';
+}
+
+function setCurrency(code){
+  if(!CURRENCIES[code] || code === displayCur()) return;
+  state.settings.currency = code;
+  save(); render();
+  toast('Now showing everything in ' + code);
+}
+
+function fetchRates(){
+  // one call covers today and the previous trading day
+  var to = new Date(), from = new Date(Date.now() - 10 * 86400000);
+  var d = function(x){ return x.toISOString().slice(0,10); };
+  var url = RATES_URL + d(from) + '..' + d(to) + '?from=USD&to=' + CURRENCY_ORDER.join(',');
+  fetch(url, { cache: 'no-store' })
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(function(j){
+      var days = Object.keys(j.rates || {}).sort();
+      if(days.length < 1) return;
+      var last = days[days.length - 1];
+      var prev = days.length > 1 ? days[days.length - 2] : null;
+      rates = {
+        today: j.rates[last],
+        prev: prev ? j.rates[prev] : null,
+        date: last,
+        fetchedAt: Date.now()
+      };
+      saveRates(rates);
+      render();
+    })
+    .catch(function(){ /* offline or blocked — keep whatever we had */ });
+}
+
+function maybeFetchRates(){
+  var last = rates && rates.fetchedAt ? rates.fetchedAt : 0;
+  if(Date.now() - last > 6 * 3600000) fetchRates();
+}
+
 /* ---------------- boot ---------------- */
 wire();
 wireSignIn();
 wirePWA();
+maybeFetchRates();
 try{ mode = localStorage.getItem(MODE_KEY) === 'food' ? 'food' : 'money'; }catch(e){}
 if(mode === 'food'){
   document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });

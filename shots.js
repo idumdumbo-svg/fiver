@@ -58,8 +58,9 @@ function launchOpts() {
 
     // food side
     await page.click('.mode-btn[data-mode="food"]'); await page.waitForTimeout(400);
-    await page.click('.chip:text-is("Meal 600")'); await page.waitForTimeout(300);
-    await page.click('.chip:text-is("Snack 200")'); await page.waitForTimeout(300);
+    await page.locator('#kcalSlider').fill('600'); await page.waitForTimeout(250);
+    await page.click('#logSlider'); await page.waitForTimeout(300);
+    await page.locator('#kcalSlider').fill('350'); await page.waitForTimeout(250);
     await page.click('#foodTabs .tab[data-view="foods"]'); await page.waitForTimeout(300);
     await page.fill('#foodName', 'Porridge'); await page.fill('#foodKcal', '350');
     await page.click('#addFood'); await page.waitForTimeout(300);

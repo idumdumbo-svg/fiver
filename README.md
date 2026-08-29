@@ -41,6 +41,15 @@ by what you *actually* paid, not the rounded figure, so it keeps matching
 reality. Sweeps don't move it — parking money in a savings account doesn't make
 you richer.
 
+**Currency.** NZD, AUD or JPY. The symbol, the decimals and the round-up step
+all follow it — $5 in dollar countries, ¥500 in Japan, because ¥5 is not a unit
+anyone thinks in. Every entry is stamped with the currency it was logged in, so
+switching converts old entries *for display* at today's rate and never rewrites
+what you actually spent. Rates are ECB reference rates via
+[Frankfurter](https://frankfurter.dev), fetched at most once every six hours and
+cached, with a small indicator showing how your currency moved against the US
+dollar that day. A failed fetch is silent — logging works offline regardless.
+
 **The drift check.** When you re-check your balance, the app tells you what it
 expected first, then remembers the difference. That number is the honest
 measure of whether the logging habit is sticking.
@@ -51,6 +60,7 @@ measure of whether the logging habit is sticking.
 
 ```
 dates.js         day/week helpers shared by both trackers
+currency.js      currencies, conversion and the round-up step
 logic.js         the money maths — pure functions, no DOM, fully tested
 calories.js      the food maths — same deal, and deliberately isolated
 template.html    the app: markup, styles, and the UI layer over logic.js
@@ -60,7 +70,8 @@ icons.py         regenerates assets/icons — run only when the mark changes
 assets/          committed icons and favicon
 test.js          157 money logic tests
 test-cal.js      77 food logic tests
-uitest.js        83 browser tests against the built app
+test-fx.js       64 currency tests
+uitest.js        107 browser tests against the built app
 pwatest.js       16 tests that the hosted build installs and works offline
 ```
 
