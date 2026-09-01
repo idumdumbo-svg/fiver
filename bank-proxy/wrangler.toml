@@ -1,0 +1,19 @@
+name = "fiver-bank-proxy"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+# The ONLY origin allowed to call this Worker. Change it if you ever
+# serve Fiver from somewhere else — a wrong value here means the app
+# silently gets CORS errors, and a "*" here means anyone who learns
+# the URL can try keys against it from any page on the internet.
+[vars]
+ALLOWED_ORIGIN = "https://idumdumbo-svg.github.io"
+
+# Secrets are NOT set here. Run these three once, after `wrangler login`:
+#
+#   npx wrangler secret put AKAHU_APP_ID
+#   npx wrangler secret put AKAHU_USER_TOKEN
+#   npx wrangler secret put FIVER_KEY
+#
+# Anything you paste into this file is committed to a public repo.
+# Anything you paste into `secret put` is not.

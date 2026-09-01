@@ -229,6 +229,74 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .tab svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round}
 
+/* ============ curb: score, league, freezes, the pause ============ */
+.scorehead{display:flex;align-items:center;gap:16px}
+.scoredial{position:relative;width:92px;height:92px;flex:none}
+.scoredial svg{width:100%;height:100%;transform:rotate(-90deg)}
+.scoredial circle{fill:none;stroke-width:8;stroke-linecap:round}
+.scoredial .trk{stroke:var(--block-empty)}
+.scoredial .arc{stroke:var(--accent);transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1)}
+.scoredial.good .arc{stroke:var(--good)}
+.scoredial.low .arc{stroke:var(--over)}
+.scoredial .n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:"Archivo",sans-serif;font-weight:800;font-size:27px;letter-spacing:-.02em;
+  font-variation-settings:"wdth" 112;font-variant-numeric:tabular-nums}
+.scoreside{min-width:0;flex:1}
+.scoreside h2{margin:0 0 2px}
+.scorewhy{font-size:12.5px;color:var(--muted);line-height:1.45}
+.parts{display:flex;gap:7px;margin-top:11px}
+.part{flex:1;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:10px;padding:8px 9px}
+.part .pk{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  font-family:"IBM Plex Mono",monospace;display:block}
+.part .pv{font-family:"Archivo",sans-serif;font-weight:700;font-size:16px;margin-top:2px;
+  font-variation-settings:"wdth" 112;font-variant-numeric:tabular-nums}
+
+.lgrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft);
+  font-size:13.5px}
+.lgrow:last-child{border-bottom:0}
+.lgrow .rk{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);width:17px;flex:none}
+.lgrow .wk{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lgrow .sc{font-family:"Archivo",sans-serif;font-weight:700;font-size:15px;flex:none;
+  font-variation-settings:"wdth" 112;font-variant-numeric:tabular-nums}
+.lgrow.me{background:var(--accent-soft);margin:0 -9px;padding:9px;border-radius:10px;border-bottom:0}
+.lgrow.me .wk{font-weight:700;color:var(--accent-ink)}
+.lgrow .part-tag{font-size:10px;color:var(--muted);font-family:"IBM Plex Mono",monospace;flex:none}
+
+.pips{display:flex;gap:5px;align-items:center}
+.pip{width:11px;height:11px;border-radius:3px;background:var(--block-empty);display:block}
+.pip.on{background:var(--brass-solid)}
+.freezeline{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 12px;border-radius:11px;background:var(--brass-soft);
+  border:1px solid color-mix(in srgb,var(--brass-solid) 25%,transparent);font-size:12.5px}
+.freezeline b{color:var(--brass-solid)}
+
+.reasons{display:flex;flex-direction:column;gap:7px;margin:0;padding:0;list-style:none}
+.reasons li{display:flex;gap:9px;font-size:13.5px;color:var(--ink-2);line-height:1.4}
+.reasons li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--over);
+  flex:none;margin-top:7px}
+.planbox{background:var(--surface-2);border:1px solid var(--line-soft);border-radius:12px;padding:11px 12px}
+.planbox .pt{font-size:13.5px;line-height:1.45}
+.planbox .pt em{font-style:normal;color:var(--accent-ink);font-weight:600}
+.planlist{display:flex;flex-direction:column;gap:7px}
+.planrow{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.planrow:last-child{border-bottom:0}
+.planrow .pbody{flex:1;min-width:0}
+.planrow .pcat{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  font-family:"IBM Plex Mono",monospace}
+.planrow .x{color:var(--muted);font-size:19px;line-height:1;padding:0 2px;flex:none}
+
+.improw{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.improw:last-child{border-bottom:0}
+.improw .ibody{flex:1;min-width:0}
+.improw .iname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.improw .iday{font-size:11px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.improw .iamt{font-family:"Archivo",sans-serif;font-weight:700;flex:none;
+  font-variation-settings:"wdth" 112;font-variant-numeric:tabular-nums}
+.improw .tick{width:21px;height:21px;border-radius:6px;border:1.5px solid var(--line);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent}
+.improw.on .tick{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.impscroll{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
 /* ============ sheet ============ */
 .scrim{position:fixed;inset:0;background:rgba(10,14,20,.5);z-index:50;opacity:0;
   pointer-events:none;transition:opacity .2s ease;backdrop-filter:blur(2px)}
@@ -437,6 +505,11 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
   max-width:min(94vw,430px)}
 .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{color:var(--ground);font-weight:700;text-decoration:underline;font-size:13px}
+/* With a sheet up, the usual position lands the toast across the sheet's
+   own copy. Move it clear rather than letting the two overlap. */
+body.sheeting .toast{bottom:auto;top:calc(12px + env(safe-area-inset-top));
+  transform:translate(-50%,-20px)}
+body.sheeting .toast.on{transform:translate(-50%,0)}
 
 .hidden{display:none !important}
 .note-line{font-size:12px;color:var(--muted);line-height:1.45}
@@ -490,6 +563,17 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 
       <div id="incomeBar" class="incomebar hidden"></div>
 
+      <div id="freshCard" class="nudge hidden">
+        <span class="nudge-copy">
+          <b id="freshTitle">A new month</b>
+          <span id="freshWhy"></span>
+        </span>
+        <span class="nudge-acts">
+          <button class="btn sm" id="freshGo">Set a target</button>
+          <button class="btn sm ghost" id="freshSkip" style="color:var(--muted)">Not now</button>
+        </span>
+      </div>
+
       <div class="card">
         <div class="row" style="margin-bottom:4px">
           <h2>Today</h2>
@@ -509,6 +593,54 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         </div>
         <p class="note-line" style="margin:0 0 12px" id="sweepBlurb"></p>
         <button class="btn brass wide" id="goSweep">Put it somewhere</button>
+      </div>
+    </section>
+
+    <!-- ============ SCORE ============ -->
+    <section class="view" id="v-score">
+      <div class="card">
+        <div class="scorehead">
+          <div class="scoredial" id="dial">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <circle class="trk" cx="50" cy="50" r="42"></circle>
+              <circle class="arc" id="dialArc" cx="50" cy="50" r="42"
+                      stroke-dasharray="263.9" stroke-dashoffset="263.9"></circle>
+            </svg>
+            <span class="n" id="dialNum">—</span>
+          </div>
+          <div class="scoreside">
+            <span class="eyebrow" id="scoreWeek">THIS WEEK</span>
+            <h2 id="scoreVerdict">Discipline</h2>
+            <p class="scorewhy" id="scoreWhy">Log a few days and this fills in.</p>
+          </div>
+        </div>
+        <div class="parts" id="scoreParts"></div>
+      </div>
+
+      <div class="freezeline" id="freezeLine">
+        <span id="freezeText">—</span>
+        <span class="pips" id="freezePips"></span>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:6px">
+          <h2>Your weeks</h2>
+          <span class="eyebrow" id="leagueRank"></span>
+        </div>
+        <p class="note-line" style="margin:0 0 8px">You against you. Nobody else is in this table and no amount ever leaves this phone.</p>
+        <div id="leagueRows"></div>
+      </div>
+
+      <div class="card stack" id="avertedCard">
+        <div class="row"><h2>Talked yourself out of</h2><span class="eyebrow" id="avertedCount"></span></div>
+        <div class="hero-amount" style="margin:2px 0 0"><span class="cur" id="avertCur">$</span><span class="val" id="avertVal">0</span></div>
+        <span class="note-line">What you decided not to buy after the app asked. Counted this week only.</span>
+      </div>
+
+      <div class="card stack">
+        <div class="row"><h2>If-then plans</h2><button class="btn sm" id="addPlan">Add one</button></div>
+        <p class="note-line" style="margin:0">"If it's a weeknight after 8pm, then I'll eat what's in the fridge." Deciding in advance beats deciding in the moment.</p>
+        <div class="planlist" id="planList"></div>
       </div>
     </section>
 
@@ -748,6 +880,38 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
       </div>
 
       <div class="card stack">
+        <h2>Your bank</h2>
+        <div class="acct" id="bankStatus"><span class="dot"></span><span id="bankStatusText">Not connected</span></div>
+        <div class="field">
+          <label for="bankUrl">Proxy address</label>
+          <input class="input" id="bankUrl" type="url" inputmode="url" autocomplete="off"
+                 placeholder="https://fiver-bank-proxy.you.workers.dev">
+        </div>
+        <div class="field">
+          <label for="bankKey">Key</label>
+          <input class="input" id="bankKey" type="password" inputmode="text" autocomplete="off"
+                 placeholder="the long random string">
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="bankTest">Test</button>
+          <button class="btn primary" id="bankFetch">Fetch spending</button>
+        </div>
+        <span class="note-line">Read-only, and it can't move money. Your bank tokens live in the proxy, never in this app — see <b>bank-proxy/README.md</b> in the repo. Leave both blank and Fiver works exactly as it did.</span>
+      </div>
+
+      <div class="card stack">
+        <h2>The pause</h2>
+        <div class="field">
+          <label for="pauseSw">Ask before repeat spending</label>
+          <select class="input" id="pauseSw">
+            <option value="on">On — flag a pattern before I log it</option>
+            <option value="off">Off</option>
+          </select>
+          <span class="note-line">Only ever on discretionary spending above <span id="pauseFloorLbl">$20</span>. Never on rent, bills or groceries.</span>
+        </div>
+      </div>
+
+      <div class="card stack">
         <h2>Day boundaries</h2>
         <div class="field">
           <label for="dayStart">A new day starts at</label>
@@ -817,6 +981,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
       </div>
       <div class="tabs" id="moneyTabs">
         <button class="tab on" data-view="today"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20V9M12 20V4M18 20v-7"/></svg>Today</button>
+        <button class="tab" data-view="score"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>Score</button>
         <button class="tab" data-view="trends"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 7-9"/><path d="M15 6h5v5"/></svg>Trends</button>
         <button class="tab" data-view="savings"><svg viewBox="0 0 24 24"><path d="M3 10h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2v-9z"/><path d="M3 10l3-6h12l3 6"/><path d="M12 14v3"/></svg>Money</button>
         <button class="tab" data-view="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Setup</button>
@@ -913,6 +1078,44 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
     <input class="input" id="destNew" type="text" inputmode="text" placeholder="Somewhere else — name it" maxlength="28">
     <input class="input" id="destNote" type="text" inputmode="text" placeholder="What for? (optional)" maxlength="60">
     <button class="btn brass wide" id="destConfirm">Move it</button>
+  </div>
+</div>
+
+<!-- ============ THE PAUSE ============ -->
+<div class="sheet" id="pauseSheet">
+  <div class="grabber"></div>
+  <div class="sheet-head"><h3>Before you log this</h3><button class="x" id="closePause" aria-label="Close">×</button></div>
+  <div class="stack">
+    <div>
+      <span class="eyebrow" id="pauseCat"></span>
+      <div class="hero-amount" style="margin:1px 0 0"><span class="cur" id="pauseCur">$</span><span class="val" id="pauseVal">0</span></div>
+    </div>
+    <ul class="reasons" id="pauseReasons"></ul>
+    <div class="planbox" id="pausePlanBox">
+      <span class="eyebrow">A PLAN FOR NEXT TIME</span>
+      <p class="pt" id="pausePlanText" style="margin:6px 0 0"></p>
+      <div class="chips" id="pausePlanChips" style="margin-top:9px"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="pauseAvert">Didn't buy it</button>
+      <button class="btn primary" id="pauseGo">Log it</button>
+    </div>
+    <span class="note-line" style="text-align:center">Logging it is never the wrong answer. The number only works if it's true.</span>
+  </div>
+</div>
+
+<!-- ============ BANK IMPORT ============ -->
+<div class="sheet" id="bankSheet">
+  <div class="grabber"></div>
+  <div class="sheet-head"><h3 id="bankTitle">From your bank</h3><button class="x" id="closeBank" aria-label="Close">×</button></div>
+  <div class="stack">
+    <p class="note-line" id="bankBlurb" style="margin:0"></p>
+    <div class="impscroll" id="bankRows"></div>
+    <div class="btn-row">
+      <button class="btn" id="bankNone">Select none</button>
+      <button class="btn primary" id="bankAdd">Add selected</button>
+    </div>
+    <span class="note-line" style="text-align:center">Nothing is added until you tap. Amounts still round up to the next five.</span>
   </div>
 </div>
 
@@ -1083,6 +1286,52 @@ function foodDayStart(){ return state.settings.dayStartHour || 0; }
 function foodToday(){ return dayKey(Date.now(), foodDayStart()); }
 
 /* ============================================================
+   curb — the behaviour layer. Its own key, its own shape. It
+   READS the spending state and never writes to it, so deleting
+   this key resets the score and leaves every logged spend alone.
+   ============================================================ */
+var CURB_KEY = 'fiver.curb.v1';
+var BANK_KEY = 'fiver.bank.v1';      // proxy address + key, this device only
+
+function blankCurb(){
+  return { version:1, plans:[], planEvents:[], averted:[], seenLandmarks:[],
+           settings:{ pauseOn:true, pauseMinCents:2000 } };
+}
+function migrateCurb(c){
+  var b = blankCurb();
+  if(!c || typeof c !== 'object') return b;
+  c.plans = Array.isArray(c.plans) ? c.plans : [];
+  c.planEvents = Array.isArray(c.planEvents) ? c.planEvents : [];
+  c.averted = Array.isArray(c.averted) ? c.averted : [];
+  c.seenLandmarks = Array.isArray(c.seenLandmarks) ? c.seenLandmarks : [];
+  c.settings = Object.assign(b.settings, c.settings || {});
+  c.version = b.version;
+  return c;
+}
+function loadCurb(){
+  try{
+    var raw = localStorage.getItem(CURB_KEY);
+    return raw ? migrateCurb(JSON.parse(raw)) : blankCurb();
+  }catch(e){ return blankCurb(); }
+}
+function saveCurb(){
+  try{ localStorage.setItem(CURB_KEY, JSON.stringify(curbState)); }catch(e){}
+}
+var curbState = loadCurb();
+
+/* Bank settings are kept out of the exported backup on purpose —
+   a key that opens your bank feed should not travel in a JSON file
+   you might email yourself. */
+function loadBank(){
+  try{ return JSON.parse(localStorage.getItem(BANK_KEY)) || { url:'', key:'' }; }
+  catch(e){ return { url:'', key:'' }; }
+}
+function saveBank(b){
+  try{ localStorage.setItem(BANK_KEY, JSON.stringify(b)); }catch(e){}
+}
+var bankCfg = loadBank();
+
+/* ============================================================
    currency — one setting changes the symbol, the decimals and
    the round-up step. Entries keep the currency they were logged
    in; the display converts them at today's rate rather than
@@ -1159,6 +1408,20 @@ function el(tag, cls, txt){
   if(txt != null) n.textContent = txt;
   return n;
 }
+/* Most of this app builds rows with el() and textContent, which can't
+   inject markup. The few places that use a template string — plans you
+   typed, merchant names from the bank — run their text through here. */
+function esc(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+/* The amount with the currency symbol taken off, for the split
+   symbol/value hero layouts. */
+function bare(minor, opts){
+  var sym = currencyOf(displayCur()).symbol;
+  return fmt(minor, opts).split(sym).join('');
+}
 var DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function prettyDay(key){
@@ -1194,7 +1457,9 @@ function render(){
   renderMode();
   if(mode === 'food'){ renderEat(); renderFoods(); return; }
   renderNudge();
+  renderFresh();
   renderToday();
+  renderScore();
   renderTrends();
   renderSavings();
   renderSetup();
@@ -1911,6 +2176,418 @@ function confirmDeleteFood(f){
 }
 
 /* ---------------- setup ---------------- */
+/* ============================================================
+   curb — rendering
+   ============================================================ */
+function scoreWord(n){
+  if(n >= 90) return 'Excellent';
+  if(n >= 75) return 'Strong';
+  if(n >= 55) return 'Holding';
+  if(n >= 35) return 'Slipping';
+  return 'Rough week';
+}
+function weekLabel(wk, todayWk){
+  if(wk === todayWk) return 'This week';
+  var back = Math.round(daysApart(wk, todayWk) / 7);
+  if(back === 1) return 'Last week';
+  return back + ' weeks ago';
+}
+
+function renderScore(){
+  var k = today();
+  var sum = weekSummary(view, curbState, k);
+  var s = sum.score;
+
+  /* --- the dial --- */
+  var C = 2 * Math.PI * 42;
+  var dial = $('dial'), arc = $('dialArc');
+  dial.classList.remove('good','low');
+  if(s.score === null){
+    arc.setAttribute('stroke-dashoffset', C);
+    $('dialNum').textContent = '—';
+    $('scoreVerdict').textContent = 'Not yet';
+    $('scoreWhy').textContent = s.logged
+      ? 'A few more days of history and this starts scoring.'
+      : 'Log a day or two and this fills in.';
+  } else {
+    arc.setAttribute('stroke-dasharray', C);
+    arc.setAttribute('stroke-dashoffset', C * (1 - s.score / 100));
+    $('dialNum').textContent = s.score;
+    /* Two days into a week the score swings wildly on one takeaway. It
+       still shows — hiding it would be worse — but it isn't painted as a
+       verdict until there's enough of the week to be one. Telling
+       someone they're failing on Monday is how you lose them by Tuesday. */
+    var settled = s.judged >= 3;
+    if(settled && s.score >= 75) dial.classList.add('good');
+    else if(settled && s.score < 45) dial.classList.add('low');
+    $('scoreVerdict').textContent = settled ? scoreWord(s.score) : 'Early days';
+    $('scoreWhy').textContent = s.under + ' of ' + s.judged + ' day' +
+      (s.judged === 1 ? '' : 's') + ' inside your target, ' +
+      s.logged + ' of ' + s.elapsed + ' logged.' +
+      (settled ? '' : ' Too early in the week to read much into it.');
+  }
+  $('scoreWeek').textContent = s.elapsed < 7
+    ? 'THIS WEEK · ' + s.elapsed + ' DAY' + (s.elapsed === 1 ? '' : 'S') + ' IN'
+    : 'THIS WEEK';
+
+  /* --- the three parts, so the number is never a black box --- */
+  var pl = s.plans;
+  $('scoreParts').innerHTML =
+    part('Under target', s.judged ? s.under + '/' + s.judged : '—') +
+    part('Days logged', s.logged + '/' + s.elapsed) +
+    part('Plans kept', pl.triggered ? pl.kept + '/' + pl.triggered : '—');
+  function part(k2, v){
+    return '<div class="part"><span class="pk">' + k2 + '</span><div class="pv">' + v + '</div></div>';
+  }
+
+  /* --- streak and freezes --- */
+  var st = sum.streak;
+  var txt;
+  if(st.days === 0) txt = 'No streak yet. One logged day starts it.';
+  else {
+    txt = '<b>' + st.days + ' day' + (st.days === 1 ? '' : 's') + '</b> in a row';
+    if(st.frozen.length) txt += ' · ' + st.frozen.length + ' bridged by a freeze';
+    else if(st.nextFreezeIn) txt += ' · next freeze in ' + st.nextFreezeIn;
+  }
+  $('freezeText').innerHTML = txt;
+  var pips = '';
+  for(var i = 0; i < 2; i++) pips += '<i class="pip' + (i < st.freezesLeft ? ' on' : '') + '"></i>';
+  $('freezePips').innerHTML = pips;
+
+  /* --- the personal league --- */
+  var lg = sum.league, wk = weekStart(k);
+  if(!lg || lg.rows.length < 2){
+    $('leagueRows').innerHTML = '<p class="note-line" style="margin:0">' +
+      'Once you have a second week logged, they line up here worst to best.</p>';
+    $('leagueRank').textContent = '';
+  } else {
+    $('leagueRank').textContent = lg.rank + ' OF ' + lg.of;
+    $('leagueRows').innerHTML = lg.rows.map(function(r){
+      return '<div class="lgrow' + (r.isNow ? ' me' : '') + '">' +
+        '<span class="rk">' + r.rank + '</span>' +
+        '<span class="wk">' + esc(weekLabel(r.week, wk)) + '</span>' +
+        (r.partial ? '<span class="part-tag">SO FAR</span>' : '') +
+        '<span class="sc">' + r.score + '</span></div>';
+    }).join('');
+    if(lg.toBeat !== null){
+      $('leagueRows').innerHTML += '<p class="note-line" style="margin:10px 0 0">' +
+        (lg.toBeat === 0 ? 'Level with the week above — one clean day takes it.'
+                         : lg.toBeat + ' point' + (lg.toBeat === 1 ? '' : 's') + ' off the week above.') + '</p>';
+    } else if(lg.rank === 1){
+      $('leagueRows').innerHTML += '<p class="note-line" style="margin:10px 0 0">' +
+        'Your best week so far.</p>';
+    }
+  }
+
+  /* --- what the pause saved --- */
+  var av = sum.averted;
+  $('avertedCard').classList.toggle('hidden', av.count === 0);
+  if(av.count){
+    $('avertCur').textContent = currencyOf(displayCur()).symbol;
+    $('avertVal').textContent = bare(av.cents, {decimals:false});
+    $('avertedCount').textContent = av.count + (av.count === 1 ? ' TIME' : ' TIMES');
+  }
+
+  /* --- plans --- */
+  var plans = curbState.plans;
+  $('planList').innerHTML = plans.length ? plans.map(function(pn){
+    return '<div class="planrow"><div class="pbody">' +
+      (pn.category ? '<div class="pcat">' + esc(pn.category) + '</div>' : '<div class="pcat">ANY SPEND</div>') +
+      '<div>If ' + esc(pn.trigger) + ', then ' + esc(pn.action) + '.</div>' +
+      '</div><button class="x" data-plan="' + esc(pn.id) + '" aria-label="Remove">×</button></div>';
+  }).join('') : '<p class="note-line" style="margin:0">None yet.</p>';
+  $('planList').querySelectorAll('[data-plan]').forEach(function(b){
+    b.onclick = function(){ removePlan(b.dataset.plan); };
+  });
+}
+
+function renderFresh(){
+  var lm = landmarkPending(curbState, today(), 7);
+  var card = $('freshCard');
+  card.classList.toggle('hidden', !lm);
+  if(!lm) return;
+  $('freshTitle').textContent = lm.daysAway === 0
+    ? lm.label + ' starts today'
+    : lm.label + ' starts ' + (lm.daysAway === 1 ? 'tomorrow' : 'on ' + lm.weekday);
+  $('freshWhy').textContent = 'A clean line is the one time a new target actually sticks. Want to set one?';
+}
+
+/* ============================================================
+   curb — plans
+   ============================================================ */
+function addPlanFlow(cat){
+  ask({
+    title:'If…', hint:'When does this happen? e.g. it is a weeknight after 8pm',
+    inputmode:'text', okLabel:'Next', placeholder:'it is a weeknight after 8pm',
+    onOk:function(trigger){
+      trigger = (trigger || '').trim();
+      if(!trigger) return;
+      setTimeout(function(){
+        ask({
+          title:'…then', hint:'What will you do instead?',
+          inputmode:'text', okLabel:'Save the plan', placeholder:'eat what is already in the fridge',
+          onOk:function(action){
+            action = (action || '').trim();
+            if(!action) return;
+            curbState.plans.push({ id:uid(), category:cat || null, trigger:trigger, action:action });
+            saveCurb(); render();
+            toast('Plan saved');
+          }
+        });
+      }, 320);
+    }
+  });
+}
+function removePlan(id){
+  curbState.plans = curbState.plans.filter(function(p){ return p.id !== id; });
+  saveCurb(); render();
+}
+
+/* ============================================================
+   curb — the pause
+
+   Sits between the save button and the entry actually landing.
+   It can only ever do two things: log what you were going to log
+   anyway, or record that you didn't. It cannot change the amount.
+   ============================================================ */
+var pausePending = null;
+
+function maybePause(onProceed){
+  if(draft.id) return onProceed();               // editing, not deciding
+  if(draft.kind === 'income') return onProceed();
+  var cents = parseAmount(draft.raw);
+  var pat = pausePattern(view, curbState, {
+    day: draft.day, category: draft.category, cents: cents, fixed: draft.fixed
+  });
+  if(!pat) return onProceed();
+
+  pausePending = { pattern: pat, cents: cents, proceed: onProceed, planUsed: null };
+  showPause(pat, cents);
+}
+
+function reasonText(r, cat){
+  if(r.kind === 'repeat')
+    return 'Your ' + ordinal(r.n) + ' ' + (cat || 'spend').toLowerCase() + ' this week.';
+  if(r.kind === 'late')
+    return r.late + ' of the last ' + r.of + ' were after ' + (r.hour > 12 ? (r.hour - 12) + 'pm' : r.hour + 'am') + '.';
+  if(r.kind === 'big')
+    return 'About ' + r.times + '× what you usually spend here (' + fmt(r.typical, {decimals:false}) + ').';
+  return '';
+}
+function ordinal(n){
+  var s = ['th','st','nd','rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function showPause(pat, cents){
+  $('pauseCur').textContent = currencyOf(displayCur()).symbol;
+  $('pauseVal').textContent = bare(cents, {decimals:false});
+  $('pauseCat').textContent = (pat.category || '').toUpperCase();
+  $('pauseReasons').innerHTML = pat.reasons.map(function(r){
+    return '<li>' + esc(reasonText(r, pat.category)) + '</li>';
+  }).join('');
+
+  var box = $('pausePlanBox');
+  if(pat.plans.length){
+    var pn = pat.plans[0];
+    pausePending.planUsed = pn;
+    $('pausePlanText').innerHTML = 'If <em>' + esc(pn.trigger) + '</em>, then <em>' + esc(pn.action) + '</em>.';
+    $('pausePlanChips').innerHTML = '';
+    box.classList.remove('hidden');
+  } else {
+    $('pausePlanText').textContent = 'You have no plan for this yet.';
+    $('pausePlanChips').innerHTML = '<button class="chip" id="pauseMakePlan">Make one</button>';
+    $('pauseMakePlan').onclick = function(){
+      var cat = pat.category;
+      hideSheet();
+      setTimeout(function(){ addPlanFlow(cat); }, 320);
+      pausePending = null;
+    };
+    box.classList.remove('hidden');
+  }
+  // Only one sheet should be on screen at a time. The draft is still
+  // alive underneath; closing the pause with the X brings it back.
+  $('addSheet').classList.remove('on');
+  showSheet('pauseSheet');
+}
+
+/* "Log it" — the plan, if one was offered, was broken. */
+function pauseProceed(){
+  if(!pausePending) return hideSheet();
+  var p = pausePending;
+  if(p.planUsed){
+    curbState.planEvents.push({ id:uid(), day:draft.day, planId:p.planUsed.id, kept:false });
+    saveCurb();
+  }
+  pausePending = null;
+  $('pauseSheet').classList.remove('on');
+  p.proceed();
+}
+
+/* "Didn't buy it" — nothing is logged, and the amount is banked
+   as averted. The draft is thrown away. */
+function pauseAvert(){
+  if(!pausePending) return hideSheet();
+  var p = pausePending;
+  curbState.averted.push({ id:uid(), ts:Date.now(), day:draft.day,
+                           cents:p.cents, category:p.pattern.category });
+  if(p.planUsed){
+    curbState.planEvents.push({ id:uid(), day:draft.day, planId:p.planUsed.id, kept:true });
+  }
+  saveCurb();
+  pausePending = null;
+  draft = null;
+  hideSheet();
+  render();
+  toast('Good call — ' + fmt(p.cents, {decimals:false}) + ' not spent');
+}
+
+/* ============================================================
+   curb — the bank feed
+
+   The proxy hands over a list. Nothing lands until you tick it
+   and tap add: an imported figure is still a figure you have to
+   agree with, and silently rewriting logged history is the one
+   thing this app must never do.
+   ============================================================ */
+var bankPending = [];
+
+function bankHeaders(){ return { 'x-fiver-key': bankCfg.key }; }
+function bankBase(){ return (bankCfg.url || '').replace(/\/+$/, ''); }
+
+function bankConfigured(){ return !!(bankBase() && bankCfg.key); }
+
+function bankCall(path){
+  if(!bankConfigured()) return Promise.reject(new Error('No proxy set up yet'));
+  return fetch(bankBase() + path, { headers: bankHeaders(), cache:'no-store' })
+    .then(function(r){
+      if(r.status === 401) throw new Error('The key was rejected');
+      if(!r.ok) throw new Error('Proxy returned ' + r.status);
+      return r.json();
+    });
+}
+
+function bankTest(){
+  var st = $('bankStatusText');
+  st.textContent = 'Checking…';
+  bankCall('/health').then(function(){
+    return bankCall('/accounts');
+  }).then(function(r){
+    var n = (r.accounts || []).length;
+    st.textContent = 'Connected · ' + n + ' account' + (n === 1 ? '' : 's');
+    $('bankStatus').classList.add('ok');
+    toast('Bank proxy is answering');
+  }).catch(function(e){
+    st.textContent = e.message;
+    $('bankStatus').classList.remove('ok');
+  });
+}
+
+/* Guess a Fiver category from whatever the bank called it. A guess is
+   all it is — every row is editable before it lands, and anything we
+   can't place becomes "Other" rather than something confidently wrong. */
+var BANK_CAT = [
+  [/grocer|supermarket|countdown|new world|pak.?n.?save|woolworths/i, 'Groceries'],
+  [/cafe|coffee|espresso|roaster/i, 'Coffee'],
+  [/restaurant|takeaway|food|dining|uber ?eats|deliveroo|bar |pub/i, 'Eating out'],
+  [/fuel|petrol|transport|uber|taxi|bus|rail|parking/i, 'Transport'],
+  [/cinema|movie|netflix|spotify|game|entertain/i, 'Entertainment'],
+  [/rent|tenancy|landlord/i, 'Rent'],
+  [/power|electric|water|internet|broadband|phone|insurance|council/i, 'Bills']
+];
+function guessCat(t){
+  var hay = [t.merchant, t.description, t.akahuCategory].filter(Boolean).join(' ');
+  for(var i = 0; i < BANK_CAT.length; i++){
+    if(BANK_CAT[i][0].test(hay)) return BANK_CAT[i][1];
+  }
+  return 'Other';
+}
+
+/* Already logged? Match on the same day and the same actual amount.
+   Deliberately loose — it is much better to skip a row you already
+   logged by hand than to double-count a day. */
+function alreadyLogged(t, day){
+  for(var i = 0; i < state.entries.length; i++){
+    var e = state.entries[i];
+    if(e.day === day && e.actual === t.cents) return true;
+    if(e.bankId && e.bankId === t.id) return true;
+  }
+  return false;
+}
+
+function bankFetch(){
+  if(!bankConfigured()){
+    toast('Add the proxy address and key first');
+    return;
+  }
+  toast('Asking your bank…');
+  bankCall('/transactions?days=14').then(function(r){
+    var ds = state.settings.dayStartHour || 0;
+    var rows = (r.transactions || []).map(function(t){
+      var day = dayKey(t.ts, ds);
+      return { t:t, day:day, cat:guessCat(t), dupe:alreadyLogged(t, day),
+               pick: !alreadyLogged(t, day) };
+    }).filter(function(row){
+      return row.day <= today();          // never import a future-dated row
+    });
+    bankPending = rows;
+    showBank(rows, r.truncated);
+  }).catch(function(e){
+    toast(e.message);
+  });
+}
+
+function showBank(rows, truncated){
+  var fresh = rows.filter(function(r){ return !r.dupe; }).length;
+  $('bankBlurb').textContent = rows.length
+    ? fresh + ' new of ' + rows.length + ' in the last 14 days' +
+      (rows.length - fresh ? ' — the rest look like things you already logged.' : '.') +
+      (truncated ? ' (More exist than one fetch returns.)' : '')
+    : 'Nothing came back for the last 14 days.';
+
+  var wrap = $('bankRows');
+  wrap.innerHTML = '';
+  rows.forEach(function(row, i){
+    var d = el('div', 'improw' + (row.pick ? ' on' : ''));
+    var tick = el('span', 'tick', '✓');
+    var body = el('span', 'ibody');
+    body.appendChild(el('span', 'iname', row.t.merchant || row.t.description || 'Unnamed'));
+    body.appendChild(el('span', 'iday',
+      prettyDay(row.day) + ' · ' + row.cat + (row.dupe ? ' · already logged' : '')));
+    var amt = el('span', 'iamt', fmt(row.t.cents));
+    d.appendChild(tick); d.appendChild(body); d.appendChild(amt);
+    d.onclick = function(){
+      bankPending[i].pick = !bankPending[i].pick;
+      d.classList.toggle('on', bankPending[i].pick);
+    };
+    wrap.appendChild(d);
+  });
+  $('bankAdd').disabled = !rows.length;
+  showSheet('bankSheet');
+}
+
+function bankCommit(){
+  var picked = bankPending.filter(function(r){ return r.pick; });
+  if(!picked.length){ hideSheet(); return; }
+  picked.forEach(function(row){
+    var cat = row.cat;
+    var isFixed = false;
+    for(var i = 0; i < CATS.length; i++) if(CATS[i].name === cat) isFixed = CATS[i].fixed;
+    state.entries.push({
+      id: uid(), ts: row.t.ts, day: row.day,
+      actual: row.t.cents, rounded: roundUp(row.t.cents),
+      currency: row.t.currency || displayCur(),
+      category: cat, fixed: isFixed,
+      note: row.t.merchant || row.t.description || '', photo: null,
+      bankId: row.t.id
+    });
+    state.noSpend = (state.noSpend || []).filter(function(d){ return d !== row.day; });
+  });
+  bankPending = [];
+  save(); hideSheet(); render();
+  toast('Added ' + picked.length + ' spend' + (picked.length === 1 ? '' : 's'));
+}
+
 function renderSetup(){
   renderCurrency();
   $('baseMode').value = state.settings.baselineMode;
@@ -1918,6 +2595,17 @@ function renderSetup(){
   $('goalDaily').value = state.settings.goalDaily ? (state.settings.goalDaily/100) : '';
   var s = trackingStreak(view, today());
   $('todayCount').dataset.streak = s;
+
+  $('bankUrl').value = bankCfg.url || '';
+  $('bankKey').value = bankCfg.key || '';
+  if(!bankConfigured()){
+    $('bankStatusText').textContent = 'Not connected — Fiver works fine without this';
+    $('bankStatus').classList.remove('ok');
+  } else if($('bankStatusText').textContent.indexOf('Connected') !== 0){
+    $('bankStatusText').textContent = 'Set up — tap Test to check it';
+  }
+  $('pauseSw').value = curbState.settings.pauseOn === false ? 'off' : 'on';
+  $('pauseFloorLbl').textContent = fmt(curbState.settings.pauseMinCents, {decimals:false});
 }
 
 /* ============================================================
@@ -2036,6 +2724,14 @@ function syncSheet(){
 function commitEntry(){
   var cents = parseAmount(draft.raw);
   if(cents <= 0) return;
+  // The pause gets first refusal on a new discretionary spend. It can
+  // only send us straight back here or throw the draft away.
+  if(!commitEntry.resumed){
+    return maybePause(function(){
+      commitEntry.resumed = true;
+      try{ commitEntry(); } finally { commitEntry.resumed = false; }
+    });
+  }
 
   if(draft.kind === 'income'){
     if(draft.id){
@@ -2198,12 +2894,19 @@ function confirmDest(){
 /* ============================================================
    sheets
    ============================================================ */
-function showSheet(id){ $('scrim').classList.add('on'); $(id).classList.add('on'); }
+function showSheet(id){
+  $('scrim').classList.add('on'); $(id).classList.add('on');
+  document.body.classList.add('sheeting');
+}
 function hideSheet(){
   $('scrim').classList.remove('on');
   $('addSheet').classList.remove('on');
   $('askSheet').classList.remove('on');
   $('destSheet').classList.remove('on');
+  $('pauseSheet').classList.remove('on');
+  $('bankSheet').classList.remove('on');
+  document.body.classList.remove('sheeting');
+  pausePending = null;
 }
 
 /* window.prompt/confirm are unreliable inside a sandboxed frame, so every
@@ -2436,7 +3139,46 @@ function wire(){
   $('goalDaily').oninput = function(){
     var c = parseAmount(this.value);
     state.settings.goalDaily = c > 0 ? roundUp(c) : null;
-    save(); renderToday();
+    save(); renderToday(); renderScore();
+  };
+
+  /* ---- curb ---- */
+  $('addPlan').onclick = function(){ addPlanFlow(null); };
+  $('pauseSw').onchange = function(){
+    curbState.settings.pauseOn = this.value === 'on';
+    saveCurb();
+  };
+  $('closePause').onclick = function(){
+    // Back to the amount you were entering, not out of the flow entirely.
+    pausePending = null;
+    $('pauseSheet').classList.remove('on');
+    showSheet('addSheet');
+  };
+  $('pauseGo').onclick = pauseProceed;
+  $('pauseAvert').onclick = pauseAvert;
+
+  $('freshGo').onclick = function(){
+    var lm = landmarkPending(curbState, today(), 7);
+    if(lm){ curbState.seenLandmarks.push(lm.key); saveCurb(); }
+    document.querySelector('#moneyTabs .tab[data-view="setup"]').click();
+    setTimeout(function(){ $('goalDaily').focus(); }, 120);
+    render();
+  };
+  $('freshSkip').onclick = function(){
+    var lm = landmarkPending(curbState, today(), 7);
+    if(lm){ curbState.seenLandmarks.push(lm.key); saveCurb(); render(); }
+  };
+
+  /* ---- bank ---- */
+  $('bankUrl').oninput = function(){ bankCfg.url = this.value.trim(); saveBank(bankCfg); };
+  $('bankKey').oninput = function(){ bankCfg.key = this.value.trim(); saveBank(bankCfg); };
+  $('bankTest').onclick = bankTest;
+  $('bankFetch').onclick = bankFetch;
+  $('closeBank').onclick = hideSheet;
+  $('bankAdd').onclick = bankCommit;
+  $('bankNone').onclick = function(){
+    bankPending.forEach(function(r){ r.pick = false; });
+    $('bankRows').querySelectorAll('.improw').forEach(function(d){ d.classList.remove('on'); });
   };
   $('exportBtn').onclick = exportData;
   $('nudgeGo').onclick = exportData;

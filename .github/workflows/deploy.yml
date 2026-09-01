@@ -40,6 +40,8 @@ jobs:
         run: node test-cal.js
       - name: Logic tests (currency)
         run: node test-fx.js
+      - name: Logic tests (behaviour)
+        run: node test-curb.js
       - name: App tests
         run: node uitest.js
       - name: Offline / installability tests

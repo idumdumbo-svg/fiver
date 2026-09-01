@@ -1,35 +1,36 @@
 var fs = require('fs');
-// Strip EVERY node export block (there is more than one), not just the first —
-// a greedy "delete to end of file" here silently dropped later functions.
-var lines = fs.readFileSync('logic.js', 'utf8').split('\n');
-var out = [], skipping = false, stripped = 0;
-for (var i = 0; i < lines.length; i++) {
-  if (!skipping && /^if \(typeof module/.test(lines[i])) { skipping = true; stripped++; continue; }
-  if (skipping) { if (lines[i] === '}') skipping = false; continue; }
-  out.push(lines[i]);
-}
-if (skipping) throw new Error('unterminated module.exports block in logic.js');
-if (!stripped) throw new Error('no module.exports block found — check logic.js');
-var logic = out.join('\n');
 
-// dates first (both domain modules use it), then money, then food
+/* Turn a node module into browser-ready source: drop EVERY
+   module.exports block (there is more than one per file, and a greedy
+   "delete to end of file" here once silently dropped later functions),
+   and drop the node-only require shims, which are dead weight in a
+   bundle where every module is already concatenated together. */
 function moduleSource(file) {
   var lines = fs.readFileSync(file, 'utf8').split('\n');
   var keep = [], skipping = false, stripped = 0;
   for (var i = 0; i < lines.length; i++) {
     if (!skipping && /^if \(typeof module/.test(lines[i])) { skipping = true; stripped++; continue; }
+    if (!skipping && /^if \(typeof \w+ === 'undefined' && typeof require/.test(lines[i])) {
+      skipping = true; continue;
+    }
     if (skipping) { if (lines[i] === '}') skipping = false; continue; }
-    // the node-only require shim is dead weight in the bundle
-    if (/^if \(typeof dayKey === 'undefined'/.test(lines[i])) { skipping = true; continue; }
     keep.push(lines[i]);
   }
+  if (skipping) throw new Error('unterminated block in ' + file);
   if (!stripped) throw new Error('no module.exports block found in ' + file);
   return keep.join('\n');
 }
-logic = moduleSource('dates.js') + '\n' + moduleSource('currency.js') + '\n' + logic + '\n' + moduleSource('calories.js');
+
+// dates first (everything below uses it), then money, food, and the
+// behaviour layer, which reads the money maths and so must follow it
+var logic;
+logic = [moduleSource('dates.js'), moduleSource('currency.js'), moduleSource('logic.js'),
+         moduleSource('calories.js'), moduleSource('curb.js')].join('\n');
 ['roundUp','dayTotals','baselineFor','sweepOffer','dayIncome','rangeIncome',
- 'netFor','totalSwept','sweptByDest','series','fmt','convert','fmtMoneyIn','dailyMove'].forEach(function (fn) {
-  if (logic.indexOf('function ' + fn + '(') === -1) throw new Error('logic.js lost ' + fn);
+ 'netFor','totalSwept','sweptByDest','series','fmt','convert','fmtMoneyIn','dailyMove',
+ 'disciplineScore','personalLeague','leagueStanding','streakWithFreezes','pausePattern',
+ 'landmarkPending','weekSummary','avertedTotals'].forEach(function (fn) {
+  if (logic.indexOf('function ' + fn + '(') === -1) throw new Error('the bundle lost ' + fn);
 });
 var tpl = fs.readFileSync('template.html', 'utf8');
 // function form: logic.js contains "$'" which would otherwise be treated

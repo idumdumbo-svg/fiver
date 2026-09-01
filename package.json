@@ -5,12 +5,12 @@
   "description": "Two small trackers in one shell: round-up spending, and calorie estimates.",
   "scripts": {
     "build": "node build.js",
-    "test": "node test.js && node test-cal.js && node test-fx.js && node uitest.js && node pwatest.js",
-    "test:logic": "node test.js && node test-cal.js && node test-fx.js",
+    "test": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js && node uitest.js && node pwatest.js",
+    "test:logic": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js",
     "test:app": "node uitest.js",
     "test:offline": "node pwatest.js",
     "icons": "python3 icons.py",
-    "shots": "node shots.js",
+    "shots": "node shots.js && node curbshots.js",
     "serve": "node -e \"const h=require('http'),f=require('fs'),p=require('path');const T={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.ico':'image/x-icon'};h.createServer((q,r)=>{let u=q.url.split('?')[0];if(u==='/')u='/index.html';const x=p.join('dist',u);if(!f.existsSync(x)){r.writeHead(404);return r.end()}r.writeHead(200,{'Content-Type':T[p.extname(x)]||'application/octet-stream'});r.end(f.readFileSync(x))}).listen(8080,()=>console.log('http://localhost:8080'))\""
   },
   "devDependencies": {
