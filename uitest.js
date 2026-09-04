@@ -413,6 +413,121 @@ function launchOpts() {
   await page.click('.mode-btn[data-mode="money"]');
   await page.waitForTimeout(300);
 
+  /* ---- food: adding to and removing from previous days ---- */
+  await page.click('.mode-btn[data-mode="food"]');
+  await page.waitForTimeout(400);
+
+  const todayTotal = await page.textContent('#eatVal');
+  check('the day stepper is there', (await page.locator('#eatPrev').count()) === 1);
+  check('you cannot step into the future',
+    await page.locator('#eatNext').isDisabled());
+  check('no way back to today while you are on it',
+    (await page.locator('#eatToday:not(.hidden)').count()) === 0);
+
+  // step back two days
+  await page.click('#eatPrev'); await page.waitForTimeout(250);
+  await page.click('#eatPrev'); await page.waitForTimeout(250);
+  check('stepping back changes the day shown',
+    (await page.textContent('#eatLabel')) !== 'TODAY',
+    await page.textContent('#eatLabel'));
+  check('a way back to today appears',
+    (await page.locator('#eatToday:not(.hidden)').count()) === 1);
+  check('stepping back can now go forward again',
+    !(await page.locator('#eatNext').isDisabled()));
+  check('a past day starts empty', (await page.textContent('#eatVal')) === '0',
+    await page.textContent('#eatVal'));
+  check('the list is headed with the day, not "Today"',
+    (await page.textContent('#eatListTitle')) !== 'Today',
+    await page.textContent('#eatListTitle'));
+
+  // log to it via the slider
+  await page.locator('#kcalSlider').fill('450');
+  await page.waitForTimeout(250);
+  const backBtn = await page.textContent('#logSlider');
+  // "Log 450 · 2 Sep" — the date is on the button so a tap is never ambiguous,
+  // short-form so it can't squeeze "Enter amount" beside it onto two lines.
+  check('the log button names the day it will land on',
+    /Log 450 · \d+ \w{3}/.test(backBtn), backBtn);
+  await page.click('#logSlider'); await page.waitForTimeout(450);
+  check('the past day now holds the entry', (await page.textContent('#eatVal')) === '450',
+    await page.textContent('#eatVal'));
+
+  const dayOfEntry = await page.evaluate(() => {
+    const f = JSON.parse(localStorage.getItem('fiver.food.v1'));
+    const e = f.entries[f.entries.length - 1];
+    return e.day;
+  });
+  const twoBack = await page.evaluate(() => {
+    const pad = n => (n < 10 ? '0' : '') + n;
+    const d = new Date(); d.setDate(d.getDate() - 2);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  });
+  check('it is stamped with the day you were viewing', dayOfEntry === twoBack,
+    dayOfEntry + ' vs ' + twoBack);
+
+  const tsInDay = await page.evaluate(() => {
+    const f = JSON.parse(localStorage.getItem('fiver.food.v1'));
+    const e = f.entries[f.entries.length - 1];
+    const d = new Date(e.ts);
+    const pad = n => (n < 10 ? '0' : '') + n;
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  });
+  check('and its timestamp sits inside that day too', tsInDay === twoBack,
+    tsInDay + ' vs ' + twoBack);
+
+  // two entries in the same minute must not share an undo
+  await page.locator('#kcalSlider').fill('200'); await page.waitForTimeout(200);
+  await page.click('#logSlider'); await page.waitForTimeout(400);
+  check('a second backdated entry adds up', (await page.textContent('#eatVal')) === '650',
+    await page.textContent('#eatVal'));
+  const sameTs = await page.evaluate(() => {
+    const f = JSON.parse(localStorage.getItem('fiver.food.v1'));
+    const n = f.entries.length;
+    return f.entries[n - 1].ts === f.entries[n - 2].ts;
+  });
+  await page.click('#toastAct'); await page.waitForTimeout(450);
+  check('undo removes one entry even when both share a timestamp',
+    (await page.textContent('#eatVal')) === '450',
+    'sharedTs=' + sameTs + ' total=' + (await page.textContent('#eatVal')));
+
+  // removing from a past day
+  check('the past day lists its entry', (await page.locator('#eatEntries .entry').count()) === 1,
+    await page.locator('#eatEntries .entry').count());
+  await page.click('#eatEntries .entry'); await page.waitForTimeout(400);
+  await page.click('#askOk'); await page.waitForTimeout(450);
+  check('an entry can be removed from a past day',
+    (await page.textContent('#eatVal')) === '0', await page.textContent('#eatVal'));
+
+  // today is untouched by all of that
+  await page.click('#eatToday'); await page.waitForTimeout(400);
+  check('the today button comes back', (await page.textContent('#eatLabel')).startsWith('TODAY'),
+    await page.textContent('#eatLabel'));
+  check("today's total was never touched", (await page.textContent('#eatVal')) === todayTotal,
+    (await page.textContent('#eatVal')) + ' was ' + todayTotal);
+
+  // the picker cannot be pushed past today
+  await page.evaluate(() => {
+    const pad = n => (n < 10 ? '0' : '') + n;
+    const d = new Date(); d.setDate(d.getDate() + 5);
+    const inp = document.getElementById('eatDayPick');
+    inp.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    inp.dispatchEvent(new Event('change'));
+  });
+  await page.waitForTimeout(400);
+  check('a future date is clamped back to today',
+    (await page.textContent('#eatLabel')).startsWith('TODAY'),
+    await page.textContent('#eatLabel'));
+
+  // and the selected day resets on reload rather than stranding you
+  await page.click('#eatPrev'); await page.waitForTimeout(300);
+  await page.reload(); await page.waitForTimeout(700);
+  check('a reload lands back on today, not the day you were correcting',
+    (await page.textContent('#eatLabel')).startsWith('TODAY'),
+    await page.textContent('#eatLabel'));
+
+  await page.click('.mode-btn[data-mode="money"]');
+  await page.waitForTimeout(300);
+
   /* ---- currency ---- */
   await page.click('#moneyTabs .tab[data-view="setup"]');
   await page.waitForTimeout(300);

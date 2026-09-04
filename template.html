@@ -129,6 +129,24 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 /* ============ hero ============ */
 .hero{padding:20px 16px 16px}
 .hero-date{display:flex;justify-content:space-between;align-items:baseline}
+/* day stepper — food side. Arrows either side of the date, the date
+   itself opens a picker, and a way back to today once you've wandered. */
+.daynav{display:flex;align-items:center;gap:2px;position:relative}
+.daynav .arw{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:19px;line-height:1;color:var(--muted);
+  border:1px solid transparent;margin-top:-4px}
+.daynav .arw:active{background:var(--sunk)}
+.daynav .arw[disabled]{opacity:.28}
+.daynav .dlabel{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);padding:3px 5px;border-radius:7px;
+  border-bottom:1px dashed var(--line)}
+.daynav .dlabel.past{color:var(--accent-ink);border-bottom-color:var(--accent)}
+.daynav input[type="date"]{position:absolute;inset:0;opacity:0;width:100%;height:100%;
+  border:0;padding:0;pointer-events:none}
+.daynav input[type="date"].armed{pointer-events:auto}
+.backtoday{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--on-accent);background:var(--accent);
+  padding:4px 9px;border-radius:999px}
 .hero-amount{display:flex;align-items:flex-start;gap:2px;margin:6px 0 2px}
 .hero-amount .cur{font-family:"Archivo",sans-serif;font-weight:600;font-size:26px;
   color:var(--muted);margin-top:10px;font-variation-settings:"wdth" 100}
@@ -755,8 +773,14 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
     <section class="view" id="v-eat">
       <div class="card hero">
         <div class="hero-date">
-          <span class="eyebrow" id="eatLabel">TODAY</span>
+          <span class="daynav">
+            <button class="arw" id="eatPrev" aria-label="Previous day">‹</button>
+            <button class="dlabel" id="eatLabel" aria-label="Pick a day">TODAY</button>
+            <button class="arw" id="eatNext" aria-label="Next day">›</button>
+            <input type="date" id="eatDayPick" aria-label="Pick a day">
+          </span>
           <span class="eyebrow" id="eatStreak"></span>
+          <button class="backtoday hidden" id="eatToday">Today</button>
         </div>
         <div class="hero-amount">
           <span class="val" id="eatVal">0</span><span class="unit">kcal</span>
@@ -779,7 +803,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
           <h2>Quick log</h2>
           <span class="slider-val" id="sliderVal">0</span>
         </div>
-        <p class="note-line" style="margin:2px 0 14px">Slide to roughly what it was. Estimates, always — that's the point.</p>
+        <p class="note-line" style="margin:2px 0 14px" id="quickNote">Slide to roughly what it was. Estimates, always — that's the point.</p>
 
         <input type="range" class="slider" id="kcalSlider" min="0" max="1000" step="50" value="0"
                aria-label="Calorie estimate">
@@ -798,11 +822,11 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 
       <div class="card">
         <div class="row" style="margin-bottom:4px">
-          <h2>Today</h2>
+          <h2 id="eatListTitle">Today</h2>
           <span class="eyebrow" id="eatCount"></span>
         </div>
         <div class="entries" id="eatEntries"></div>
-        <div class="empty" id="eatEmpty"><p>Nothing logged yet today.</p></div>
+        <div class="empty" id="eatEmpty"><p id="eatEmptyMsg">Nothing logged yet today.</p></div>
       </div>
 
       <div class="card">
@@ -1284,6 +1308,18 @@ function saveFood(){
 /* The one thing the two halves share. */
 function foodDayStart(){ return state.settings.dayStartHour || 0; }
 function foodToday(){ return dayKey(Date.now(), foodDayStart()); }
+
+/* Which day the food screen is showing. Deliberately NOT persisted:
+   opening the app tomorrow should land on tomorrow, not on whatever
+   day you were last correcting. */
+var foodDay = foodToday();
+function onFoodToday(){ return foodDay === foodToday(); }
+function setFoodDay(k){
+  var t = foodToday();
+  if(!k || k > t) k = t;            // no logging into the future
+  foodDay = k;
+  render();
+}
 
 /* ============================================================
    curb — the behaviour layer. Its own key, its own shape. It
@@ -1922,13 +1958,37 @@ function renderMode(){
 }
 
 function renderEat(){
-  var k = foodToday();
+  // A day roll-over while the app sat open must not strand you on a
+  // "today" that is now yesterday's date.
+  if(foodDay > foodToday()) foodDay = foodToday();
+  var k = foodDay, isToday = onFoodToday();
   var t = dayKcal(foodState, k);
   var c = compareToBudget(foodState, k);
   var streak = loggingStreak(foodState, k);
 
-  $('eatLabel').textContent = prettyDay(k).toUpperCase() + ' · ' + shortDate(k);
+  // prettyDay is relative for today/yesterday and already carries the
+  // date for anything older — appending shortDate to both gave "WED 2 SEP · 2 SEP".
+  var rel = prettyDay(k);
+  $('eatLabel').textContent = (rel === 'Today' || rel === 'Yesterday')
+    ? rel.toUpperCase() + ' · ' + shortDate(k)
+    : rel.toUpperCase();
+  $('eatLabel').classList.toggle('past', !isToday);
+  $('eatNext').disabled = isToday;
+  $('eatToday').classList.toggle('hidden', isToday);
+  $('eatStreak').classList.toggle('hidden', !isToday);
   $('eatStreak').textContent = streak > 0 ? streak + ' DAY' + (streak===1?'':'S') + ' LOGGED' : '';
+  $('eatDayPick').value = k;
+  $('eatDayPick').max = foodToday();
+
+  // say plainly which day a tap will land on
+  var dayName = prettyDay(k);
+  $('eatListTitle').textContent = dayName;
+  $('eatEmptyMsg').textContent = isToday
+    ? 'Nothing logged yet today.'
+    : 'Nothing logged on ' + dayName + '.';
+  $('quickNote').textContent = isToday
+    ? "Slide to roughly what it was. Estimates, always — that's the point."
+    : 'Adding to ' + dayName + '. Tap Today above to come back.';
   $('eatVal').textContent = fmtKcal(t.total);
   $('eatCount').textContent = t.count === 1 ? '1 ENTRY' : t.count + ' ENTRIES';
 
@@ -1947,7 +2007,7 @@ function renderEat(){
     fill.classList.toggle('over', c.over);
     $('eatLeft').innerHTML = c.over
       ? '<b style="color:var(--over)">' + fmtKcal(c.diff) + ' over</b>'
-      : '<b>' + fmtKcal(c.left) + '</b> left today';
+      : '<b>' + fmtKcal(c.left) + '</b> left' + (isToday ? ' today' : ' that day');
     $('eatBudgetNote').textContent = c.pct + '% of budget';
   } else {
     fill.style.width = '0%';
@@ -2090,7 +2150,7 @@ function labelForKcal(v){
    the plain modal rather than earning a keypad of its own. */
 function openEatSheet(){
   ask({
-    title:'Something else',
+    title: onFoodToday() ? 'Something else' : 'Add to ' + prettyDay(foodDay),
     hint:'Roughly how many calories? Estimate — it rounds up to the nearest 10.',
     value:'', placeholder:'450', okLabel:'Log it',
     onOk: function(v){
@@ -2132,21 +2192,29 @@ function saveNewFood(){
 function logKcal(kcal, label, savedId){
   var amount = roundKcal(kcal);
   if(amount <= 0) return;
-  var ts = Date.now();
+  // Backdated entries get a timestamp inside the day they belong to,
+  // so they sort with that day rather than jumping to the top of it.
+  var ts = timestampForDay(foodDay, Date.now(), foodDayStart());
+  var id = uid();
+  var landed = dayKey(ts, foodDayStart());
   foodState.entries.push({
-    id: uid(), ts: ts, day: dayKey(ts, foodDayStart()),
+    id: id, ts: ts, day: landed,
     kcal: amount, label: label || 'Something', savedId: savedId || null
   });
   if(savedId){
     var f = findFood(foodState, savedId);
-    if(f){ f.uses = (f.uses || 0) + 1; f.lastUsed = ts; }
+    if(f){ f.uses = (f.uses || 0) + 1; f.lastUsed = Date.now(); }
   }
   saveFood(); render();
-  toast('Logged ' + fmtKcal(amount) + ' kcal', 'Undo', function(){
-    foodState.entries = foodState.entries.filter(function(x){ return x.ts !== ts; });
-    if(savedId){ var g = findFood(foodState, savedId); if(g) g.uses = Math.max(0,(g.uses||1)-1); }
-    saveFood(); render();
-  });
+  // Undo keys on the id, not the timestamp: timestampForDay zeroes the
+  // seconds, so two things backdated to the same day inside one minute
+  // share a timestamp exactly, and filtering by it would remove both.
+  toast('Logged ' + fmtKcal(amount) + ' kcal' + (onFoodToday() ? '' : ' to ' + prettyDay(landed)),
+    'Undo', function(){
+      foodState.entries = foodState.entries.filter(function(x){ return x.id !== id; });
+      if(savedId){ var g = findFood(foodState, savedId); if(g) g.uses = Math.max(0,(g.uses||1)-1); }
+      saveFood(); render();
+    });
 }
 
 function removeKcal(id){
@@ -2155,7 +2223,9 @@ function removeKcal(id){
   if(idx < 0) return;
   var gone = foodState.entries[idx];
   ask({
-    title:'Remove this?', hint: gone.label + ' — ' + fmtKcal(gone.kcal) + ' kcal',
+    title:'Remove this?',
+    hint: gone.label + ' — ' + fmtKcal(gone.kcal) + ' kcal' +
+          (gone.day === foodToday() ? '' : ' on ' + prettyDay(gone.day)),
     input:false, okLabel:'Remove', danger:true,
     onOk: function(){
       foodState.entries.splice(idx,1); saveFood(); render();
@@ -2983,7 +3053,9 @@ function wire(){
     slider.classList.toggle('set', v > 0);
     var btn = $('logSlider');
     btn.disabled = v <= 0;
-    btn.textContent = v > 0 ? 'Log ' + fmtKcal(v) : 'Log it';
+    btn.textContent = v > 0
+      ? 'Log ' + fmtKcal(v) + (onFoodToday() ? '' : ' · ' + shortDate(foodDay))
+      : 'Log it';
     // webkit has no ::-moz-range-progress, so the filled track is painted here
     var pct = (v / 1000) * 100;
     slider.style.background =
@@ -3003,6 +3075,23 @@ function wire(){
   syncSlider();
 
   $('openEat').onclick = openEatSheet;
+
+  /* ---- food: which day am I logging to ---- */
+  $('eatPrev').onclick = function(){ setFoodDay(shiftDay(foodDay, -1)); };
+  $('eatNext').onclick = function(){ setFoodDay(shiftDay(foodDay, 1)); };
+  $('eatToday').onclick = function(){ setFoodDay(foodToday()); };
+  // The date input sits invisibly over the label and is only clickable
+  // for the moment it takes to open, so it can't swallow arrow taps.
+  $('eatLabel').onclick = function(){
+    var inp = $('eatDayPick');
+    inp.classList.add('armed');
+    if(inp.showPicker){ try{ inp.showPicker(); }catch(e){ inp.click(); } }
+    else inp.click();
+    setTimeout(function(){ inp.classList.remove('armed'); }, 400);
+  };
+  $('eatDayPick').onchange = function(){
+    if(this.value) setFoodDay(this.value);
+  };
   $('addFood').onclick = saveNewFood;
   $('dailyBudget').oninput = function(){
     foodState.settings.dailyBudget = parseKcal(this.value) || null;

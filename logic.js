@@ -325,29 +325,3 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports.cashNow = cashNow;
   module.exports.cashMovement = cashMovement;
 }
-
-/* ============================================================
-   backdating
-   ============================================================ */
-
-/* A timestamp that lands inside the chosen day and never in the
-   future. Keeps the current time of day so a backdated entry
-   still sorts sensibly, but falls back to midday when the day
-   boundary setting would push it into the wrong bucket. */
-function timestampForDay(dayK, nowMs, dayStartHour) {
-  var todayK = dayKey(nowMs, dayStartHour);
-  if (dayK >= todayK) return nowMs;
-  var now = new Date(nowMs);
-  var d = keyToDate(dayK);
-  d.setHours(now.getHours(), now.getMinutes(), 0, 0);
-  var t = d.getTime();
-  if (dayKey(t, dayStartHour) !== dayK) {
-    d.setHours(12, 0, 0, 0);
-    t = d.getTime();
-  }
-  return Math.min(t, nowMs);
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports.timestampForDay = timestampForDay;
-}

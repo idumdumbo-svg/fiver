@@ -8,7 +8,8 @@ wall of $5 blocks. The gap between what you spent and what you logged gets
 swept somewhere you won't spend it.
 
 **Food** — calorie estimates against a daily budget. One tap for a snack or a
-meal, and anything you eat often becomes its own chip.
+meal, and anything you eat often becomes its own chip. Step back a day to fix
+what you forgot to log.
 
 **Score** — the behaviour layer. A weekly discipline score, your current week
 ranked against your own past weeks, forgiving streaks, and a pause that speaks
@@ -82,6 +83,14 @@ or record that you didn't. It cannot change the amount.
 In the trial this came from, placebo dates did nothing at all, so a random
 Tuesday gets no prompt.
 
+**Fixing a past day (food).** Arrows either side of the date step back and
+forward, and tapping the date opens a picker. Everything on the screen follows
+the day you're on — the total, the list, the quick-log slider — and the button
+names the day it will land on, so a tap is never ambiguous. You can't step
+past today. The selected day is deliberately not remembered across a reload:
+opening the app tomorrow should land on tomorrow, not on whatever day you were
+last correcting.
+
 **The drift check.** When you re-check your balance, the app tells you what it
 expected first, then remembers the difference. That number is the honest
 measure of whether the logging habit is sticking.
@@ -91,7 +100,7 @@ measure of whether the logging habit is sticking.
 ## Layout
 
 ```
-dates.js         day/week helpers shared by every tracker
+dates.js         day/week helpers shared by every tracker, backdating included
 currency.js      currencies, conversion and the round-up step
 logic.js         the money maths — pure functions, no DOM, fully tested
 calories.js      the food maths — same deal, and deliberately isolated
@@ -105,7 +114,7 @@ test.js          157 money logic tests
 test-cal.js      77 food logic tests
 test-fx.js       64 currency tests
 test-curb.js     100 behaviour tests
-uitest.js        142 browser tests against the built app
+uitest.js        162 browser tests against the built app
 pwatest.js       16 tests that the hosted build installs and works offline
 ```
 
