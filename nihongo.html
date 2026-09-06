@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>NIHONGO 15</title>
+<style>
+:root{
+  --bg:#0b0d10; --card:#14171c; --card2:#1a1e25; --line:#242a33;
+  --txt:#f2f4f7; --sub:#8b94a3; --dim:#5b6472;
+  --acc:#e8556d; --acc2:#4da3ff; --good:#3ecf8e; --warn:#f5a623; --bad:#ff5c5c;
+  --r:18px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:var(--bg); color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Hiragino Sans","Noto Sans JP",sans-serif;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+#app{max-width:520px;margin:0 auto;min-height:100%;padding:max(20px,env(safe-area-inset-top)) 20px 40px;display:flex;flex-direction:column}
+.hidden{display:none!important}
+
+/* labels & type */
+.lbl{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sub)}
+.lbl.acc{color:var(--acc)}
+.h1{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.h2{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.sub{font-size:14px;color:var(--sub);line-height:1.5}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.row{display:flex;align-items:center;gap:12px}
+.spread{display:flex;align-items:center;justify-content:space-between}
+
+/* buttons */
+.btn{
+  display:block;width:100%;border:none;border-radius:16px;padding:17px 20px;
+  font-family:inherit;font-size:15px;font-weight:700;letter-spacing:.02em;
+  cursor:pointer;text-align:center;transition:transform .08s,opacity .15s;color:var(--txt);
+}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--acc);color:#fff}
+.btn.blue{background:var(--acc2);color:#fff}
+.btn.ghost{background:var(--card2);border:1px solid var(--line)}
+.btn.small{padding:12px 16px;font-size:13px;width:auto}
+.btn:disabled{opacity:.35;pointer-events:none}
+
+/* progress bar */
+.pbar{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;flex:1}
+.pbar>div{height:100%;background:var(--acc);border-radius:3px;transition:width .3s ease}
+
+/* stat chips */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+.stat .num{font-size:22px;font-weight:800}
+.stat .lbl{font-size:9px;margin-top:4px}
+
+/* JP sentence with word-for-word gloss */
+.gloss{display:flex;flex-wrap:wrap;gap:14px 18px;justify-content:center;align-items:flex-end}
+.tok{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tok .jp{font-size:30px;font-weight:600;line-height:1.15}
+.tok .ro{font-size:12px;color:var(--acc2);font-weight:600;letter-spacing:.02em}
+.tok .en{font-size:11px;color:var(--sub);border-top:1px solid var(--line);padding-top:3px;margin-top:1px;max-width:110px;text-align:center;line-height:1.3}
+.gloss.md .tok .jp{font-size:24px}
+.natural{font-size:15px;color:var(--txt);font-weight:600;text-align:center;margin-top:16px}
+.natural::before{content:"= ";color:var(--dim);font-weight:400}
+.mnem{margin-top:14px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+.mnem .emo{font-size:24px;line-height:1}
+.mnem .txt{font-size:13px;color:var(--sub);line-height:1.45}
+.mnem .txt b{color:var(--txt)}
+
+/* quiz choices */
+.choices{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.choice{
+  background:var(--card2);border:1px solid var(--line);border-radius:14px;
+  padding:15px 16px;font-size:15px;font-weight:600;cursor:pointer;text-align:left;
+  color:var(--txt);font-family:inherit;transition:border-color .15s,background .15s;width:100%;
+}
+.choice:active{transform:scale(.98)}
+.choice.right{border-color:var(--good);background:rgba(62,207,142,.12)}
+.choice.wrong{border-color:var(--bad);background:rgba(255,92,92,.12)}
+.choice .cr{font-size:11px;color:var(--sub);font-weight:400;display:block;margin-top:2px}
+
+/* sentence builder */
+.pool,.built{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.built{min-height:52px;background:var(--card2);border:1px dashed var(--line);border-radius:14px;padding:10px;margin-bottom:16px;align-items:center}
+.chip{
+  background:var(--card);border:1px solid var(--line);border-radius:10px;
+  padding:9px 13px;font-size:18px;font-weight:600;cursor:pointer;color:var(--txt);font-family:inherit;
+}
+.chip small{display:block;font-size:10px;color:var(--acc2);font-weight:600;text-align:center}
+.chip.used{opacity:.2;pointer-events:none}
+.built .chip{border-color:var(--acc2)}
+
+/* grades */
+.grades{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.grades .btn{padding:14px 8px;font-size:13px}
+.g-again{background:rgba(255,92,92,.15);border:1px solid var(--bad);color:var(--bad)}
+.g-good{background:rgba(77,163,255,.15);border:1px solid var(--acc2);color:var(--acc2)}
+.g-easy{background:rgba(62,207,142,.15);border:1px solid var(--good);color:var(--good)}
+
+/* strength dots */
+.dots{display:flex;gap:3px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--card2);border:1px solid var(--line)}
+.dots i.on{background:var(--good);border-color:var(--good)}
+
+/* feedback bars */
+.fb-row{margin-bottom:14px}
+.fb-row .spread{margin-bottom:6px}
+.fb-row .name{font-size:13px;font-weight:600}
+.fb-row .pct{font-size:12px;color:var(--sub);font-weight:700}
+
+/* misc */
+.topbar{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+.xbtn{background:var(--card2);border:1px solid var(--line);color:var(--sub);width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer;flex-shrink:0;font-family:inherit}
+.center{text-align:center}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt28{margin-top:28px}
+.big-emo{font-size:52px;line-height:1}
+.score-ring{font-size:56px;font-weight:800;letter-spacing:-.03em}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:7px;background:var(--card2);border:1px solid var(--line);color:var(--sub)}
+.tag.new{color:var(--acc);border-color:rgba(232,85,109,.4)}
+.tag.rev{color:var(--acc2);border-color:rgba(77,163,255,.4)}
+.fade{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.unit-row{padding:14px 16px;border-bottom:1px solid var(--line)}
+.unit-row:last-child{border-bottom:none}
+.timer{font-size:12px;color:var(--dim);font-weight:700;letter-spacing:.08em;margin-left:auto}
+
+/* illustration (picture match) */
+.art{background:var(--card2);border:1px solid var(--line);border-radius:18px;width:160px;height:160px;margin:6px auto 0;display:flex;align-items:center;justify-content:center}
+.art svg{width:104px;height:104px}
+.art.big{width:190px;height:190px}
+.art.big svg{width:124px;height:124px}
+
+/* chat bubble (best response) */
+.bubble{background:var(--card2);border:1px solid var(--line);border-radius:16px;border-top-left-radius:5px;padding:15px 18px;max-width:330px;margin:8px auto 0;text-align:left}
+.bubble .bjp{font-size:25px;font-weight:600;line-height:1.2}
+.bubble .bro{font-size:12px;color:var(--acc2);font-weight:600;margin-top:4px}
+.bubble .ben{font-size:12px;color:var(--sub);margin-top:7px;font-style:italic}
+.bubble-who{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:center;margin-bottom:6px}
+
+/* situation card (situation match) */
+.situation{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:20px 18px;font-size:16px;font-weight:600;text-align:center;line-height:1.5;max-width:370px;margin:8px auto 0}
+.situation .semo{font-size:34px;display:block;margin-bottom:10px;line-height:1}
+
+/* particle blank (fill the particle) */
+.tok .jp.blank{color:var(--acc);border-bottom:3px dashed var(--acc);padding-bottom:2px;min-width:26px;display:inline-block}
+
+/* conversation scenes */
+.chat{display:flex;flex-direction:column;gap:14px;margin:14px 0}
+.setting-banner{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--sub);text-align:center;line-height:1.5}
+.cbwrap{display:flex;flex-direction:column;max-width:84%}
+.cbwrap.them{align-self:flex-start;align-items:flex-start}
+.cbwrap.you{align-self:flex-end;align-items:flex-end}
+.cbname{font-size:10px;color:var(--dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin:0 8px 4px}
+.cbubble{padding:12px 15px;border-radius:16px;background:var(--card2);border:1px solid var(--line)}
+.cbwrap.them .cbubble{border-top-left-radius:5px}
+.cbwrap.you .cbubble{border-top-right-radius:5px;background:rgba(232,85,109,.14);border-color:rgba(232,85,109,.4)}
+.cjp{font-size:22px;font-weight:600;line-height:1.28}
+.cro{font-size:12px;color:var(--acc2);font-weight:600;margin-top:3px}
+.cen{font-size:12px;color:var(--sub);margin-top:5px}
+.nwrow{display:flex;flex-wrap:wrap;gap:6px;margin:7px 6px 0}
+.nwchip{font-size:11px;background:rgba(232,85,109,.12);border:1px solid rgba(232,85,109,.4);color:var(--txt);border-radius:8px;padding:4px 8px;line-height:1.3}
+.nwchip b{color:var(--acc)}
+.sfb{font-size:13px;font-weight:600;text-align:center;padding:10px 12px;border-radius:12px;margin:4px 0 2px;line-height:1.45}
+.sfb.ok{color:var(--good);background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.3)}
+.sfb.no{color:var(--warn);background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3)}
+.scene-row{padding:15px 16px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;align-items:center;gap:13px}
+.scene-row:last-child{border-bottom:none}
+.scene-row:active{background:var(--card2)}
+.scene-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--good)}
+.scene-check.done{border-color:var(--good);background:rgba(62,207,142,.15)}
+.mb{margin-bottom:10px}
+
+/* ================= CHAT (texting) ================= */
+.chatwrap{display:flex;flex-direction:column;flex:1;min-height:0}
+.chatlog{display:flex;flex-direction:column;gap:12px;flex:1;padding-bottom:8px}
+.chatlog .cbwrap{max-width:88%}
+.chatlog .cbubble{cursor:pointer}
+.cbwrap.hideRo .cro,.cbwrap.hideEn .cen{display:none}
+.cbwrap .cjp{font-size:20px}
+.cbwrap.you .cjp.raw{font-size:17px;font-weight:500}
+.cbwrap.sys{align-self:center;max-width:100%}
+.cbwrap.sys .cbubble{background:transparent;border:none;padding:4px 0}
+.typing{display:inline-flex;gap:4px;padding:6px 2px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--sub);animation:tb 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes tb{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.segs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.seg{font-size:11px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:3px 7px;line-height:1.35;color:var(--sub)}
+.seg b{color:var(--txt);font-weight:600}
+.seg.unk{border-style:dashed;color:var(--dim)}
+.seg .sr{color:var(--acc2);font-weight:600}
+.fixnote{font-size:12px;color:var(--warn);margin-top:6px;line-height:1.4}
+.composer{position:sticky;bottom:0;background:var(--bg);padding:10px 0 4px;border-top:1px solid var(--line);margin-top:8px}
+.crow{display:flex;gap:8px;align-items:flex-end}
+.cinput{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:13px 14px;color:var(--txt);font-family:inherit;font-size:17px;resize:none;min-height:50px;max-height:120px;outline:none;line-height:1.35}
+.cinput:focus{border-color:var(--acc2)}
+.cinput.en{font-size:15px}
+.sendbtn{background:var(--acc);color:#fff;border:none;border-radius:50%;width:50px;height:50px;font-size:20px;cursor:pointer;flex-shrink:0;font-family:inherit;font-weight:800}
+.sendbtn.blue{background:var(--acc2)}
+.sendbtn:disabled{opacity:.35}
+.modes{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.mbtn{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:7px 11px;border-radius:9px;background:var(--card2);border:1px solid var(--line);color:var(--sub);cursor:pointer;font-family:inherit}
+.mbtn.on{color:var(--txt);border-color:var(--acc2);background:rgba(77,163,255,.12)}
+.mbtn.pink.on{border-color:var(--acc);background:rgba(232,85,109,.12)}
+.mbtn.push{margin-left:auto}
+.xlate{background:var(--card2);border:1px solid var(--acc2);border-radius:14px;padding:14px;margin-bottom:10px}
+.xlate .xjp{font-size:22px;font-weight:600;line-height:1.3}
+.xlate .xro{font-size:12px;color:var(--acc2);font-weight:600;margin-top:3px}
+.xlate .xen{font-size:12px;color:var(--sub);margin-top:4px}
+.xlate .xnote{font-size:12px;color:var(--sub);margin-top:10px;line-height:1.45;border-top:1px solid var(--line);padding-top:9px}
+.xlate .xnote b{color:var(--txt)}
+.xalts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.xalt{font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:6px 9px;cursor:pointer;color:var(--txt);font-family:inherit}
+.xalt small{color:var(--acc2);margin-left:4px}
+.xbtns{display:flex;gap:8px;margin-top:12px}
+.xbtns .btn{padding:12px}
+.keyrow{display:flex;gap:8px;margin-top:10px}
+.keyin{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--txt);font-family:inherit;font-size:14px;outline:none}
+.pill{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:7px;border:1px solid var(--line);color:var(--sub)}
+.pill.live{color:var(--good);border-color:rgba(62,207,142,.4)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ================= DATA =================
+   tok: t = japanese, r = romaji, g = literal word-for-word english */
+const UNITS=[
+{id:1,name:"Daily Rhythm",emo:"🌅",desc:"The phrases that bookend every day together"},
+{id:2,name:"Feelings & States",emo:"💭",desc:"Say how you feel — hungry, tired, happy"},
+{id:3,name:"Food & Meals",emo:"🍜",desc:"Eating together, the heart of it all"},
+{id:4,name:"Plans & Time",emo:"🗓️",desc:"Making plans, meeting up, heading out"},
+{id:5,name:"Couple Talk",emo:"❤️",desc:"The sweet stuff"},
+{id:6,name:"Understanding",emo:"🙋",desc:"Keep the conversation alive when you're lost"},
+{id:7,name:"Texting",emo:"📱",desc:"Everyday messages between you two"},
+{id:8,name:"Grammar Bites",emo:"🧩",desc:"Particles — the glue of Japanese"},
+{id:9,name:"Out & About",emo:"🏪",desc:"Konbini, trains, shops — surviving on your own"},
+{id:10,name:"Small Talk",emo:"💬",desc:"Reactions and filler — the sound of someone who belongs"},
+];
+const ITEMS=[
+/* U1 Daily Rhythm */
+{id:"u1a",u:1,tok:[{t:"おはよう",r:"ohayou",g:"good morning"}],en:"Morning!",emo:"🌅",mn:"<b>Ohayou</b> sounds like the state <b>Ohio</b> — wake up in Ohio every morning."},
+{id:"u1b",u:1,tok:[{t:"おやすみ",r:"oyasumi",g:"rest [honorific]"}],en:"Good night",emo:"🌙",mn:"<b>Yasumi</b> = rest/holiday. o-yasumi = 'have an honourable rest'."},
+{id:"u1c",u:1,tok:[{t:"ただいま",r:"tadaima",g:"just-now [I'm back]"}],en:"I'm home!",emo:"🏠",mn:"Literally '<b>just now</b>' — as in 'I just now got back'. Shout it walking in the door."},
+{id:"u1d",u:1,tok:[{t:"おかえり",r:"okaeri",g:"return [welcome]"}],en:"Welcome home",emo:"🫶",mn:"From <b>kaeru</b> (to return). The auto-reply to tadaima — they're a pair."},
+{id:"u1e",u:1,tok:[{t:"いってきます",r:"ittekimasu",g:"go-and-come"}],en:"I'm off! (I'll go and come back)",emo:"🚪",mn:"<b>Itte</b> (go) + <b>kimasu</b> (come) — 'I go and I'll come back'. Said when leaving home."},
+{id:"u1f",u:1,tok:[{t:"いってらっしゃい",r:"itterasshai",g:"go-and-come [to you]"}],en:"See you later, take care",emo:"👋",mn:"The reply to ittekimasu — 'go and come back safely'. Another fixed pair."},
+{id:"u1g",u:1,tok:[{t:"おつかれさま",r:"otsukaresama",g:"honourable-tiredness"}],en:"Good work today / you must be tired",emo:"🎿",mn:"From <b>tsukareta</b> (tired). You'll hear this constantly at ski resorts after work."},
+/* U2 Feelings */
+{id:"u2a",u:2,tok:[{t:"おなか",r:"onaka",g:"stomach"},{t:"すいた",r:"suita",g:"emptied"}],en:"I'm hungry",emo:"🍙",mn:"Stomach emptied. Japanese says <b>what happened to the stomach</b>, not 'I am hungry'."},
+{id:"u2b",u:2,tok:[{t:"のど",r:"nodo",g:"throat"},{t:"かわいた",r:"kawaita",g:"dried"}],en:"I'm thirsty",emo:"🥤",mn:"Throat dried — same pattern as onaka suita."},
+{id:"u2c",u:2,tok:[{t:"ねむい",r:"nemui",g:"sleepy"}],en:"I'm sleepy",emo:"😴",mn:"<b>Nemui</b> — imagine a sleepy cat going 'nemu nemu'. Japanese actually uses this!"},
+{id:"u2d",u:2,tok:[{t:"つかれた",r:"tsukareta",g:"got-tired"}],en:"I'm tired / worn out",emo:"🥱",mn:"Past tense — 'I <b>became</b> tired'. The root of otsukaresama."},
+{id:"u2e",u:2,tok:[{t:"さむい",r:"samui",g:"cold"}],en:"It's cold / I'm cold",emo:"❄️",mn:"<b>Samui</b> — you'll say this every day on the hill. 'Sam, oui, it's cold.'"},
+{id:"u2f",u:2,tok:[{t:"あつい",r:"atsui",g:"hot"}],en:"It's hot / I'm hot",emo:"🔥",mn:"<b>Atsui!</b> — what you say touching hot ramen. 'Ah! Too-ee hot!'"},
+{id:"u2g",u:2,tok:[{t:"うれしい",r:"ureshii",g:"happy/glad"}],en:"I'm happy",emo:"😊",mn:"<b>Ureshii</b> = happy about something that happened (not general happiness)."},
+{id:"u2h",u:2,tok:[{t:"げんき",r:"genki",g:"energy/well"},{t:"？",r:"?",g:"?"}],en:"You doing good?",emo:"⚡",mn:"<b>Genki</b> = energy, liveliness. Rising tone makes it a question — no extra words needed."},
+{id:"u2i",u:2,tok:[{t:"だいじょうぶ",r:"daijoubu",g:"okay/alright"},{t:"？",r:"?",g:"?"}],en:"You okay?",emo:"🤕",mn:"Works as question AND answer: 'Daijoubu?' 'Daijoubu!' — you okay? / I'm fine."},
+/* U3 Food */
+{id:"u3a",u:3,tok:[{t:"なに",r:"nani",g:"what"},{t:"たべたい",r:"tabetai",g:"want-to-eat"},{t:"？",r:"?",g:"?"}],en:"What do you want to eat?",emo:"🍽️",mn:"<b>Tabe</b> (eat) + <b>tai</b> (want to). ~tai turns any verb into a want. No 'do you' needed."},
+{id:"u3b",u:3,tok:[{t:"おいしい",r:"oishii",g:"delicious"},{t:"！",r:"!",g:"!"}],en:"Delicious!",emo:"😋",mn:"Say it with feeling mid-bite. The single most useful word at her family's dinner table."},
+{id:"u3c",u:3,tok:[{t:"いただきます",r:"itadakimasu",g:"[I] humbly-receive"}],en:"Said before eating — 'let's eat'",emo:"🙏",mn:"Hands together before the meal. Literally 'I humbly receive (this food/life)'."},
+{id:"u3d",u:3,tok:[{t:"ごちそうさま",r:"gochisousama",g:"[it was a] feast"}],en:"Said after eating — 'thanks for the meal'",emo:"🍵",mn:"The closing bracket to itadakimasu. Skipping it is like leaving without saying thanks."},
+{id:"u3e",u:3,tok:[{t:"これ",r:"kore",g:"this"},{t:"たべて",r:"tabete",g:"eat-and"},{t:"みて",r:"mite",g:"try/see"}],en:"Try eating this",emo:"🥢",mn:"<b>~te mite</b> = 'do and see' = try it. Kore/sore/are = this/that/that-over-there."},
+{id:"u3f",u:3,tok:[{t:"おなか",r:"onaka",g:"stomach"},{t:"いっぱい",r:"ippai",g:"full"}],en:"I'm full",emo:"🫃",mn:"<b>Ippai</b> = full / lots. Stomach full — big smile, lean back, say it."},
+{id:"u3g",u:3,tok:[{t:"コーヒー",r:"koohii",g:"coffee"},{t:"のむ",r:"nomu",g:"drink"},{t:"？",r:"?",g:"?"}],en:"Want a coffee?",emo:"☕",mn:"Katakana loan-word: <b>koohii</b>. Casual Japanese drops everything: 'Coffee, drink?'"},
+/* U4 Plans */
+{id:"u4a",u:4,tok:[{t:"きょう",r:"kyou",g:"today"},{t:"なに",r:"nani",g:"what"},{t:"する",r:"suru",g:"do"},{t:"？",r:"?",g:"?"}],en:"What are we doing today?",emo:"📆",mn:"Time word first, then what, then verb LAST. Japanese verbs always land at the end."},
+{id:"u4b",u:4,tok:[{t:"あした",r:"ashita",g:"tomorrow"},{t:"ひま",r:"hima",g:"free-time"},{t:"？",r:"?",g:"?"}],en:"You free tomorrow?",emo:"🗓️",mn:"<b>Hima</b> = free / nothing on. Two words = a full invitation."},
+{id:"u4c",u:4,tok:[{t:"いこう",r:"ikou",g:"let's-go"},{t:"！",r:"!",g:"!"}],en:"Let's go!",emo:"🏂",mn:"<b>Iku</b> (go) → <b>ikou</b> (let's go). The ~ou ending = 'let's'. Tabeyou = let's eat."},
+{id:"u4d",u:4,tok:[{t:"ちょっと",r:"chotto",g:"a-little"},{t:"まって",r:"matte",g:"wait"}],en:"Wait a sec",emo:"✋",mn:"<b>Chotto</b> is the Swiss army knife word — 'a little', 'hang on', even a soft 'no'."},
+{id:"u4e",u:4,tok:[{t:"また",r:"mata",g:"again"},{t:"あした",r:"ashita",g:"tomorrow"}],en:"See you tomorrow",emo:"🌄",mn:"Literally 'again tomorrow'. Mata ne = 'again, yeah?' = see ya."},
+{id:"u4f",u:4,tok:[{t:"なんじ",r:"nanji",g:"what-hour"},{t:"に",r:"ni",g:"at"},{t:"あう",r:"au",g:"meet"},{t:"？",r:"?",g:"?"}],en:"What time shall we meet?",emo:"⌚",mn:"<b>Nan</b> (what) + <b>ji</b> (o'clock). <b>Ni</b> pins the time: 3じに = at 3."},
+{id:"u4g",u:4,tok:[{t:"スキー",r:"sukii",g:"ski"},{t:"いこう",r:"ikou",g:"let's-go"},{t:"！",r:"!",g:"!"}],en:"Let's go skiing!",emo:"⛷️",mn:"Snowboard = スノボ (<b>sunobo</b>). Sunobo ikou! — your most-used sentence in Japan."},
+/* U5 Couple */
+{id:"u5a",u:5,tok:[{t:"すき",r:"suki",g:"like"},{t:"だよ",r:"da yo",g:"is [I tell you]"}],en:"I like you",emo:"💘",mn:"<b>Suki</b> = like/love. No 'I' or 'you' — context carries it. <b>Yo</b> adds warmth: 'y'know'."},
+{id:"u5b",u:5,tok:[{t:"だいすき",r:"daisuki",g:"big-like"}],en:"I love you (lots)",emo:"❤️",mn:"<b>Dai</b> (big) + <b>suki</b> (like) = big like = love. Dai-jou-bu uses the same 'dai'."},
+{id:"u5c",u:5,tok:[{t:"あいたい",r:"aitai",g:"want-to-meet"}],en:"I miss you / I want to see you",emo:"🥺",mn:"<b>Au</b> (meet) + <b>tai</b> (want). Japanese has no 'miss you' — you say 'want to meet'."},
+{id:"u5d",u:5,tok:[{t:"かわいい",r:"kawaii",g:"cute"}],en:"Cute!",emo:"🐣",mn:"Careful: kawa<b>ii</b> = cute, kowai = scary. One vowel between a compliment and an insult."},
+{id:"u5e",u:5,tok:[{t:"いっしょ",r:"issho",g:"together"},{t:"に",r:"ni",g:"in/with"},{t:"いよう",r:"iyou",g:"let's-be"}],en:"Let's stay together",emo:"🤝",mn:"<b>Issho ni</b> = together. Add to anything: issho ni tabeyou = let's eat together."},
+{id:"u5f",u:5,tok:[{t:"ぎゅって",r:"gyutte",g:"squeeze [sound]"},{t:"して",r:"shite",g:"do [for me]"}],en:"Hug me",emo:"🤗",mn:"<b>Gyu</b> is the squeezing sound-effect. Japanese loves sound words — 'do a squeeze'."},
+{id:"u5g",u:5,tok:[{t:"がんばって",r:"ganbatte",g:"do-your-best"}],en:"Good luck / you've got this",emo:"💪",mn:"What she'll text you before your exam. Reply: <b>ganbaru!</b> (I'll do my best!)."},
+{id:"u5h",u:5,tok:[{t:"ありがとう",r:"arigatou",g:"thanks"},{t:"ね",r:"ne",g:"[softener] yeah"}],en:"Thanks, hey",emo:"😊",mn:"<b>Ne</b> at the end softens and connects — like ending with 'yeah?' or 'eh' in NZ."},
+/* U6 Understanding */
+{id:"u6a",u:6,tok:[{t:"これ",r:"kore",g:"this"},{t:"は",r:"wa",g:"[topic]"},{t:"なに",r:"nani",g:"what"},{t:"？",r:"?",g:"?"}],en:"What's this?",emo:"👀",mn:"は is read <b>wa</b> when it's the topic particle. 'This-as-topic: what?'"},
+{id:"u6b",u:6,tok:[{t:"わからない",r:"wakaranai",g:"not-understand"}],en:"I don't understand",emo:"🤷",mn:"<b>Wakaru</b> (understand) → <b>wakaranai</b> (not). ~nai = negative for most verbs."},
+{id:"u6c",u:6,tok:[{t:"もう",r:"mou",g:"more/again"},{t:"いっかい",r:"ikkai",g:"one-time"},{t:"いって",r:"itte",g:"say"}],en:"Say it one more time",emo:"🔁",mn:"<b>Mou ikkai</b> = one more time — also what you say wanting another run on the hill."},
+{id:"u6d",u:6,tok:[{t:"にほんご",r:"nihongo",g:"Japan-language"},{t:"で",r:"de",g:"by-means-of"},{t:"なんて",r:"nante",g:"what [quote]"},{t:"いう",r:"iu",g:"say"},{t:"？",r:"?",g:"?"}],en:"How do you say it in Japanese?",emo:"🗣️",mn:"Your learning superpower — ask her this 10 times a day. <b>De</b> = 'using/by'."},
+{id:"u6e",u:6,tok:[{t:"ゆっくり",r:"yukkuri",g:"slowly"},{t:"おねがい",r:"onegai",g:"please/request"}],en:"Slowly, please",emo:"🐢",mn:"<b>Yukkuri</b> = slowly/relaxed. Also great teaching Japanese kids to turn: yukkuri~!"},
+{id:"u6f",u:6,tok:[{t:"そう",r:"sou",g:"that-way"},{t:"だ",r:"da",g:"is"},{t:"ね",r:"ne",g:"right?"}],en:"Yeah, that's right",emo:"👍",mn:"The universal agreement noise. <b>Sou sou sou</b> = yes yes exactly."},
+{id:"u6g",u:6,tok:[{t:"ほんとう",r:"hontou",g:"truth"},{t:"に",r:"ni",g:"[adverb]"},{t:"？",r:"?",g:"?"}],en:"Really?!",emo:"😲",mn:"<b>Hontou ni?</b> — react to any story with this and you sound instantly fluent."},
+/* U7 Texting */
+{id:"u7a",u:7,tok:[{t:"いま",r:"ima",g:"now"},{t:"なに",r:"nani",g:"what"},{t:"してる",r:"shiteru",g:"doing"},{t:"？",r:"?",g:"?"}],en:"What are you doing right now?",emo:"📱",mn:"<b>Shiteru</b> = shortened 'shite iru' (is doing). Texting Japanese drops every extra sound."},
+{id:"u7b",u:7,tok:[{t:"はやく",r:"hayaku",g:"quickly/soon"},{t:"あいたい",r:"aitai",g:"want-to-meet"}],en:"Can't wait to see you",emo:"💨",mn:"<b>Hayai</b> (fast) → <b>hayaku</b> (quickly). 'Soon want-to-meet' = can't wait."},
+{id:"u7c",u:7,tok:[{t:"りょうかい",r:"ryoukai",g:"understood/roger"}],en:"Got it / roger",emo:"🫡",mn:"The texting 'OK'. Often typed as りょ (ryo) — Japanese text-speak for 'k'."},
+{id:"u7d",u:7,tok:[{t:"いい",r:"ii",g:"good"},{t:"ゆめ",r:"yume",g:"dream"},{t:"みて",r:"mite",g:"see"},{t:"ね",r:"ne",g:"okay?"}],en:"Sweet dreams",emo:"🌠",mn:"'See a good dream, yeah?' In Japanese you <b>see</b> dreams, you don't have them."},
+{id:"u7e",u:7,tok:[{t:"ごめん",r:"gomen",g:"sorry"},{t:"、しごと",r:"shigoto",g:"work"},{t:"ちゅう",r:"chuu",g:"in-the-middle-of"}],en:"Sorry, I'm at work",emo:"🎿",mn:"<b>~chuu</b> = mid-something. Ressun-chuu = mid-lesson. Your go-to on-hill reply."},
+{id:"u7f",u:7,tok:[{t:"あとで",r:"ato de",g:"later at"},{t:"でんわ",r:"denwa",g:"phone [electric-talk]"},{t:"する",r:"suru",g:"do"}],en:"I'll call you later",emo:"📞",mn:"<b>Denwa</b> = electric (den) + talk (wa). 'Later, phone do.' Verb last, always."},
+/* U8 Grammar */
+{id:"u8a",u:8,tok:[{t:"わたし",r:"watashi",g:"I"},{t:"は",r:"wa",g:"[topic]"},{t:"デイビッド",r:"Deibiddo",g:"David"}],en:"I'm David",emo:"🙋",mn:"<b>Wa</b> marks the topic: 'As for me — David.' No word for 'am' needed in casual talk."},
+{id:"u8b",u:8,tok:[{t:"コーヒー",r:"koohii",g:"coffee"},{t:"を",r:"o",g:"[object]"},{t:"のむ",r:"nomu",g:"drink"}],en:"(I) drink coffee",emo:"☕",mn:"<b>を (o)</b> tags what the verb acts on. Coffee ← drink. Spoken Japanese often drops it."},
+{id:"u8c",u:8,tok:[{t:"やま",r:"yama",g:"mountain"},{t:"に",r:"ni",g:"to"},{t:"いく",r:"iku",g:"go"}],en:"(I'm) going to the mountain",emo:"🏔️",mn:"<b>Ni</b> = destination arrow. Yama ni iku — where every winter morning starts."},
+{id:"u8d",u:8,tok:[{t:"ゆき",r:"yuki",g:"snow"},{t:"が",r:"ga",g:"[subject]"},{t:"すき",r:"suki",g:"liked"}],en:"I like snow",emo:"⛄",mn:"With suki, the loved thing takes <b>ga</b>: 'snow is-liked (by me)'. Yuki ga suki!"},
+{id:"u8e",u:8,tok:[{t:"これ",r:"kore",g:"this"},{t:"は",r:"wa",g:"[topic]"},{t:"わたし",r:"watashi",g:"me"},{t:"の",r:"no",g:"of/'s"}],en:"This is mine",emo:"🎒",mn:"<b>No</b> = possessive 's. Watashi no = mine. Kanojo no sunobo = her snowboard."},
+/* ---- NEW BATCH ---- */
+/* U1 Daily Rhythm */
+{id:"u1h",u:1,tok:[{t:"また",r:"mata",g:"again"},{t:"あとで",r:"ato de",g:"later"}],en:"See you later",emo:"👋",mn:"<b>Mata</b> (again) + <b>ato de</b> (later). Casual sign-off between two people who'll see each other again soon."},
+{id:"u1i",u:1,tok:[{t:"おはよう",r:"ohayou",g:"good morning"},{t:"ございます",r:"gozaimasu",g:"[polite]"}],en:"Good morning (polite)",emo:"🙇",mn:"Add <b>gozaimasu</b> to make it polite — this is the version for the resort, her parents, guests."},
+/* U2 Feelings */
+{id:"u2j",u:2,tok:[{t:"つめたい",r:"tsumetai",g:"cold [to touch]"}],en:"It's cold (to touch)",emo:"🧊",mn:"<b>Tsumetai</b> = cold to the touch (hands, snow, a drink). <b>Samui</b> = cold air/weather. Don't mix them up."},
+{id:"u2k",u:2,tok:[{t:"きもちいい",r:"kimochii",g:"feels-good"}],en:"Feels good",emo:"☺️",mn:"<b>Kimochi</b> (feeling) + <b>ii</b> (good). Hot spring, sun on the deck, a good carve — kimochii!"},
+{id:"u2l",u:2,tok:[{t:"こわい",r:"kowai",g:"scary"}],en:"That's scary",emo:"😱",mn:"The trap word: <b>kowai</b> = scary, <b>kawaii</b> = cute. One vowel apart — say it wrong and you've called her scary."},
+{id:"u2m",u:2,tok:[{t:"いそがしい",r:"isogashii",g:"busy"}],en:"I'm busy",emo:"🌀",mn:"<b>Isogashii</b> — a mouthful, but you'll need it. 'I-so-ga-shii.' The reason you can't text back on a powder day."},
+/* U3 Food */
+{id:"u3h",u:3,tok:[{t:"さきに",r:"saki ni",g:"first/ahead"},{t:"たべて",r:"tabete",g:"eat"}],en:"Go ahead and eat",emo:"🍚",mn:"<b>Saki ni</b> = ahead / first. Tell her not to wait for you — saki ni tabete."},
+{id:"u3i",u:3,tok:[{t:"おかわり",r:"okawari",g:"refill/seconds"}],en:"Seconds, please",emo:"🍚",mn:"<b>Okawari</b> = another serving. The word that makes any Japanese mum happy. Hold your bowl out."},
+{id:"u3j",u:3,tok:[{t:"からい",r:"karai",g:"spicy"}],en:"It's spicy",emo:"🌶️",mn:"<b>Karai</b> = spicy/hot-taste. Not atsui (temperature). Careful: karai vs karui (light) — one vowel again."},
+{id:"u3k",u:3,tok:[{t:"みず",r:"mizu",g:"water"},{t:"ください",r:"kudasai",g:"please-give"}],en:"Water, please",emo:"💧",mn:"<b>Kudasai</b> = please give me. Attach to any noun: koohii kudasai, mizu kudasai."},
+/* U4 Plans */
+{id:"u4h",u:4,tok:[{t:"たのしみ",r:"tanoshimi",g:"looking-forward"}],en:"Can't wait / looking forward to it",emo:"🤩",mn:"From <b>tanoshii</b> (fun). Tanoshimi! = I'm looking forward to it. Sukii tanoshimi!"},
+{id:"u4i",u:4,tok:[{t:"むり",r:"muri",g:"impossible/can't"}],en:"No way / I can't",emo:"🙅",mn:"<b>Muri</b> = impossible, can't do it. Soft refusal: 'Ashita? Muri~.' Very common, very casual."},
+{id:"u4j",u:4,tok:[{t:"どこ",r:"doko",g:"where"},{t:"いく",r:"iku",g:"go"},{t:"？",r:"?",g:"?"}],en:"Where shall we go?",emo:"🧭",mn:"<b>Doko</b> = where. Doko / dare / nani = where / who / what. Verb last: doko iku?"},
+/* U5 Couple */
+{id:"u5i",u:5,tok:[{t:"だいじに",r:"daiji ni",g:"take-care"},{t:"ね",r:"ne",g:"okay?"}],en:"Take care of yourself",emo:"🤒",mn:"<b>Daiji</b> = precious/important. Daiji ni = treat yourself as precious. Say it when she's sick or cold."},
+{id:"u5j",u:5,tok:[{t:"いつも",r:"itsumo",g:"always"},{t:"ありがとう",r:"arigatou",g:"thanks"}],en:"Thanks for everything, always",emo:"🥰",mn:"<b>Itsumo</b> = always. The upgrade from a plain arigatou — the one that lands."},
+/* U6 Understanding */
+{id:"u6h",u:6,tok:[{t:"だれ",r:"dare",g:"who"},{t:"？",r:"?",g:"?"}],en:"Who?",emo:"🕵️",mn:"<b>Dare</b> = who. Dare to nani no koto? — don't dare confuse it with 'dare' in English."},
+{id:"u6i",u:6,tok:[{t:"どういう",r:"dou iu",g:"what-kind"},{t:"いみ",r:"imi",g:"meaning"},{t:"？",r:"?",g:"?"}],en:"What does it mean?",emo:"❓",mn:"<b>Imi</b> = meaning. Dou iu imi? = 'what kind of meaning?' Your other daily learning question."},
+/* U7 Texting */
+{id:"u7g",u:7,tok:[{t:"おそく",r:"osoku",g:"late"},{t:"なる",r:"naru",g:"become"}],en:"I'll be late",emo:"🕗",mn:"<b>Osoi</b> (late) → <b>osoku naru</b> (become late). The 'lift queue was chaos' text."},
+{id:"u7h",u:7,tok:[{t:"ついた",r:"tsuita",g:"arrived"},{t:"？",r:"?",g:"?"}],en:"Did you get there?",emo:"📍",mn:"<b>Tsuita</b> = arrived (past). Tsuita? = you there yet? Reply: tsuita yo! (I've arrived!)."},
+/* U8 Grammar */
+{id:"u8f",u:8,tok:[{t:"わたし",r:"watashi",g:"I"},{t:"も",r:"mo",g:"also"}],en:"Me too",emo:"🙌",mn:"<b>Mo</b> = also/too. Swap it in for wa: 'watashi mo' = me too. Watashi mo suki = I like it too."},
+{id:"u8g",u:8,tok:[{t:"さむい",r:"samui",g:"cold"},{t:"から",r:"kara",g:"because"}],en:"Because it's cold",emo:"🧥",mn:"<b>Kara</b> = because/since, and it comes AFTER the reason. Samui kara = 'cold, so...'."},
+{id:"u8h",u:8,tok:[{t:"きみ",r:"kimi",g:"you"},{t:"と",r:"to",g:"with/and"},{t:"いっしょ",r:"issho",g:"together"}],en:"Together with you",emo:"🫶",mn:"<b>To</b> = with / and. Kimi to = with you. Kimi to issho ga ii = being with you is good."},
+/* ---- WORDS FROM CONVERSATIONS (introduced in scenes) ---- */
+{id:"n1",u:4,src:"scene",tok:[{t:"ゲレンデ",r:"gerende",g:"ski slopes"}],en:"the slopes",emo:"⛷️",mn:"A German loanword Japan adopted for the ski runs. <b>Gerende de aou</b> = let's meet on the slopes."},
+{id:"n2",u:4,src:"scene",tok:[{t:"リフト",r:"rifuto",g:"chairlift"}],en:"chairlift",emo:"🚠",mn:"English 'lift' in katakana. <b>Rifuto-ken</b> = lift pass — the thing you'll buy every morning."},
+{id:"n3",u:2,src:"scene",tok:[{t:"よし",r:"yoshi",g:"alright!"}],en:"Alright! / Let's do this",emo:"✊",mn:"The pump-up grunt before you drop in. <b>Yoshi!</b> — half 'okay', half war-cry."},
+{id:"n4",u:2,src:"scene",tok:[{t:"すごい",r:"sugoi",g:"amazing"}],en:"Amazing! / Wow",emo:"🤩",mn:"The all-purpose 'wow'. Snow, food, a trick — <b>sugoi</b> covers all of it."},
+{id:"n5",u:2,src:"scene",tok:[{t:"あぶない",r:"abunai",g:"dangerous"}],en:"Watch out! / Dangerous",emo:"⚠️",mn:"Shout it when someone's about to crash — <b>abunai!</b> Also 'that was close'."},
+{id:"n6",u:2,src:"scene",tok:[{t:"じょうず",r:"jouzu",g:"skilled"}],en:"Good at it / skilled",emo:"👏",mn:"<b>Jouzu ne!</b> = you're good! The compliment you'll hand out teaching kids all day."},
+{id:"n7",u:3,src:"scene",tok:[{t:"たくさん",r:"takusan",g:"a lot"}],en:"A lot / lots",emo:"🍚",mn:"<b>Takusan tabete</b> = eat lots. Think 'tak-san' — a whole stack of it."},
+{id:"n8",u:3,src:"scene",tok:[{t:"もっと",r:"motto",g:"more"}],en:"More",emo:"➕",mn:"<b>Motto</b> = more. Motto kudasai = more please. Motto yukkuri = slower."},
+{id:"n9",u:3,src:"scene",tok:[{t:"どうぞ",r:"douzo",g:"here you go"}],en:"Here you go / go ahead",emo:"🤲",mn:"Offering something: <b>douzo</b>. The natural pair to arigatou — douzo / doumo."},
+{id:"n10",u:5,src:"scene",tok:[{t:"ありがとうございます",r:"arigatou gozaimasu",g:"thank you [polite]"}],en:"Thank you (polite)",emo:"🙏",mn:"The full polite thanks — the version for her parents, resort staff, and guests."},
+{id:"n11",u:3,src:"scene",tok:[{t:"ひるごはん",r:"hirugohan",g:"lunch"}],en:"lunch",emo:"🍱",mn:"<b>Hiru</b> (noon) + <b>gohan</b> (meal). Asa-gohan = breakfast, ban-gohan = dinner."},
+{id:"n12",u:7,src:"scene",tok:[{t:"おわった",r:"owatta",g:"finished"}],en:"(It's) finished / done",emo:"✅",mn:"<b>Owaru</b> (to end) → <b>owatta</b> (ended). 'Shigoto owatta!' = work's done!"},
+{id:"n13",u:6,src:"scene",tok:[{t:"まだ",r:"mada",g:"not yet"}],en:"Not yet / still",emo:"⏳",mn:"<b>Mada?</b> = not yet? <b>Mada.</b> = not yet. The opposite of mou (already)."},
+{id:"n14",u:5,src:"scene",tok:[{t:"はじめまして",r:"hajimemashite",g:"nice to meet you"}],en:"Nice to meet you",emo:"🤝",mn:"The first-meeting phrase, from <b>hajime</b> (beginning). Say it with a small bow."},
+{id:"n15",u:5,src:"scene",tok:[{t:"よろしく",r:"yoroshiku",g:"[treat me well]"}],en:"Nice to meet you / please be good to me",emo:"🙇",mn:"Untranslatable glue phrase — 'let's get on well from here'. Always follows hajimemashite."},
+{id:"n16",u:6,src:"scene",tok:[{t:"まだまだ",r:"madamada",g:"long way to go"}],en:"Still a long way to go",emo:"😅",mn:"The humble reply to a compliment: <b>madamada desu</b> = I'm nowhere near good yet."},
+{id:"n17",u:4,src:"scene",tok:[{t:"えいが",r:"eiga",g:"movie"}],en:"movie",emo:"🎬",mn:"<b>Eiga</b> = movie. Eiga mi ni iku = go to see a movie."},
+{id:"n18",u:4,src:"scene",tok:[{t:"たのしかった",r:"tanoshikatta",g:"was fun"}],en:"It was fun",emo:"😄",mn:"<b>Tanoshii</b> (fun) → <b>tanoshikatta</b> (was fun). Past of ~i adjectives ends in ~katta."},
+{id:"n19",u:6,src:"scene",tok:[{t:"うん",r:"un",g:"yeah"}],en:"Yeah / mm",emo:"🙂",mn:"Casual 'yes' — a nod plus <b>un</b>. The formal version is hai."},
+
+/* ================= EXPANSION 2 ================= */
+/* U9 Out & About — shops, konbini, trains, directions */
+{id:"u9a",u:9,tok:[{t:"すみません",r:"sumimasen",g:"excuse me/sorry"}],en:"Excuse me / sorry",emo:"🙇",mn:"The most-used word in Japan. Gets attention, apologises, and thanks — all three. Say it walking into any shop."},
+{id:"u9b",u:9,tok:[{t:"これ",r:"kore",g:"this"},{t:"ください",r:"kudasai",g:"please-give"}],en:"This one, please",emo:"👉",mn:"Point and say it. <b>Kore kudasai</b> gets you fed, watered and equipped anywhere in Japan without another word."},
+{id:"u9c",u:9,tok:[{t:"いくら",r:"ikura",g:"how-much"},{t:"？",r:"?",g:"?"}],en:"How much is it?",emo:"💴",mn:"<b>Ikura</b> = how much. Also salmon roe. Context saves you — nobody thinks you're asking the price of fish eggs."},
+{id:"u9d",u:9,tok:[{t:"ぜんぶ",r:"zenbu",g:"all"},{t:"で",r:"de",g:"in-total"},{t:"いくら",r:"ikura",g:"how-much"},{t:"？",r:"?",g:"?"}],en:"How much all together?",emo:"🧾",mn:"<b>Zenbu</b> = everything. <b>De</b> here means 'as a total'. Zenbu de = the whole lot."},
+{id:"u9e",u:9,tok:[{t:"トイレ",r:"toire",g:"toilet"},{t:"どこ",r:"doko",g:"where"},{t:"？",r:"?",g:"?"}],en:"Where's the toilet?",emo:"🚻",mn:"The emergency phrase. Two words, no grammar needed. Learn it before anything fancy."},
+{id:"u9f",u:9,tok:[{t:"えき",r:"eki",g:"station"},{t:"は",r:"wa",g:"[topic]"},{t:"どこ",r:"doko",g:"where"},{t:"？",r:"?",g:"?"}],en:"Where's the station?",emo:"🚉",mn:"<b>Eki</b> = station. Swap the noun for anything: konbini wa doko? basu-tei wa doko?"},
+{id:"u9g",u:9,tok:[{t:"これ",r:"kore",g:"this"},{t:"ある",r:"aru",g:"exists"},{t:"？",r:"?",g:"?"}],en:"Do you have this?",emo:"🔎",mn:"<b>Aru</b> = there is / exists (for things). For people and animals it's <b>iru</b>. Kore aru? = does this exist here."},
+{id:"u9h",u:9,tok:[{t:"ふくろ",r:"fukuro",g:"bag"},{t:"いりません",r:"irimasen",g:"not-needed"}],en:"I don't need a bag",emo:"🛍️",mn:"They'll ask at every till. <b>Irimasen</b> = don't need it. Casual version: iranai."},
+{id:"u9i",u:9,tok:[{t:"カード",r:"kaado",g:"card"},{t:"で",r:"de",g:"by-means-of"}],en:"By card",emo:"💳",mn:"Same <b>de</b> as nihongo de — 'by means of'. Cash version: <b>genkin de</b>. Two syllables, done."},
+{id:"u9j",u:9,tok:[{t:"おねがいします",r:"onegai shimasu",g:"[I] request"}],en:"Yes please / if you would",emo:"🙏",mn:"When the konbini guy asks if you want it heated — <b>onegai shimasu</b>. The polite yes-please for absolutely anything."},
+{id:"u9k",u:9,tok:[{t:"おすすめ",r:"osusume",g:"recommendation"},{t:"は",r:"wa",g:"[topic]"},{t:"？",r:"?",g:"?"}],en:"What do you recommend?",emo:"🍶",mn:"<b>Osusume wa?</b> — three syllables that get you the good stuff at any izakaya. Staff love being asked."},
+{id:"u9l",u:9,tok:[{t:"ふたり",r:"futari",g:"two-people"},{t:"です",r:"desu",g:"is"}],en:"Table for two",emo:"🍽️",mn:"<b>Hitori / futari / san-nin</b> = 1/2/3 people. The first two are irregular — memorise them, the rest just take ~nin."},
+{id:"u9m",u:9,tok:[{t:"べつべつ",r:"betsubetsu",g:"separate"},{t:"で",r:"de",g:"by"}],en:"Separate bills, please",emo:"🧾",mn:"<b>Betsu</b> = separate, doubled for emphasis. Paying together is <b>issho de</b> — same issho as issho ni."},
+{id:"u9n",u:9,tok:[{t:"つぎ",r:"tsugi",g:"next"},{t:"の",r:"no",g:"of"},{t:"でんしゃ",r:"densha",g:"train"}],en:"the next train",emo:"🚃",mn:"<b>Densha</b> = electric (den) + wheels (sha) — same 'den' as denwa. <b>No</b> links next→train."},
+{id:"u9o",u:9,tok:[{t:"なんばんせん",r:"nanbansen",g:"what-number-line"},{t:"？",r:"?",g:"?"}],en:"Which platform?",emo:"🛤️",mn:"<b>Nan</b> (what) + <b>ban</b> (number) + <b>sen</b> (line). Point at your ticket and say it — someone will walk you there."},
+{id:"u9p",u:9,tok:[{t:"まっすぐ",r:"massugu",g:"straight"}],en:"Straight ahead",emo:"⬆️",mn:"<b>Massugu</b> — the double-s is a beat of silence: 'mah(pause)sugu'. Also how you tell a kid to point their board."},
+{id:"u9q",u:9,tok:[{t:"みぎ",r:"migi",g:"right"},{t:"に",r:"ni",g:"to"},{t:"まがって",r:"magatte",g:"turn"}],en:"Turn right",emo:"➡️",mn:"<b>Migi</b> = right, <b>hidari</b> = left. Hidari is longer — and so is the word for the side most people find harder."},
+{id:"u9r",u:9,tok:[{t:"ちかい",r:"chikai",g:"close"},{t:"？",r:"?",g:"?"}],en:"Is it close by?",emo:"📍",mn:"<b>Chikai</b> = near, <b>tooi</b> = far. Ask before you commit to walking in ski boots."},
+{id:"u9s",u:9,tok:[{t:"あるいて",r:"aruite",g:"walking"},{t:"いける",r:"ikeru",g:"can-go"},{t:"？",r:"?",g:"?"}],en:"Can we walk there?",emo:"🚶",mn:"<b>Iku</b> (go) → <b>ikeru</b> (can go). The ~eru ending is 'able to'. Taberu→taberareru, nomu→nomeru."},
+{id:"u9t",u:9,tok:[{t:"きっぷ",r:"kippu",g:"ticket"},{t:"かいたい",r:"kaitai",g:"want-to-buy"}],en:"I want to buy a ticket",emo:"🎫",mn:"<b>Kau</b> (buy) + <b>tai</b> (want) = kaitai. Same ~tai as tabetai and aitai. One ending, endless sentences."},
+{id:"u9u",u:9,tok:[{t:"にほんご",r:"nihongo",g:"Japanese"},{t:"すこし",r:"sukoshi",g:"a-little"},{t:"だけ",r:"dake",g:"only"}],en:"I only speak a little Japanese",emo:"🤏",mn:"<b>Dake</b> = only. Buys you patience instantly — and they'll slow down without you having to ask."},
+{id:"u9v",u:9,tok:[{t:"もう",r:"mou",g:"already"},{t:"だいじょうぶ",r:"daijoubu",g:"fine"},{t:"です",r:"desu",g:"is"}],en:"No thanks, I'm good",emo:"✋",mn:"The polite decline. <b>Daijoubu desu</b> with a small hand-raise means 'no' without ever saying no — very Japanese."},
+
+/* U10 Small Talk & Reactions — the glue that makes you sound native */
+{id:"u10a",u:10,tok:[{t:"へえ",r:"hee",g:"[interest]"},{t:"〜",r:"~",g:"[drawn out]"}],en:"Huh, really / interesting",emo:"😯",mn:"Drawn out and falling: <b>hee~</b>. Pure reaction noise. Sprinkle it while she talks and she'll feel heard."},
+{id:"u10b",u:10,tok:[{t:"そうなんだ",r:"sou nanda",g:"that's-how-it-is"}],en:"Oh, I see",emo:"💡",mn:"The workhorse reaction. Someone tells you something new — <b>sou nanda</b>. Politer: sou nan desu ne."},
+{id:"u10c",u:10,tok:[{t:"なるほど",r:"naruhodo",g:"[I see, indeed]"}],en:"Ah, that makes sense",emo:"🧠",mn:"<b>Naruhodo</b> = the penny dropping. Use it when an explanation actually lands — overuse and it sounds fake."},
+{id:"u10d",u:10,tok:[{t:"たしかに",r:"tashika ni",g:"certainly"}],en:"True / good point",emo:"👌",mn:"<b>Tashika</b> = certain. Agreeing with someone's reasoning, not just their fact. The thinking person's 'sou da ne'."},
+{id:"u10e",u:10,tok:[{t:"やっぱり",r:"yappari",g:"as-expected"}],en:"I knew it / as I thought",emo:"😏",mn:"<b>Yappari</b> — when something turns out how you suspected. Shortened to <b>yappa</b> in fast speech."},
+{id:"u10f",u:10,tok:[{t:"たぶん",r:"tabun",g:"probably"}],en:"Probably / maybe",emo:"🤔",mn:"<b>Tabun</b> = probably. Japanese loves hedging — a bare 'yes' can feel blunt. Tabun softens everything."},
+{id:"u10g",u:10,tok:[{t:"でも",r:"demo",g:"but"}],en:"But / though",emo:"↩️",mn:"<b>Demo</b> starts a sentence: 'Demo, samui yo.' — But it's cold. The mid-sentence 'but' is <b>kedo</b>."},
+{id:"u10h",u:10,tok:[{t:"だから",r:"dakara",g:"so/that's-why"}],en:"So / that's why",emo:"➡️",mn:"<b>Kara</b> = because (goes after). <b>Dakara</b> = so (starts the next sentence). Same word, opposite ends."},
+{id:"u10i",u:10,tok:[{t:"とりあえず",r:"toriaezu",g:"for-now"}],en:"For now / first off",emo:"🍺",mn:"The izakaya opener: <b>toriaezu biiru</b> — 'beer for now'. Also 'let's just do X and figure the rest out'."},
+{id:"u10j",u:10,tok:[{t:"べつに",r:"betsu ni",g:"not-particularly"}],en:"Not really / nothing much",emo:"🤷",mn:"<b>Betsu ni</b> = nothing in particular. Careful — said flatly it sounds sulky. Smile when you use it."},
+{id:"u10k",u:10,tok:[{t:"なんか",r:"nanka",g:"like/somehow"}],en:"Like / sort of",emo:"💭",mn:"Japan's 'like'. <b>Nanka</b> buys you a second to think and instantly makes you sound casual rather than textbook."},
+{id:"u10l",u:10,tok:[{t:"ちなみに",r:"chinami ni",g:"by-the-way"}],en:"By the way",emo:"📎",mn:"<b>Chinami ni</b> — adding a related aside. The natural way to slide a new question into a conversation."},
+{id:"u10m",u:10,tok:[{t:"まじで",r:"maji de",g:"seriously"},{t:"？",r:"?",g:"?"}],en:"Seriously?!",emo:"😳",mn:"<b>Maji</b> = serious/for real. Casual — great with her, not with her dad. Kansai version: <b>honma?</b>"},
+{id:"u10n",u:10,tok:[{t:"うそ",r:"uso",g:"lie"},{t:"！",r:"!",g:"!"}],en:"No way!",emo:"😱",mn:"Literally 'lie!' — but nobody's calling you a liar. It's pure surprise, like 'get out!'"},
+{id:"u10o",u:10,tok:[{t:"そっか",r:"sokka",g:"is-that-so"}],en:"Ah, got it",emo:"🙂",mn:"Softened <b>sou ka</b>. Gentle, accepting — the noise you make when she explains why she's tired."},
+{id:"u10p",u:10,tok:[{t:"いいね",r:"ii ne",g:"good, right?"}],en:"Nice! / sounds good",emo:"👍",mn:"<b>Ii</b> (good) + <b>ne</b> (agreement). Yes, it's also the Facebook 'like' button. Same word."},
+{id:"u10q",u:10,tok:[{t:"よかった",r:"yokatta",g:"was-good"}],en:"Oh good / thank goodness",emo:"😌",mn:"Past of <b>ii</b> (irregular: ii→yokatta). Relief. She says she's home safe — 'yokatta'."},
+{id:"u10r",u:10,tok:[{t:"ざんねん",r:"zannen",g:"regrettable"}],en:"That's a shame",emo:"😞",mn:"<b>Zannen</b> — the plans-cancelled word. Warmer version: <b>zannen dane</b>, 'that's a shame, eh'."},
+{id:"u10s",u:10,tok:[{t:"ぜんぜん",r:"zenzen",g:"not-at-all"}],en:"Not at all / no worries",emo:"🙌",mn:"Textbooks say zenzen needs a negative. Real speech: someone apologises, you wave it off — <b>zenzen!</b>"},
+{id:"u10t",u:10,tok:[{t:"しかたない",r:"shikata nai",g:"no-way-around-it"}],en:"It can't be helped",emo:"😤",mn:"<b>Shikata</b> = a way of doing. Nai = none. The national shrug — lifts closed, storm rolled in, shikata nai."},
+{id:"u10u",u:10,tok:[{t:"どう",r:"dou",g:"how"},{t:"だった",r:"datta",g:"was"},{t:"？",r:"?",g:"?"}],en:"How was it?",emo:"❓",mn:"<b>Dou</b> = how. <b>Datta</b> = was. Your conversation-opener — asks about her day, her meal, her ride."},
+{id:"u10v",u:10,tok:[{t:"それで",r:"sore de",g:"and-then"},{t:"？",r:"?",g:"?"}],en:"And then?",emo:"👂",mn:"Keeps her story rolling. <b>Sore de?</b> = so then what. Proof you're listening, not just nodding."},
+{id:"u10w",u:10,tok:[{t:"だいじょうぶ",r:"daijoubu",g:"okay"},{t:"だった",r:"datta",g:"was"},{t:"？",r:"?",g:"?"}],en:"Was it okay?",emo:"🫶",mn:"Add <b>datta</b> to any casual adjective to make it past. Samukatta? Tanoshikatta? Daijoubu datta?"},
+{id:"u10x",u:10,tok:[{t:"きょう",r:"kyou",g:"today"},{t:"どう",r:"dou",g:"how"},{t:"だった",r:"datta",g:"was"},{t:"？",r:"?",g:"?"}],en:"How was your day?",emo:"🌙",mn:"The nightly question. Ask it every single evening and your Japanese will grow faster than any app can teach you."},
+
+/* Gap-fillers in existing units — needed for real conversation */
+{id:"u2n",u:2,tok:[{t:"さびしい",r:"sabishii",g:"lonely"}],en:"I'm lonely / I miss this",emo:"🥲",mn:"<b>Sabishii</b> — lonely. Pairs with aitai: 'sabishii… hayaku aitai.' The one that gets a reply fast."},
+{id:"u2o",u:2,tok:[{t:"しあわせ",r:"shiawase",g:"happy/content"}],en:"I'm happy (deeply)",emo:"🕊️",mn:"<b>Ureshii</b> = happy about a thing. <b>Shiawase</b> = happy with your life. Save it for when you mean it."},
+{id:"u3l",u:3,tok:[{t:"なんでも",r:"nandemo",g:"anything"},{t:"いい",r:"ii",g:"good"}],en:"Anything's fine",emo:"🤷",mn:"<b>Nandemo ii</b> — the answer that starts every couple's dinner argument, in every language."},
+{id:"u4k",u:4,tok:[{t:"なんじ",r:"nanji",g:"what-time"},{t:"に",r:"ni",g:"at"},{t:"おわる",r:"owaru",g:"finish"},{t:"？",r:"?",g:"?"}],en:"What time do you finish?",emo:"🕔",mn:"<b>Owaru</b> = to finish. You met <b>owatta</b> (finished) already — this is the plain present form."},
+{id:"u5k",u:5,tok:[{t:"あいたかった",r:"aitakatta",g:"wanted-to-meet"}],en:"I missed you",emo:"🫂",mn:"Past of aitai: <b>aitakatta</b>. Say it the moment you see her, not over text. Timing is the whole phrase."},
+{id:"u6j",u:6,tok:[{t:"しらない",r:"shiranai",g:"don't-know"}],en:"I don't know",emo:"🤨",mn:"<b>Shiranai</b> = don't know (a fact). <b>Wakaranai</b> = don't understand. Mixing them up sounds cold — shiranai can read as 'don't care'."},
+{id:"u7i",u:7,tok:[{t:"いま",r:"ima",g:"now"},{t:"どこ",r:"doko",g:"where"},{t:"？",r:"?",g:"?"}],en:"Where are you right now?",emo:"📍",mn:"Two words, sent a hundred times a season. Reply: <b>ima gerende!</b> — on the slopes right now."},
+
+/* ---- MORE WORDS FROM CONVERSATIONS ---- */
+{id:"n20",u:7,src:"scene",tok:[{t:"もしもし",r:"moshi moshi",g:"[phone hello]"}],en:"Hello? (on the phone)",emo:"☎️",mn:"Phone-only greeting. Legend says it's doubled because ghosts can't say it twice — proof you're human."},
+{id:"n21",u:10,src:"scene",tok:[{t:"ねえ",r:"nee",g:"hey"}],en:"Hey / listen",emo:"👋",mn:"<b>Nee</b> — soft attention-getter between close people. Drawn out: 'nee~'. Never with strangers."},
+{id:"n22",u:10,src:"scene",tok:[{t:"きいて",r:"kiite",g:"listen"}],en:"Guess what / listen to this",emo:"🗨️",mn:"<b>Kiite kiite!</b> — 'listen, listen!' How every good story starts in Japanese."},
+{id:"n23",u:10,src:"scene",tok:[{t:"じつは",r:"jitsu wa",g:"actually"}],en:"Actually / to be honest",emo:"🤫",mn:"<b>Jitsu wa</b> — signals a reveal is coming. She'll lean in the moment you say it."},
+{id:"n24",u:6,src:"scene",tok:[{t:"おしえて",r:"oshiete",g:"teach me"}],en:"Tell me / teach me",emo:"🧑‍🏫",mn:"<b>Oshiete</b> — from oshieru (teach). Your job title AND your best learning tool."},
+{id:"n25",u:4,src:"scene",tok:[{t:"むかえに",r:"mukae ni",g:"to-fetch"},{t:"いく",r:"iku",g:"go"}],en:"I'll come pick you up",emo:"🚗",mn:"<b>Mukae ni iku</b> — go to meet/collect. The most useful offer you can make in a snowstorm."},
+{id:"n26",u:5,src:"scene",tok:[{t:"やすんで",r:"yasunde",g:"rest"}],en:"Get some rest",emo:"🛌",mn:"Same <b>yasumi</b> as oyasumi. Yukkuri yasunde = rest up properly."},
+{id:"n27",u:10,src:"scene",tok:[{t:"おなじ",r:"onaji",g:"same"}],en:"Same / me too",emo:"🪞",mn:"<b>Onaji</b> — same. Ordering: onaji no kudasai = the same one, please."},
+{id:"n28",u:4,src:"scene",tok:[{t:"はたらいてる",r:"hataraiteru",g:"working"}],en:"I'm working / I work",emo:"🎿",mn:"<b>Hataraku</b> (work) → hataraiteru (currently working). Yama de hataraiteru = I work on the mountain."},
+{id:"n29",u:1,src:"scene",tok:[{t:"ひさしぶり",r:"hisashiburi",g:"long-interval"}],en:"Long time no see",emo:"🫱",mn:"<b>Hisashiburi!</b> — for anyone you haven't seen in a while. Add ~dane to soften it."},
+{id:"n30",u:5,src:"scene",tok:[{t:"き",r:"ki",g:"spirit"},{t:"を",r:"o",g:"[object]"},{t:"つけて",r:"tsukete",g:"attach"}],en:"Take care / drive safe",emo:"🛞",mn:"Literally 'attach your spirit' — pay attention. What you say as she drives off into snow."},
+];
+
+/* ================= ILLUSTRATIONS =================
+   Inline SVG so the app stays self-contained & offline. To use real photos
+   instead, replace a value below with `<img src="...">` (or a data URL) — the
+   picture-match renderer drops it straight into the .art container. */
+const ART={
+coffee:`<svg viewBox="0 0 100 100" fill="none" stroke="var(--acc)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M42 16c-4 6 4 8 0 14M58 16c-4 6 4 8 0 14" stroke="var(--sub)"/><path d="M24 44h46v15a23 23 0 0 1-46 0z"/><path d="M70 48h7a9 9 0 0 1 0 18h-6"/></svg>`,
+water:`<svg viewBox="0 0 100 100" fill="rgba(77,163,255,.18)" stroke="var(--acc2)" stroke-width="4" stroke-linejoin="round"><path d="M50 18c13 17 19 25 19 35a19 19 0 0 1-38 0c0-10 6-18 19-35z"/></svg>`,
+mountain:`<svg viewBox="0 0 100 100" fill="none" stroke="var(--txt)" stroke-width="4" stroke-linejoin="round"><path d="M12 80L40 32l16 26 10-14 22 36z" fill="rgba(255,255,255,.04)"/><path d="M31 54l9 7 8-8 6 6" stroke="var(--acc2)"/></svg>`,
+ski:`<svg viewBox="0 0 100 100" fill="none" stroke="var(--acc2)" stroke-width="4" stroke-linecap="round"><path d="M30 80V34c0-4 6-4 6 0v46M30 80c-3 0-3-5 0-5s3 5 0 5M64 80V34c0-4 6-4 6 0v46M64 80c-3 0-3-5 0-5s3 5 0 5"/></svg>`,
+phone:`<svg viewBox="0 0 100 100" fill="rgba(77,163,255,.12)" stroke="var(--acc2)" stroke-width="4" stroke-linejoin="round"><rect x="34" y="16" width="32" height="68" rx="7"/><line x1="45" y1="74" x2="55" y2="74" stroke-linecap="round"/></svg>`,
+chili:`<svg viewBox="0 0 100 100" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M40 30c0 8-4 12-4 12" stroke="var(--good)"/><path d="M66 76c-18 0-32-9-32-26 0-6 6-8 12-6 12 5 24 18 20 32z" fill="rgba(255,92,92,.18)" stroke="var(--bad)"/></svg>`,
+hot:`<svg viewBox="0 0 100 100" fill="rgba(245,166,35,.18)" stroke="var(--warn)" stroke-width="4" stroke-linecap="round"><circle cx="50" cy="50" r="15"/><path d="M50 16v11M50 73v11M16 50h11M73 50h11M28 28l8 8M64 64l8 8M72 28l-8 8M36 64l-8 8" fill="none"/></svg>`,
+snow:`<svg viewBox="0 0 100 100" fill="none" stroke="var(--acc2)" stroke-width="4" stroke-linecap="round"><path d="M50 14v72M19 32l62 36M81 32L19 68"/><path d="M50 14l-7 8M50 14l7 8M50 86l-7-8M50 86l7-8M19 32l1 10M19 32l10-1M81 68l-1-10M81 68l-10 1M81 32l-10 1M81 32l-1 10M19 68l10-1M19 68l1-10"/></svg>`,
+sleepy:`<svg viewBox="0 0 100 100" fill="rgba(232,85,109,.12)" stroke="var(--acc)" stroke-width="4" stroke-linejoin="round"><path d="M64 22a30 30 0 1 0 15 45A24 24 0 0 1 64 22z"/><path d="M24 30h14L24 44h14" fill="none" stroke="var(--acc2)" stroke-width="3" stroke-linecap="round"/></svg>`,
+ricebowl:`<svg viewBox="0 0 100 100" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 52h56a28 28 0 0 1-56 0z" fill="rgba(62,207,142,.14)" stroke="var(--good)"/><path d="M32 52c1-9 8-13 18-13s17 4 18 13" stroke="var(--txt)"/><line x1="16" y1="82" x2="84" y2="82" stroke="var(--good)"/></svg>`,
+heart:`<svg viewBox="0 0 100 100" fill="rgba(232,85,109,.2)" stroke="var(--acc)" stroke-width="4" stroke-linejoin="round"><path d="M50 80L26 55a15 15 0 0 1 24-18 15 15 0 0 1 24 18z"/></svg>`,
+chick:`<svg viewBox="0 0 100 100" fill="none" stroke-width="4" stroke-linejoin="round"><circle cx="50" cy="53" r="24" fill="rgba(245,166,35,.2)" stroke="var(--warn)"/><circle cx="43" cy="48" r="2.6" fill="var(--txt)" stroke="none"/><circle cx="57" cy="48" r="2.6" fill="var(--txt)" stroke="none"/><path d="M46 57h8l-4 5z" fill="var(--acc)" stroke="none"/></svg>`,
+};
+/* which item each illustration depicts */
+const ART_MAP={u3g:"coffee",u3k:"water",u8c:"mountain",u4g:"ski",u7f:"phone",u3j:"chili",u2f:"hot",u8d:"snow",u2c:"sleepy",u3i:"ricebowl",u5b:"heart",u5d:"chick"};
+
+/* ================= CONVERSATION PAIRS (best response) =================
+   q = phrase she says (item id), a = your best reply (item id), why = coaching */
+const PAIRS=[
+{q:"u1c",a:"u1d",why:"<b>Tadaima</b> (I'm home) always gets <b>okaeri</b> (welcome home) — a fixed pair."},
+{q:"u1e",a:"u1f",why:"<b>Ittekimasu</b> is answered with <b>itterasshai</b> — 'go and come back safely'."},
+{q:"u1b",a:"u7d",why:"Goodnight back — or sweeten it: <b>ii yume mite ne</b>, 'see a good dream'."},
+{q:"u7g",a:"u7c",why:"She says she'll be late — a quick <b>ryoukai</b> (roger) is all you need."},
+{q:"u7e",a:"u2i",why:"She's apologising for being at work — reassure her: <b>daijoubu</b>, no worries."},
+{q:"u5a",a:"u8f",why:"'I like you' → the smoothest reply is <b>watashi mo</b>, 'me too'."},
+{q:"u4b",a:"u4c",why:"She's free tomorrow — seal the plan: <b>ikou!</b> let's go."},
+{q:"u4g",a:"u4h",why:"'Let's go skiing!' → show you're keen: <b>tanoshimi!</b> can't wait."},
+{q:"u5c",a:"u7b",why:"She misses you — match it: <b>hayaku aitai</b>, can't wait to see you."},
+{q:"u5g",a:"u5h",why:"She's cheering you on — thank her: <b>arigatou ne</b>."},
+{q:"u2a",a:"u3a",why:"She's hungry — ask <b>nani tabetai?</b> what do you want to eat."},
+{q:"u1a",a:"u1i",why:"With her parents or at the resort, upgrade to the polite <b>ohayou gozaimasu</b>."},
+/* --- expansion: more replies, mostly using phrases you already know --- */
+{q:"u2c",a:"u1b",why:"She's sleepy — send her off: <b>oyasumi</b>, goodnight."},
+{q:"u2d",a:"u1g",why:"'I'm worn out' → <b>otsukaresama</b>. It's the standard acknowledgement of someone's hard day."},
+{q:"u2e",a:"u3g",why:"She's cold — offer something warm: <b>koohii nomu?</b> want a coffee?"},
+{q:"u2b",a:"u3k",why:"She's thirsty — <b>mizu kudasai</b> gets water on the table for both of you."},
+{q:"u2l",a:"u2i",why:"She's scared — check on her first: <b>daijoubu?</b> you okay?"},
+{q:"u2m",a:"u5g",why:"She's swamped — <b>ganbatte</b>, you've got this. Short, warm, exactly right."},
+{q:"u2n",a:"u7b",why:"'I'm lonely' → don't fix it, match it: <b>hayaku aitai</b>, can't wait to see you."},
+{q:"u3a",a:"u3l",why:"'What do you want to eat?' → <b>nandemo ii</b>, anything's fine. Risky answer, universally used."},
+{q:"u3e",a:"u3b",why:"She's handing you something to try — one word: <b>oishii!</b>"},
+{q:"u3f",a:"u3d",why:"'I'm full' → close the meal properly with <b>gochisousama</b>."},
+{q:"u3j",a:"u3k",why:"It's too spicy — <b>mizu kudasai</b>. Water, please. Fast."},
+{q:"u3h",a:"u7c",why:"She says start without her — <b>ryoukai</b>, roger that."},
+{q:"u4a",a:"u4g",why:"'What are we doing today?' — you know the answer: <b>sukii ikou!</b>"},
+{q:"u4d",a:"u7c",why:"'Wait a sec' → <b>ryoukai</b>. Nothing else needed."},
+{q:"u4i",a:"u10r",why:"She can't make it — <b>zannen</b>, that's a shame. Disappointed but easy about it."},
+{q:"u4j",a:"u4g",why:"'Where shall we go?' → propose it: <b>sukii ikou!</b>"},
+{q:"u5b",a:"u5a",why:"She said 'daisuki' — say it back your own way: <b>suki da yo</b>."},
+{q:"u5d",a:"u5h",why:"She called you cute — take the compliment: <b>arigatou ne</b>."},
+{q:"u5f",a:"u5b",why:"'Hug me' → the answer is a hug and a <b>daisuki</b>."},
+{q:"u5j",a:"u2o",why:"'Thanks for everything, always' → <b>shiawase</b>, I'm happy. The deep kind."},
+{q:"u6i",a:"u6j",why:"She's asking what something means and you don't know either — <b>shiranai</b>, no idea."},
+{q:"u6g",a:"u6f",why:"'Really?!' → <b>sou da ne</b>, yeah that's right. Confirm and move on."},
+{q:"u6h",a:"u8a",why:"'Who?' → introduce yourself: <b>watashi wa Deibiddo</b>."},
+{q:"u7a",a:"u7e",why:"Mid-lesson and she texts — <b>gomen, shigoto-chuu</b>, sorry, I'm at work."},
+{q:"u7h",a:"u7g",why:"'Are you there yet?' → <b>osoku naru</b>, I'll be late. Tell her before she asks twice."},
+{q:"u7i",a:"n1",why:"'Where are you?' → <b>gerende</b>. On the slopes. Best possible answer."},
+{q:"u10u",a:"n18",why:"'How was it?' → <b>tanoshikatta</b>, it was fun. Past tense of tanoshii."},
+{q:"u10x",a:"u2d",why:"'How was your day?' → <b>tsukareta</b>. Honest, and she'll ask why."},
+{q:"u4h",a:"u10p",why:"She's excited about the plan — <b>ii ne</b>, sounds good. Agreement with energy."},
+{q:"u10r",a:"u10t",why:"'That's a shame' → <b>shikata nai</b>, can't be helped. The national shrug."},
+{q:"n14",a:"n15",why:"<b>Hajimemashite</b> is always followed by <b>yoroshiku</b> — a fixed handshake of words."},
+{q:"n6",a:"n16",why:"She says you're good — deflect: <b>madamada</b>, long way to go. Humility scores here."},
+{q:"n9",a:"n10",why:"She hands you something with <b>douzo</b> — take it with <b>arigatou gozaimasu</b>."},
+{q:"u9a",a:"u10s",why:"Someone apologises — wave it off: <b>zenzen!</b> not at all, no worries."},
+{q:"u9c",a:"u9i",why:"Price given, now pay: <b>kaado de</b>, by card."},
+{q:"u10m",a:"u6f",why:"'Seriously?!' → <b>sou da ne</b>. Yep, that's how it is."},
+{q:"u9k",a:"u9b",why:"They've recommended something — take it: <b>kore kudasai</b>, this one please."},
+];
+
+/* ================= SITUATIONS (situation match) =================
+   situation = English scene, a = right phrase (item id) */
+const SCENARIOS=[
+{s:"You walk in your own front door after a day out.",a:"u1c",emo:"🏠",why:"<b>Tadaima</b> — 'I'm home', shouted stepping inside."},
+{s:"She walks in the door; you're already home.",a:"u1d",emo:"🫶",why:"<b>Okaeri</b> — 'welcome home', the automatic reply to tadaima."},
+{s:"You're heading out the door to work.",a:"u1e",emo:"🚪",why:"<b>Ittekimasu</b> — 'I'm off, I'll be back'."},
+{s:"She's leaving for the day and you see her off.",a:"u1f",emo:"👋",why:"<b>Itterasshai</b> — 'take care, come back safe'."},
+{s:"Everyone's about to start eating dinner.",a:"u3c",emo:"🙏",why:"<b>Itadakimasu</b> — hands together, said before every meal."},
+{s:"You've just finished a lovely meal at her family's.",a:"u3d",emo:"🍵",why:"<b>Gochisousama</b> — 'thanks for the meal', said after eating."},
+{s:"Her mum finished a long shift and looks worn out.",a:"u1g",emo:"🙇",why:"<b>Otsukaresama</b> — 'good work today', the all-purpose 'you've worked hard'."},
+{s:"She's speaking too fast for you to follow.",a:"u6e",emo:"🐢",why:"<b>Yukkuri onegai</b> — 'slowly, please'."},
+{s:"You completely missed what she just said.",a:"u6c",emo:"🔁",why:"<b>Mou ikkai itte</b> — 'say it one more time'."},
+{s:"She's got a cold and looks miserable.",a:"u5i",emo:"🤒",why:"<b>Daiji ni ne</b> — 'take care of yourself'."},
+{s:"Dinner's ready but you're not — tell her to start.",a:"u3h",emo:"🍚",why:"<b>Saki ni tabete</b> — 'go ahead and eat'."},
+{s:"That bowl of rice was amazing and you want more.",a:"u3i",emo:"🍚",why:"<b>Okawari</b> — 'seconds, please'. Hold your bowl out."},
+{s:"You want to know how to say a word in Japanese.",a:"u6d",emo:"🗣️",why:"<b>Nihongo de nante iu?</b> — 'how do you say it in Japanese?'"},
+/* --- expansion: situations for phrases you've already met --- */
+{s:"It's 6am, she's just opened her eyes next to you.",a:"u1a",emo:"🌅",why:"<b>Ohayou</b> — the casual morning greeting. No gozaimasu needed with her."},
+{s:"You walk into the resort staff room at 7am.",a:"u1i",emo:"🙇",why:"<b>Ohayou gozaimasu</b> — the polite version, and standard at any Japanese workplace."},
+{s:"She's finally in bed after a long shift.",a:"u1b",emo:"🌙",why:"<b>Oyasumi</b> — goodnight, from yasumi (rest)."},
+{s:"You split up at the lifts but you'll meet at lunch.",a:"u1h",emo:"👋",why:"<b>Mata ato de</b> — see you later, same day."},
+{s:"Your stomach growls halfway through the afternoon.",a:"u2a",emo:"🍙",why:"<b>Onaka suita</b> — literally 'stomach emptied'."},
+{s:"You've been talking for an hour and your mouth is dry.",a:"u2b",emo:"🥤",why:"<b>Nodo kawaita</b> — 'throat dried'. Same pattern as onaka suita."},
+{s:"It's 9pm, you did six lessons, your eyes won't stay open.",a:"u2c",emo:"😴",why:"<b>Nemui</b> — sleepy. Different from tsukareta (worn out)."},
+{s:"You collapse on the sofa after the last run of the day.",a:"u2d",emo:"🥱",why:"<b>Tsukareta</b> — 'I got tired'. Past tense, because it already happened to you."},
+{s:"Minus twelve on the chairlift and the wind picks up.",a:"u2e",emo:"❄️",why:"<b>Samui</b> — cold air, cold weather. Not tsumetai."},
+{s:"You grab a bare metal lift bar with wet gloves off.",a:"u2j",emo:"🧊",why:"<b>Tsumetai</b> — cold to the touch. Samui is the air, tsumetai is the thing."},
+{s:"You sink into the onsen after a full day on the hill.",a:"u2k",emo:"☺️",why:"<b>Kimochii</b> — 'feels good'. The correct and only response to hot water on cold legs."},
+{s:"She surprises you at the bottom of the run with coffee.",a:"u2g",emo:"😊",why:"<b>Ureshii</b> — happy about a specific thing that just happened."},
+{s:"You watch her sleep and think about the last two years.",a:"u2o",emo:"🕊️",why:"<b>Shiawase</b> — the deep, whole-life kind of happy. Not for a good coffee."},
+{s:"You haven't seen her in three weeks and it's getting to you.",a:"u2n",emo:"🥲",why:"<b>Sabishii</b> — lonely. The text that always gets an answer."},
+{s:"A student's parent looks worried after their kid falls.",a:"u2i",emo:"🤕",why:"<b>Daijoubu?</b> — you okay? Works as both question and reassurance."},
+{s:"You bump into her friend and want to check in warmly.",a:"u2h",emo:"⚡",why:"<b>Genki?</b> — you doing good? Rising tone does all the grammar."},
+{s:"A steep icy chute drops away below your board.",a:"u2l",emo:"😱",why:"<b>Kowai</b> — scary. One vowel from kawaii, so land it clearly."},
+{s:"She asks why you haven't replied all afternoon.",a:"u2m",emo:"🌀",why:"<b>Isogashii</b> — busy. Follow it with gomen and you're forgiven."},
+{s:"You're deciding on dinner and want her to choose.",a:"u3a",emo:"🍽️",why:"<b>Nani tabetai?</b> — what do you want to eat?"},
+{s:"She asks what you feel like and you truly don't mind.",a:"u3l",emo:"🤷",why:"<b>Nandemo ii</b> — anything's fine. Use sparingly or it stops being charming."},
+{s:"First mouthful of her mum's curry and it's incredible.",a:"u3b",emo:"😋",why:"<b>Oishii!</b> — say it out loud, mid-bite. It matters more than any grammar."},
+{s:"You want her to taste the thing you just ordered.",a:"u3e",emo:"🥢",why:"<b>Kore tabete mite</b> — try eating this. ~te mite = do and see."},
+{s:"Third bowl down and you physically cannot continue.",a:"u3f",emo:"🫃",why:"<b>Onaka ippai</b> — stomach full. Lean back, smile, say it."},
+{s:"You want to offer her a warm drink on a cold morning.",a:"u3g",emo:"☕",why:"<b>Koohii nomu?</b> — coffee, drink? Casual Japanese drops everything else."},
+{s:"You bite into the ramen and your mouth is on fire.",a:"u3j",emo:"🌶️",why:"<b>Karai</b> — spicy. Atsui is temperature, karai is heat."},
+{s:"You need water at a restaurant and can't find staff.",a:"u3k",emo:"💧",why:"<b>Mizu kudasai</b> — water, please. Kudasai attaches to any noun."},
+{s:"It's morning and you want to know the plan.",a:"u4a",emo:"📆",why:"<b>Kyou nani suru?</b> — verb last, always."},
+{s:"You want to ask her out for tomorrow without overcommitting.",a:"u4b",emo:"🗓️",why:"<b>Ashita hima?</b> — free tomorrow? Two words, whole invitation."},
+{s:"You're both booted up and staring at fresh powder.",a:"u4c",emo:"🏂",why:"<b>Ikou!</b> — let's go. The ~ou ending means 'let's'."},
+{s:"You need ten more seconds to find your gloves.",a:"u4d",emo:"✋",why:"<b>Chotto matte</b> — wait a sec."},
+{s:"You're pinning down when to meet at the gondola.",a:"u4f",emo:"⌚",why:"<b>Nanji ni au?</b> — what time shall we meet? Ni pins the hour."},
+{s:"You've got a bluebird day and both have the morning free.",a:"u4g",emo:"⛷️",why:"<b>Sukii ikou!</b> — let's go skiing. Snowboard: sunobo ikou."},
+{s:"She's just booked the trip you've been waiting for.",a:"u4h",emo:"🤩",why:"<b>Tanoshimi!</b> — can't wait. Shows keenness without a full sentence."},
+{s:"She asks you to come out but you're rostered on.",a:"u4i",emo:"🙅",why:"<b>Muri</b> — no can do. Casual, soft, extremely common."},
+{s:"You're both free and neither has suggested anything.",a:"u4j",emo:"🧭",why:"<b>Doko iku?</b> — where shall we go?"},
+{s:"You want to know when her shift ends so you can meet.",a:"u4k",emo:"🕔",why:"<b>Nanji ni owaru?</b> — what time do you finish?"},
+{s:"Parting at the station, and you'll see her tomorrow.",a:"u4e",emo:"🌄",why:"<b>Mata ashita</b> — literally 'again tomorrow'."},
+{s:"A quiet moment and you want to say it plainly.",a:"u5a",emo:"💘",why:"<b>Suki da yo</b> — I like you. No pronouns needed."},
+{s:"Bigger than like, and you want her to know it.",a:"u5b",emo:"❤️",why:"<b>Daisuki</b> — big-like. The everyday Japanese 'I love you'."},
+{s:"Two weeks apart and the video call just ended.",a:"u5c",emo:"🥺",why:"<b>Aitai</b> — Japanese has no 'miss you'; you say 'want to meet'."},
+{s:"She walks through arrivals and you finally see her.",a:"u5k",emo:"🫂",why:"<b>Aitakatta</b> — I missed you. Past of aitai, said face to face."},
+{s:"She's put her hair up and turned to look at you.",a:"u5d",emo:"🐣",why:"<b>Kawaii</b> — cute. Watch the vowel: kowai means scary."},
+{s:"She's cold at the bus stop and you open your jacket.",a:"u5f",emo:"🤗",why:"<b>Gyutte shite</b> — 'do a squeeze'. Gyu is the sound of a hug."},
+{s:"She has her driving test in the morning.",a:"u5g",emo:"💪",why:"<b>Ganbatte</b> — you've got this. Reply is ganbaru."},
+{s:"She's picked you up from work three nights running.",a:"u5j",emo:"🥰",why:"<b>Itsumo arigatou</b> — thanks for everything, always."},
+{s:"She's carried the conversation with her parents all night.",a:"u5h",emo:"😊",why:"<b>Arigatou ne</b> — the ne makes it personal, not formal."},
+{s:"You're pointing at something on her family's table.",a:"u6a",emo:"👀",why:"<b>Kore wa nani?</b> — what's this? は is read wa."},
+{s:"Her dad tells a long story and you catch about none of it.",a:"u6b",emo:"🤷",why:"<b>Wakaranai</b> — I don't understand. Be honest early, not five minutes late."},
+{s:"She asks who a name on your phone is — you have no idea.",a:"u6j",emo:"🤨",why:"<b>Shiranai</b> — don't know. Wakaranai is 'don't follow'; shiranai is 'no knowledge'."},
+{s:"She agrees with what you just worked out.",a:"u6f",emo:"👍",why:"<b>Sou da ne</b> — yeah, that's right. The universal agreement noise."},
+{s:"She tells you the lifts are closed for a powder day.",a:"u6g",emo:"😲",why:"<b>Hontou ni?</b> — really?! React and you sound fluent instantly."},
+{s:"She mentions a name you've never heard before.",a:"u6h",emo:"🕵️",why:"<b>Dare?</b> — who? One syllable, whole question."},
+{s:"A word comes up in the conversation you can't place.",a:"u6i",emo:"❓",why:"<b>Dou iu imi?</b> — what does it mean?"},
+{s:"You're curious what she's up to on her day off.",a:"u7a",emo:"📱",why:"<b>Ima nani shiteru?</b> — shiteru is the texting-speed 'shite iru'."},
+{s:"She lands tomorrow and you're counting hours.",a:"u7b",emo:"💨",why:"<b>Hayaku aitai</b> — 'soon want-to-meet' = can't wait."},
+{s:"She's sent instructions and you just need to confirm.",a:"u7c",emo:"🫡",why:"<b>Ryoukai</b> — roger. Often shortened to りょ in texts."},
+{s:"Last message of the night before she falls asleep.",a:"u7d",emo:"🌠",why:"<b>Ii yume mite ne</b> — 'see a good dream'. In Japanese you see dreams."},
+{s:"She texts mid-lesson and you've got ten seconds.",a:"u7e",emo:"🎿",why:"<b>Gomen, shigoto-chuu</b> — ~chuu means mid-something."},
+{s:"You'd rather talk properly than type it out.",a:"u7f",emo:"📞",why:"<b>Ato de denwa suru</b> — I'll call later. Verb last."},
+{s:"The staff meeting overran and she's waiting for you.",a:"u7g",emo:"🕗",why:"<b>Osoku naru</b> — become late. Send it before she has to ask."},
+{s:"She was driving over the pass in bad weather.",a:"u7h",emo:"📍",why:"<b>Tsuita?</b> — did you get there? Reply: tsuita yo."},
+{s:"You want to know where she is so you can meet her.",a:"u7i",emo:"📍",why:"<b>Ima doko?</b> — where are you now? Two words."},
+{s:"You want to end the day by hearing about hers.",a:"u10x",emo:"🌙",why:"<b>Kyou dou datta?</b> — how was your day? Ask it every night."},
+{s:"She just got back from the thing she was nervous about.",a:"u10u",emo:"❓",why:"<b>Dou datta?</b> — how was it? Opens the whole conversation."},
+{s:"She pauses mid-story and you want her to keep going.",a:"u10v",emo:"👂",why:"<b>Sore de?</b> — and then? Proof you're actually listening."},
+{s:"She tells you something about her family you didn't know.",a:"u10b",emo:"💡",why:"<b>Sou nanda</b> — oh, I see. The workhorse reaction."},
+{s:"Her explanation of a grammar point finally clicks.",a:"u10c",emo:"🧠",why:"<b>Naruhodo</b> — ah, that makes sense. Only when it actually does."},
+{s:"She makes a fair point you hadn't considered.",a:"u10d",emo:"👌",why:"<b>Tashika ni</b> — true, good point. Agreeing with the reasoning."},
+{s:"The forecast said snow and you wake up to 30cm.",a:"u10e",emo:"😏",why:"<b>Yappari</b> — I knew it. Shortened to yappa in fast speech."},
+{s:"She asks if you'll finish on time and you're not sure.",a:"u10f",emo:"🤔",why:"<b>Tabun</b> — probably. Japanese hedges; a flat yes can sound blunt."},
+{s:"She says something surprising and you can't quite believe it.",a:"u10n",emo:"😱",why:"<b>Uso!</b> — literally 'lie!', but it just means 'no way!'"},
+{s:"She tells you her flight got upgraded.",a:"u10m",emo:"😳",why:"<b>Maji de?</b> — seriously?! Casual: great with her, not her dad."},
+{s:"She texts that she's home safe after the icy drive.",a:"u10q",emo:"😌",why:"<b>Yokatta</b> — oh good. Past tense of ii, used for relief."},
+{s:"Her plans fall through and she's flat about it.",a:"u10r",emo:"😞",why:"<b>Zannen</b> — that's a shame. Add ne to soften it further."},
+{s:"The mountain shuts for wind and there's nothing to be done.",a:"u10t",emo:"😤",why:"<b>Shikata nai</b> — can't be helped. The national shrug."},
+{s:"She suggests a plan you're keen on.",a:"u10p",emo:"👍",why:"<b>Ii ne</b> — nice, sounds good. Yes, it's the 'like' button too."},
+{s:"You're at an izakaya and want to order before deciding.",a:"u10i",emo:"🍺",why:"<b>Toriaezu</b> — for now. Classic opener: toriaezu biiru."},
+{s:"She apologises for something that didn't bother you at all.",a:"u10s",emo:"🙌",why:"<b>Zenzen</b> — not at all, no worries. Wave it off."},
+{s:"You want to slide a new question into the conversation.",a:"u10l",emo:"📎",why:"<b>Chinami ni</b> — by the way. Adds a related aside naturally."},
+{s:"She asks what's on your mind and it's genuinely nothing.",a:"u10j",emo:"🤷",why:"<b>Betsu ni</b> — nothing much. Smile when you say it or it sounds sulky."},
+{s:"You need a beat to find the words mid-sentence.",a:"u10k",emo:"💭",why:"<b>Nanka</b> — Japan's 'like'. Buys thinking time, sounds casual."},
+{s:"You want to disagree gently at the start of your sentence.",a:"u10g",emo:"↩️",why:"<b>Demo</b> — but. Starts a sentence; kedo goes mid-sentence."},
+{s:"You're explaining why you're heading home early.",a:"u10h",emo:"➡️",why:"<b>Dakara</b> — so, that's why. Kara goes after the reason, dakara starts the result."},
+{s:"You need to get a shop assistant's attention.",a:"u9a",emo:"🙇",why:"<b>Sumimasen</b> — excuse me. Also sorry, also thanks. Japan's Swiss army word."},
+{s:"You're pointing at the thing you want at the counter.",a:"u9b",emo:"👉",why:"<b>Kore kudasai</b> — this one, please. Point and go."},
+{s:"You've picked something up but there's no price tag.",a:"u9c",emo:"💴",why:"<b>Ikura?</b> — how much?"},
+{s:"You've put four things on the counter and want the total.",a:"u9d",emo:"🧾",why:"<b>Zenbu de ikura?</b> — how much all together?"},
+{s:"You're at a service station and it's urgent.",a:"u9e",emo:"🚻",why:"<b>Toire doko?</b> — where's the toilet? Learn it before anything fancy."},
+{s:"You're lost in a town you don't know, needing the train.",a:"u9f",emo:"🚉",why:"<b>Eki wa doko?</b> — where's the station?"},
+{s:"You're holding a photo of the part you need for your bindings.",a:"u9g",emo:"🔎",why:"<b>Kore aru?</b> — do you have this? Aru = there is (for things)."},
+{s:"The konbini clerk reaches for a plastic bag.",a:"u9h",emo:"🛍️",why:"<b>Fukuro irimasen</b> — I don't need a bag."},
+{s:"They've rung up your total and are waiting on payment.",a:"u9i",emo:"💳",why:"<b>Kaado de</b> — by card. Cash version: genkin de."},
+{s:"The clerk asks if you want your bento heated up.",a:"u9j",emo:"🍱",why:"<b>Onegai shimasu</b> — yes please. The polite yes for anything."},
+{s:"You're at a sake bar with no idea what to order.",a:"u9k",emo:"🍶",why:"<b>Osusume wa?</b> — what do you recommend? Staff love this question."},
+{s:"You walk into a restaurant and the host looks at you.",a:"u9l",emo:"🍽️",why:"<b>Futari desu</b> — two of us. Hitori/futari are irregular; the rest use ~nin."},
+{s:"Dinner's done and you'd rather not split it in your head.",a:"u9m",emo:"🧾",why:"<b>Betsubetsu de</b> — separate bills, please."},
+{s:"You've missed one and want to know when the next runs.",a:"u9n",emo:"🚃",why:"<b>Tsugi no densha</b> — the next train. No links next to train."},
+{s:"You've got a ticket and the station has eight platforms.",a:"u9o",emo:"🛤️",why:"<b>Nanbansen?</b> — which platform? Show your ticket while you ask."},
+{s:"A local is giving you directions and points down the road.",a:"u9p",emo:"⬆️",why:"<b>Massugu</b> — straight ahead. The double-s is a beat of silence."},
+{s:"You're telling a lost tourist where to go at the corner.",a:"u9q",emo:"➡️",why:"<b>Migi ni magatte</b> — turn right. Left is hidari."},
+{s:"Someone names a restaurant and you're in ski boots.",a:"u9r",emo:"📍",why:"<b>Chikai?</b> — is it close? Far is tooi."},
+{s:"You're weighing up a taxi versus walking it.",a:"u9s",emo:"🚶",why:"<b>Aruite ikeru?</b> — can we walk there? ~eru = able to."},
+{s:"You're at the machine and it's all in kanji.",a:"u9t",emo:"🎫",why:"<b>Kippu kaitai</b> — I want to buy a ticket."},
+{s:"Someone launches into fast Japanese and you need a moment.",a:"u9u",emo:"🤏",why:"<b>Nihongo sukoshi dake</b> — only a little Japanese. Buys patience instantly."},
+{s:"A shop assistant keeps offering and you're done deciding.",a:"u9v",emo:"✋",why:"<b>Mou daijoubu desu</b> — I'm good, thanks. A 'no' without saying no."},
+/* --- coverage: everything else you've met, in a moment where you'd use it --- */
+{s:"You lift the lid off the ramen and steam hits your face.",a:"u2f",emo:"🔥",why:"<b>Atsui</b> — hot. Temperature hot, not spicy hot (that's karai)."},
+{s:"She asks what you want the next few years to look like.",a:"u5e",emo:"🤝",why:"<b>Issho ni iyou</b> — let's stay together. Issho ni attaches to anything."},
+{s:"Explaining your morning routine — the drink, then the verb.",a:"u8b",emo:"☕",why:"<b>Koohii o nomu</b> — を marks what the verb acts on."},
+{s:"Telling her where you're headed at 7am.",a:"u8c",emo:"🏔️",why:"<b>Yama ni iku</b> — に is the destination arrow."},
+{s:"Explaining why you moved to a country with real winters.",a:"u8d",emo:"⛄",why:"<b>Yuki ga suki</b> — with suki, the thing you love takes が, not を."},
+{s:"Two identical jackets by the door and one is yours.",a:"u8e",emo:"🎒",why:"<b>Kore wa watashi no</b> — の is the possessive 's."},
+{s:"Explaining why you're wearing three layers indoors.",a:"u8g",emo:"🧥",why:"<b>Samui kara</b> — kara means because and comes AFTER the reason."},
+{s:"Telling her the trip only matters because she's on it.",a:"u8h",emo:"🫶",why:"<b>Kimi to issho</b> — と means with. Kimi to issho ga ii."},
+{s:"You're pointing out the thing you have to queue for each morning.",a:"n2",emo:"🚠",why:"<b>Rifuto</b> — chairlift. Rifuto-ken is the lift pass."},
+{s:"Boots clipped, goggles down, staring at an untouched face.",a:"n3",emo:"✊",why:"<b>Yoshi!</b> — half 'okay', half war cry. The pump-up grunt."},
+{s:"She lands a trick you've been trying all season.",a:"n4",emo:"🤩",why:"<b>Sugoi!</b> — the all-purpose wow."},
+{s:"A kid on your lesson is about to ski into a fence.",a:"n5",emo:"⚠️",why:"<b>Abunai!</b> — watch out. Shout it, don't say it."},
+{s:"A student finally links their turns after an hour of trying.",a:"n6",emo:"👏",why:"<b>Jouzu ne!</b> — you're good at that. Your most-used compliment."},
+{s:"Her mum is loading your plate and you want to encourage it.",a:"n7",emo:"🍚",why:"<b>Takusan</b> — lots. Takusan tabete = eat plenty."},
+{s:"Your coffee's half gone and the pot is still on.",a:"n8",emo:"➕",why:"<b>Motto</b> — more. Motto kudasai, motto yukkuri."},
+{s:"You're passing her the last gyoza across the table.",a:"n9",emo:"🤲",why:"<b>Douzo</b> — here you go / go ahead. The natural partner to arigatou."},
+{s:"It's 12:30 and you've got twenty minutes between lessons.",a:"n11",emo:"🍱",why:"<b>Hirugohan</b> — lunch. Hiru (noon) + gohan (meal)."},
+{s:"Last lesson's done, boots off, texting her the good news.",a:"n12",emo:"✅",why:"<b>Owatta</b> — finished. Shigoto owatta!"},
+{s:"She asks if you've eaten yet and you haven't.",a:"n13",emo:"⏳",why:"<b>Mada</b> — not yet. The opposite of mou (already)."},
+{s:"Her friend puts out a hand and you've never met.",a:"n14",emo:"🤝",why:"<b>Hajimemashite</b> — nice to meet you. Always followed by yoroshiku."},
+{s:"You're suggesting something indoors on a rain day.",a:"n17",emo:"🎬",why:"<b>Eiga</b> — movie. Eiga mi ni ikou."},
+{s:"She asks if you want to leave now and you do.",a:"n19",emo:"🙂",why:"<b>Un</b> — casual yes, with a nod. The formal one is hai."},
+{s:"She's telling you a mildly interesting fact about her town.",a:"u10a",emo:"😯",why:"<b>Hee~</b> — drawn out and falling. Pure listening noise, and it works."},
+{s:"She explains why she's been quiet all evening, and it makes sense.",a:"u10o",emo:"🙂",why:"<b>Sokka</b> — ah, got it. Gentle and accepting."},
+{s:"She had a hospital appointment this morning.",a:"u10w",emo:"🫶",why:"<b>Daijoubu datta?</b> — was it okay? Datta makes any casual adjective past."},
+{s:"Your phone rings and it's a Japanese number.",a:"n20",emo:"☎️",why:"<b>Moshi moshi</b> — phone-only hello. Never say it face to face."},
+{s:"You want her attention gently, from across the room.",a:"n21",emo:"👋",why:"<b>Nee</b> — soft attention-getter, only for people you're close to."},
+{s:"Something great happened and you're bursting to tell her.",a:"n22",emo:"🗨️",why:"<b>Kiite!</b> — listen to this. How every good story opens."},
+{s:"You're about to admit something you've been sitting on.",a:"n23",emo:"🤫",why:"<b>Jitsu wa</b> — actually, to be honest. Signals a reveal; she'll lean in."},
+{s:"She uses a word you've never heard and you want it explained.",a:"n24",emo:"🧑‍🏫",why:"<b>Oshiete</b> — teach me. Your single best learning tool."},
+{s:"It's snowing hard and she's finishing work in town.",a:"n25",emo:"🚗",why:"<b>Mukae ni iku</b> — I'll come get you. Worth more than any sympathy."},
+{s:"She's got a fever and keeps trying to do the dishes.",a:"n26",emo:"🛌",why:"<b>Yasunde</b> — rest. Same yasumi as in oyasumi."},
+{s:"She orders something and you want exactly that too.",a:"n27",emo:"🪞",why:"<b>Onaji</b> — same. Onaji no kudasai = the same one, please."},
+{s:"Someone at a bar asks what you do for a living.",a:"n28",emo:"🎿",why:"<b>Hataraiteru</b> — I'm working. Yama de hataraiteru."},
+{s:"You run into a colleague from last season at the lift queue.",a:"n29",emo:"🫱",why:"<b>Hisashiburi!</b> — long time no see."},
+{s:"She's driving over the pass and the snow's coming in sideways.",a:"n30",emo:"🛞",why:"<b>Ki o tsukete</b> — literally 'attach your spirit'. Take care."},
+];
+
+/* ================= REACTIONS (aizuchi drill) =================
+   She says something; you pick the reaction a Japanese speaker would actually make.
+   Distractors come from the reaction pool, so this is a genuine discrimination test. */
+const REACTION_POOL=["u10a","u10b","u10c","u10d","u10e","u10j","u10m","u10n","u10o","u10p","u10q","u10r","u10s","u10t","u10v","u6f","u6g","n4","n19","n27"];
+const REACTS=[
+{t:"むすめ、テスト １００てん だった！",r:"musume, tesuto hyaku-ten datta!",en:"My daughter got 100% on her test!",a:"u10q",why:"Someone shares good news — <b>yokatta</b>, oh that's great. Relief and happiness on their behalf."},
+{t:"あした の やま、しまってる って。",r:"ashita no yama, shimatteru tte.",en:"They say the mountain's closed tomorrow.",a:"u10r",why:"Bad news about plans — <b>zannen</b>, that's a shame."},
+{t:"じつは わたし、スキー ぜんぜん できない の。",r:"jitsu wa watashi, sukii zenzen dekinai no.",en:"Actually, I can't ski at all.",a:"u10n",why:"Genuine surprise — <b>uso!</b> No way. It's not calling her a liar, it's shock."},
+{t:"「ゆき」は snow、「やま」は mountain だよ。",r:"'yuki' wa snow, 'yama' wa mountain da yo.",en:"'Yuki' means snow, 'yama' means mountain.",a:"u10c",why:"An explanation that lands — <b>naruhodo</b>, ah, I see. Save it for real understanding."},
+{t:"てんき よほう、ゆき だった でしょ？ほら！",r:"tenki yohou, yuki datta desho? hora!",en:"The forecast said snow, right? Look!",a:"u10e",why:"It turned out as expected — <b>yappari</b>, knew it."},
+{t:"きょう は うち で ゆっくり しよう。",r:"kyou wa uchi de yukkuri shiyou.",en:"Let's just take it easy at home today.",a:"u10p",why:"A suggestion you're happy with — <b>ii ne</b>, sounds good."},
+{t:"にほんご、まいにち やったら はやく なるよ。",r:"nihongo, mainichi yattara hayaku naru yo.",en:"If you do Japanese daily you'll get fast.",a:"u10d",why:"Agreeing with someone's reasoning — <b>tashika ni</b>, true, good point."},
+{t:"わたし の いえ、やま の うえ に ある の。",r:"watashi no ie, yama no ue ni aru no.",en:"My house is up on the mountain.",a:"u10b",why:"New information about her — <b>sou nanda</b>, oh I see. The workhorse reaction."},
+{t:"きのう ３じかん も でんしゃ に のった。",r:"kinou san-jikan mo densha ni notta.",en:"I was on the train for three hours yesterday.",a:"u10a",why:"Mild interest, drawn out — <b>hee~</b>. Pure listening noise, and it works."},
+{t:"リフト、１じかん まった んだ。",r:"rifuto, ichi-jikan matta nda.",en:"I waited an hour for the lift.",a:"u10t",why:"Nothing to be done about it — <b>shikata nai</b>. The national shrug."},
+{t:"ごめん！れんらく、わすれてた！",r:"gomen! renraku, wasureteta!",en:"Sorry! I forgot to message you!",a:"u10s",why:"An apology you're waving off — <b>zenzen</b>, not at all, no worries."},
+{t:"…それで、まちがえて ７じ に ついた の。",r:"...sore de, machigaete shichi-ji ni tsuita no.",en:"...and then I turned up at seven by mistake.",a:"u10v",why:"The story isn't finished — <b>sore de?</b> and then? Keeps her talking."},
+{t:"らいしゅう、にほん に かえる こと に した。",r:"raishuu, nihon ni kaeru koto ni shita.",en:"I've decided to go back to Japan next week.",a:"u10m",why:"Big, sudden news — <b>maji de?</b> seriously? Casual, high energy."},
+{t:"きょう の ゆき、みて！",r:"kyou no yuki, mite!",en:"Look at the snow today!",a:"n4",why:"Something genuinely impressive — <b>sugoi</b>. The all-purpose wow."},
+{t:"なに かんがえてる の？",r:"nani kangaeteru no?",en:"What are you thinking about?",a:"u10j",why:"Honestly nothing — <b>betsu ni</b>. Smile as you say it or it sounds sulky."},
+{t:"わたし も コーヒー が すき！",r:"watashi mo koohii ga suki!",en:"I like coffee too!",a:"n27",why:"You're the same — <b>onaji</b>. Short, warm, instant connection."},
+{t:"きのう の ラーメン、おいしかった よね？",r:"kinou no raamen, oishikatta yo ne?",en:"Yesterday's ramen was good, right?",a:"u6f",why:"Straight agreement — <b>sou da ne</b>, yeah it was."},
+{t:"あの ひと、ゆうめい な スキーヤー なんだ よ。",r:"ano hito, yuumei na sukiiyaa nanda yo.",en:"That guy's a famous skier, you know.",a:"u6g",why:"Mild disbelief, wanting confirmation — <b>hontou ni?</b> really?"},
+];
+
+/* ================= CHAINS (two-turn conversations) =================
+   Not one reply — a whole exchange. She speaks, you answer, she answers back,
+   you close it out. This is the drill that's closest to actually talking. */
+const CHAINS=[
+{emo:"🌙",setting:"She gets in from a late shift and drops onto the sofa.",turns:[
+  {say:{t:"ただいま〜。つかれた〜。",r:"tadaima~. tsukareta~.",en:"I'm home~. I'm shattered~."},a:"u1g",alt:["u1e","u3c","u4c"],why:"<b>Otsukaresama</b> — the acknowledgement of someone's hard day. Okaeri works too, but this one shows you noticed the tiredness."},
+  {say:{t:"ありがとう。おなか すいた…",r:"arigatou. onaka suita...",en:"Thanks. I'm starving..."},a:"u3a",alt:["u3f","u2a","u4i"],why:"She's hungry, so hand her the decision: <b>nani tabetai?</b> what do you want to eat?"}]},
+{emo:"📱",setting:"Mid-afternoon, you're between lessons and your phone buzzes.",turns:[
+  {say:{t:"いま なに してる？",r:"ima nani shiteru?",en:"What are you up to right now?"},a:"u7e",alt:["u7d","u1b","u3c"],why:"<b>Gomen, shigoto-chuu</b> — sorry, mid-work. Fast, honest, buys you the afternoon."},
+  {say:{t:"りょうかい！なんじ に おわる？",r:"ryoukai! nanji ni owaru?",en:"Roger! What time do you finish?"},a:"u7f",alt:["u4i","u2c","u9v"],why:"You can't type it all now — <b>ato de denwa suru</b>, I'll call you later."}]},
+{emo:"🍜",setting:"Dinner at her family's place. Her mum has been cooking since three.",turns:[
+  {say:{t:"たくさん たべて ね。",r:"takusan tabete ne.",en:"Eat lots, okay!"},a:"u3c",alt:["u3d","u1c","u9j"],why:"Before the first bite it's always <b>itadakimasu</b>, hands together."},
+  {say:{t:"おかわり は？",r:"okawari wa?",en:"Want seconds?"},a:"u3f",alt:["u3a","u2b","u10j"],why:"If you're done: <b>onaka ippai</b>, I'm full. Lean back and smile — refusing food needs warmth."}]},
+{emo:"⛷️",setting:"Bluebird morning. She catches you at the bottom of the first run.",turns:[
+  {say:{t:"きょう、ゆき すごい ね！",r:"kyou, yuki sugoi ne!",en:"The snow's incredible today!"},a:"u4c",alt:["u2c","u4i","u9v"],why:"Don't overthink it — <b>ikou!</b> Let's go. Enthusiasm is the correct grammar here."},
+  {say:{t:"リフト、なんじ に あう？",r:"rifuto, nanji ni au?",en:"What time shall we meet at the lift?"},a:"u4f",alt:["u4b","u6h","u9c"],why:"Turn it back with the same structure: <b>nanji ni au?</b> — or name a time. Either keeps the plan moving."}]},
+{emo:"💔",setting:"Three weeks apart. It's late where she is and neither of you wants to hang up.",turns:[
+  {say:{t:"さびしい な…",r:"sabishii na...",en:"I'm lonely..."},a:"u7b",alt:["u10t","u4i","u2m"],why:"Match the feeling, don't solve it: <b>hayaku aitai</b>, I can't wait to see you."},
+  {say:{t:"わたし も。ねむく なって きた…",r:"watashi mo. nemuku natte kita...",en:"Me too. I'm getting sleepy..."},a:"u7d",alt:["u1a","u4c","u3c"],why:"<b>Ii yume mite ne</b> — see a good dream. Softer than a plain oyasumi."}]},
+{emo:"🏪",setting:"Konbini, 10pm, the guy behind the counter is waiting on you.",turns:[
+  {say:{t:"いらっしゃいませ！",r:"irasshaimase!",en:"Welcome!"},a:"u9b",alt:["u1c","u3c","u5h"],why:"Point at what you want: <b>kore kudasai</b>. Nobody expects more than this."},
+  {say:{t:"ふくろ、ごりよう ですか？",r:"fukuro, goriyou desu ka?",en:"Would you like a bag?"},a:"u9h",alt:["u9j","u9k","u3l"],why:"<b>Fukuro irimasen</b> — no bag needed. Every till, every time."}]},
+{emo:"🙇",setting:"You've just met her parents. Her dad has finished a long look at you.",turns:[
+  {say:{t:"はじめまして。",r:"hajimemashite.",en:"Nice to meet you."},a:"n15",alt:["u1c","u1a","u10p"],why:"<b>Yoroshiku</b> — the fixed partner to hajimemashite. Never leave it out."},
+  {say:{t:"にほんご、じょうず だね。",r:"nihongo, jouzu da ne.",en:"Your Japanese is good."},a:"n16",alt:["u5h","u2g","u10d"],why:"Deflect: <b>madamada</b>, long way to go. Accepting the compliment outright reads as immodest."}]},
+{emo:"🚉",setting:"You're meeting her in the city and you've never used this station before.",turns:[
+  {say:{t:"えき、ついた？",r:"eki, tsuita?",en:"Did you get to the station?"},a:"u9o",alt:["u9c","u2a","u6h"],why:"You're there but lost — ask someone <b>nanbansen?</b> which platform."},
+  {say:{t:"カフェ、えき の となり だよ。",r:"kafe, eki no tonari da yo.",en:"The café's right next to the station."},a:"u9s",alt:["u9c","u4i","u10j"],why:"Check before you commit in ski boots: <b>aruite ikeru?</b> can I walk it?"}]},
+{emo:"☀️",setting:"Sunday morning. She's telling you about something that happened at work.",turns:[
+  {say:{t:"きのう、おきゃくさん が おこってた の。",r:"kinou, okyakusan ga okotteta no.",en:"A customer was angry yesterday."},a:"u10v",alt:["u10p","u1b","u9c"],why:"Don't fix it, extend it: <b>sore de?</b> and then? Story-telling needs a listener, not a solver."},
+  {say:{t:"…でも さいご は ありがとう って いって くれた。",r:"...demo saigo wa arigatou tte itte kureta.",en:"...but at the end they thanked me."},a:"u10q",alt:["u10r","u10t","u10j"],why:"It resolved well — <b>yokatta</b>, oh good. Relief on her behalf."}]},
+{emo:"🌧️",setting:"The lifts are on wind hold and the day you'd both booked off is gone.",turns:[
+  {say:{t:"やま、しまってる って。",r:"yama, shimatteru tte.",en:"They're saying the mountain's shut."},a:"u10n",alt:["u10p","u3b","u10q"],why:"React before you accept it — <b>uso!</b> No way. Skipping to acceptance can read as not caring."},
+  {say:{t:"ほんとう。かぜ が つよい から。",r:"hontou. kaze ga tsuyoi kara.",en:"Really. Because the wind's strong."},a:"u10t",alt:["u10m","u2l","u9v"],why:"Now it's fine to land on <b>shikata nai</b> — can't be helped. Order matters."}]},
+{emo:"🎿",setting:"Your 10am private lesson. The guest hasn't stopped apologising for falling.",turns:[
+  {say:{t:"すみません…へた で…",r:"sumimasen... heta de...",en:"Sorry... I'm terrible at this..."},a:"u2i",alt:["u2l","u10r","u6b"],why:"<b>Daijoubu?</b> — check on them first. Reassurance before instruction, always."},
+  {say:{t:"はい…もう いっかい やって みます。",r:"hai... mou ikkai yatte mimasu.",en:"Okay... I'll try once more."},a:"u5g",alt:["u1b","u10t","u4i"],why:"<b>Ganbatte</b> — you've got this. Exactly what a Japanese instructor would say."}]},
+{emo:"🍺",setting:"Izakaya with her friends. Someone's just asked you a question across the table.",turns:[
+  {say:{t:"デイビッド は なに のむ？",r:"Deibiddo wa nani nomu?",en:"What are you drinking, David?"},a:"u10i",alt:["u3l","u9v","u10j"],why:"<b>Toriaezu</b> — for now. The classic izakaya opener: toriaezu biiru."},
+  {say:{t:"にほん、どのくらい いる の？",r:"nihon, dono kurai iru no?",en:"How long have you been in Japan?"},a:"u9u",alt:["u6b","u10j","u4i"],why:"<b>Nihongo sukoshi dake</b> — only a little Japanese. Honest, and it makes everyone slow down for you."}]},
+];
+
+/* ================= PARTICLES (fill the gap) ================= */
+const PARTICLE_POOL=[{t:"は",r:"wa"},{t:"を",r:"o"},{t:"に",r:"ni"},{t:"が",r:"ga"},{t:"の",r:"no"},{t:"で",r:"de"},{t:"も",r:"mo"},{t:"と",r:"to"},{t:"から",r:"kara"}];
+const PSET=new Set(PARTICLE_POOL.map(p=>p.t));
+function particleTok(it){
+  for(let i=it.tok.length-1;i>=0;i--){const t=it.tok[i];
+    if(PSET.has(t.t)&&PARTICLE_POOL.some(p=>p.t===t.t&&p.r===t.r))return {t:t.t,r:t.r,i};}
+  return null;
+}
+
+/* ================= CONVERSATION SCENES =================
+   Existing phrases woven into longer dialogues. `learn` = new-word ids met here.
+   who: her|you|mum|dad. Lines with choose:true are YOUR turn — you pick the reply
+   (alt = item ids used as wrong options). In roleplay mode every "you" line is a choice. */
+const SCENES=[
+{id:"sc1",title:"First lift",emo:"🌅",learn:["n4","n3","n2","n1"],
+ setting:"6:45am at the lodge. She's already dressed for the mountain and the snow looks unreal outside.",
+ lines:[
+  {who:"her",t:"おはよう！",r:"ohayou!",en:"Morning!"},
+  {who:"you",t:"おはよう。さむい〜！",r:"ohayou. samui~!",en:"Morning. It's freezing!",choose:true,alt:["u1b","u1c"]},
+  {who:"her",t:"きょう、ゆき すごいよ！",r:"kyou, yuki sugoi yo!",en:"The snow's amazing today!",nw:["n4"]},
+  {who:"you",t:"よし！はやく いこう！",r:"yoshi! hayaku ikou!",en:"Alright! Let's go quick!",nw:["n3"]},
+  {who:"her",t:"リフト、８じ から だよ。",r:"rifuto, hachi-ji kara da yo.",en:"The lift runs from 8.",nw:["n2"]},
+  {who:"you",t:"りょうかい！ゲレンデ で あおう。",r:"ryoukai! gerende de aou.",en:"Roger! Let's meet on the slopes.",nw:["n1"],choose:true,alt:["u3c","u1b"]},
+ ]},
+{id:"sc2",title:"On the slopes",emo:"⛷️",learn:["n5","n6"],
+ setting:"Top of the first run. You push off ahead of her down the fresh powder.",
+ lines:[
+  {who:"her",t:"だいじょうぶ？",r:"daijoubu?",en:"You okay?"},
+  {who:"you",t:"だいじょうぶ！たのしみ！",r:"daijoubu! tanoshimi!",en:"Fine! Can't wait!",choose:true,alt:["u6b","u2a"]},
+  {who:"her",t:"あぶない！",r:"abunai!",en:"Watch out!",nw:["n5"]},
+  {who:"you",t:"わ！ありがとう！",r:"wa! arigatou!",en:"Whoa! Thanks!"},
+  {who:"her",t:"すごい！じょうず だね！",r:"sugoi! jouzu da ne!",en:"Amazing! You're good!",nw:["n6"]},
+  {who:"you",t:"もう いっかい いこう！",r:"mou ikkai ikou!",en:"Let's go one more time!",choose:true,alt:["u7g","u4i"]},
+ ]},
+{id:"sc3",title:"Dinner at her family's",emo:"🍜",learn:["n7","n8","n9","n10"],
+ setting:"Her mum has made a huge nabe hotpot. Everyone gathers around the low table.",
+ lines:[
+  {who:"mum",t:"たくさん たべてね。",r:"takusan tabete ne.",en:"Eat lots, okay!",nw:["n7"]},
+  {who:"you",t:"いただきます！",r:"itadakimasu!",en:"Thanks — let's eat!",choose:true,alt:["u3d","u1b"]},
+  {who:"you",t:"おいしい！",r:"oishii!",en:"Delicious!"},
+  {who:"mum",t:"もっと どうぞ。",r:"motto douzo.",en:"Have some more.",nw:["n8","n9"]},
+  {who:"you",t:"ありがとうございます。おかわり ください！",r:"arigatou gozaimasu. okawari kudasai!",en:"Thank you. Seconds, please!",nw:["n10"],choose:true,alt:["u4i","u3f"]},
+  {who:"you",t:"ごちそうさま！",r:"gochisousama!",en:"Thanks for the meal!"},
+ ]},
+{id:"sc4",title:"Texting at work",emo:"📱",learn:["n11","n12","n13"],
+ setting:"Mid-afternoon. You're halfway through a kids' ski lesson when she texts.",
+ lines:[
+  {who:"her",t:"いま なに してる？",r:"ima nani shiteru?",en:"What are you doing now?"},
+  {who:"you",t:"ごめん、しごとちゅう！",r:"gomen, shigoto-chuu!",en:"Sorry, I'm at work!",choose:true,alt:["u5b","u2c"]},
+  {who:"her",t:"りょうかい！ひるごはん たべた？",r:"ryoukai! hirugohan tabeta?",en:"Roger! Did you have lunch?",nw:["n11"]},
+  {who:"you",t:"まだ。レッスン おわったら たべる。",r:"mada. ressun owattara taberu.",en:"Not yet. I'll eat when the lesson's done.",nw:["n13","n12"]},
+  {who:"her",t:"がんばって！",r:"ganbatte!",en:"Good luck!"},
+  {who:"you",t:"ありがとう！あとで でんわ する。",r:"arigatou! ato de denwa suru.",en:"Thanks! I'll call later.",choose:true,alt:["u1b","n14"]},
+ ]},
+{id:"sc5",title:"Meeting her parents",emo:"🙇",learn:["n14","n15","n16"],
+ setting:"First time at her parents' door. A small bow, a nervous smile. Keep it polite.",
+ lines:[
+  {who:"you",t:"はじめまして。デイビッド です。",r:"hajimemashite. Deibiddo desu.",en:"Nice to meet you. I'm David.",nw:["n14"],choose:true,alt:["u1c","u1g"]},
+  {who:"dad",t:"よろしく。",r:"yoroshiku.",en:"Nice to meet you too.",nw:["n15"]},
+  {who:"you",t:"よろしく おねがい します。",r:"yoroshiku onegai shimasu.",en:"Pleased to meet you (polite)."},
+  {who:"mum",t:"にほんご じょうず ね！",r:"nihongo jouzu ne!",en:"Your Japanese is good!"},
+  {who:"you",t:"いえいえ、まだまだ です。",r:"ie ie, madamada desu.",en:"No no, I've a long way to go.",nw:["n16"],choose:true,alt:["n6","u6b"]},
+ ]},
+{id:"sc6",title:"A date, then goodnight",emo:"❤️",learn:["n17","n18","n19"],
+ setting:"Evening. You're texting about tomorrow, then winding down for the night.",
+ lines:[
+  {who:"her",t:"あした ひま？",r:"ashita hima?",en:"Free tomorrow?"},
+  {who:"you",t:"うん！なに する？",r:"un! nani suru?",en:"Yeah! What shall we do?",nw:["n19"],choose:true,alt:["u4i","u1b"]},
+  {who:"her",t:"えいが みに いこう！",r:"eiga mi ni ikou!",en:"Let's go see a movie!",nw:["n17"]},
+  {who:"you",t:"いいね！たのしみ！",r:"ii ne! tanoshimi!",en:"Nice! Can't wait!"},
+  {who:"her",t:"きょう たのしかった。おやすみ。",r:"kyou tanoshikatta. oyasumi.",en:"Today was fun. Goodnight.",nw:["n18"]},
+  {who:"you",t:"たのしかった！いい ゆめ みてね。だいすき。",r:"tanoshikatta! ii yume mite ne. daisuki.",en:"It was fun! Sweet dreams. Love you.",choose:true,alt:["u1a","u1e"]},
+ ]},
+
+/* ================= EXPANSION 2 — longer & branching scenes ================= */
+{id:"sc7",title:"Konbini run",emo:"🏪",learn:["u9a","u9g","u9d","u9i","u9h"],
+ setting:"9pm, minus eight outside. You've pulled into the konbini on the way home and she's texted you a list.",
+ lines:[
+  {who:"you",t:"すみません。これ ある？",r:"sumimasen. kore aru?",en:"Excuse me. Do you have this?",nw:["u9a","u9g"],choose:true,alt:["u6b","u1c"]},
+  {who:"staff",t:"はい、あそこ です。",r:"hai, asoko desu.",en:"Yes, over there."},
+  {who:"you",t:"ありがとうございます！",r:"arigatou gozaimasu!",en:"Thank you!"},
+  {who:"staff",t:"ぜんぶで ８９０えん です。",r:"zenbu de happyaku-kyuujuu en desu.",en:"890 yen all together.",nw:["u9d"]},
+  {who:"you",t:"カード で おねがいします。",r:"kaado de onegai shimasu.",en:"By card, please.",nw:["u9i"],choose:true,alt:["u3k","u4i"]},
+  {who:"staff",t:"ふくろ は？",r:"fukuro wa?",en:"Would you like a bag?"},
+  {who:"you",t:"ふくろ いりません。だいじょうぶ です。",r:"fukuro irimasen. daijoubu desu.",en:"No bag, thanks. I'm good.",nw:["u9h"],choose:true,alt:["u9b","u10i"]},
+ ]},
+
+{id:"sc8",title:"Finding the platform",emo:"🚉",learn:["u9n","u9o","u9p","u9q","u9s"],
+ setting:"Nagano station, Saturday. She's already in the city and you're the wrong side of the ticket gates.",
+ lines:[
+  {who:"her",t:"なんじ に つく？",r:"nanji ni tsuku?",en:"What time do you get here?"},
+  {who:"you",t:"つぎ の でんしゃ で いく！",r:"tsugi no densha de iku!",en:"I'll take the next train!",nw:["u9n"],choose:true,alt:["u4i","u2a"]},
+  {who:"her",t:"りょうかい！まってる ね。",r:"ryoukai! matteru ne.",en:"Roger! I'll be waiting."},
+  {who:"you",t:"すみません、なんばんせん ですか？",r:"sumimasen, nanbansen desu ka?",en:"Excuse me, which platform?",nw:["u9o"],choose:true,alt:["u9c","u3a"]},
+  {who:"stranger",t:"まっすぐ いって、みぎ に まがって。３ばんせん です。",r:"massugu itte, migi ni magatte. san-bansen desu.",en:"Straight ahead, then turn right. Platform 3.",nw:["u9p","u9q"]},
+  {who:"you",t:"ありがとうございます！",r:"arigatou gozaimasu!",en:"Thank you very much!"},
+  {who:"you",t:"ついた！いま どこ？",r:"tsuita! ima doko?",en:"I'm here! Where are you?",choose:true,alt:["u1c","u7g"]},
+  {who:"her",t:"えき の カフェ！あるいて いける よ。",r:"eki no kafe! aruite ikeru yo.",en:"The café by the station! You can walk it.",nw:["u9s"]},
+ ]},
+
+{id:"sc9",title:"Izakaya with her friends",emo:"🍺",learn:["n29","u10i","u10p","n28","u9k"],
+ setting:"Friday night. Four of her friends, one long low table, and you're the only foreigner in the room. Deep breath.",
+ lines:[
+  {who:"her",t:"みんな、デイビッド だよ！",r:"minna, Deibiddo da yo!",en:"Everyone, this is David!"},
+  {who:"you",branch:[
+    {t:"はじめまして。デイビッド です。",r:"hajimemashite. Deibiddo desu.",en:"Nice to meet you. I'm David.",good:true,
+     fb:"✓ Textbook-perfect for a first meeting — and the safest opener in any room.",
+     reply:{who:"friend",t:"よろしく！ひさしぶり に がいこくじん の ともだち！",r:"yoroshiku! hisashiburi ni gaikokujin no tomodachi!",en:"Nice to meet you! Been ages since we had a foreign friend!",nw:["n29"]}},
+    {t:"こんばんは！よろしく おねがいします。",r:"konbanwa! yoroshiku onegai shimasu.",en:"Good evening! Pleased to meet you.",
+     fb:"Also fine — a touch more formal. Works better with her boss than her mates.",
+     reply:{who:"friend",t:"わ、ていねい！よろしく〜！",r:"wa, teinei! yoroshiku~!",en:"Ooh, polite! Nice to meet you!"}},
+    {t:"どうも！",r:"doumo!",en:"Hey / thanks!",
+     fb:"Very casual. It works — but with people you've just met it can read as a bit blunt.",
+     reply:{who:"friend",t:"どうも！のむ？",r:"doumo! nomu?",en:"Hey! Drink?"}}]},
+  {who:"friend",t:"なに のむ？",r:"nani nomu?",en:"What are you drinking?"},
+  {who:"you",t:"とりあえず ビール！",r:"toriaezu biiru!",en:"Beer for now!",nw:["u10i"],choose:true,alt:["u3f","u9h"]},
+  {who:"friend",t:"いいね！おなじ の ください！",r:"ii ne! onaji no kudasai!",en:"Nice! Same for me, please!",nw:["u10p","n27"]},
+  {who:"friend",t:"デイビッド は なに してる の？",r:"Deibiddo wa nani shiteru no?",en:"So what do you do, David?"},
+  {who:"you",t:"やま で はたらいてる。スキー の せんせい。",r:"yama de hataraiteru. sukii no sensei.",en:"I work on the mountain. Ski instructor.",nw:["n28"],choose:true,alt:["u2m","u4i"]},
+  {who:"friend",t:"えー！すごい！じょうず なんだ！",r:"ee! sugoi! jouzu nanda!",en:"Whoa! Amazing! You must be good!"},
+  {who:"you",branch:[
+    {t:"いえいえ、まだまだ です。",r:"ie ie, madamada desu.",en:"No no, I've a long way to go.",good:true,
+     fb:"✓ Deflecting a compliment is the expected move here. Humility reads as warmth in Japan.",
+     reply:{who:"friend",t:"けんきょ〜！いい ひと だね！",r:"kenkyo~! ii hito da ne!",en:"So humble! You're a good one!"}},
+    {t:"ありがとう！がんばってる！",r:"arigatou! ganbatteru!",en:"Thanks! I work at it!",
+     fb:"Perfectly friendly — just note that accepting a compliment head-on is less common here.",
+     reply:{who:"friend",t:"おお、じしん ある ね！いいね！",r:"oo, jishin aru ne! ii ne!",en:"Oh, confident! I like it!"}},
+    {t:"たぶん…ぜんぜん です。",r:"tabun... zenzen desu.",en:"Maybe... not at all really.",
+     fb:"Understandable, but it undersells you. Madamada is the phrase that does this job cleanly.",
+     reply:{who:"friend",t:"ぜんぜん？うそ〜！",r:"zenzen? uso~!",en:"Not at all? No way!"}}]},
+  {who:"friend",t:"おすすめ の やま、おしえて！",r:"osusume no yama, oshiete!",en:"Tell us your favourite mountain!",nw:["u9k","n24"]},
+ ]},
+
+{id:"sc10",title:"Late night call",emo:"☎️",learn:["n20","n22","n23","n26","n30"],
+ setting:"11pm. She's had a rough shift and she's calling instead of texting — which she only does when it's a real one.",
+ lines:[
+  {who:"her",t:"もしもし…",r:"moshi moshi...",en:"Hello...",nw:["n20"]},
+  {who:"you",branch:[
+    {t:"だいじょうぶ？なに あった？",r:"daijoubu? nani atta?",en:"You okay? What happened?",good:true,
+     fb:"✓ You heard the tone and asked. That's the right instinct in any language.",
+     reply:{who:"her",t:"うん…きいて。しごと、ほんとう に たいへん だった。",r:"un... kiite. shigoto, hontou ni taihen datta.",en:"Yeah... listen. Work was genuinely rough.",nw:["n22"]}},
+    {t:"おつかれさま！きょう どう だった？",r:"otsukaresama! kyou dou datta?",en:"Good work today! How was your day?",
+     fb:"Warm, but a bit bright for her tone. She'll get there — just a beat slower.",
+     reply:{who:"her",t:"…あんまり。じつは、ちょっと つらかった。",r:"...anmari. jitsu wa, chotto tsurakatta.",en:"...not great. Actually, it was kind of hard.",nw:["n23"]}},
+    {t:"ねえ、こえ が へん だよ。",r:"nee, koe ga hen da yo.",en:"Hey — your voice sounds off.",
+     fb:"Direct and observant. Fine with someone this close; would be too blunt with anyone else.",
+     reply:{who:"her",t:"わかる？…うん、つかれた。",r:"wakaru? ...un, tsukareta.",en:"You can tell? ...yeah. I'm wiped.",nw:["n21"]}}]},
+  {who:"you",t:"そうなんだ…だいじょうぶ だった？",r:"sou nanda... daijoubu datta?",en:"I see... were you okay?",choose:true,alt:["u10m","u4i"]},
+  {who:"her",t:"ぜんぜん。でも、はなして よかった。",r:"zenzen. demo, hanashite yokatta.",en:"Not at all. But I'm glad I talked to you."},
+  {who:"you",branch:[
+    {t:"むかえに いこうか？",r:"mukae ni ikou ka?",en:"Want me to come get you?",good:true,nw:["n25"],
+     fb:"✓ Offering something concrete beats sympathy. This is the line that lands.",
+     reply:{who:"her",t:"え、いいの？…うれしい。",r:"e, ii no? ...ureshii.",en:"Wait, really? ...that makes me happy."}},
+    {t:"ゆっくり やすんで ね。",r:"yukkuri yasunde ne.",en:"Rest up properly, okay?",nw:["n26"],
+     fb:"Gentle and right. Slightly softer than offering to actually turn up.",
+     reply:{who:"her",t:"ありがとう。やさしい ね。",r:"arigatou. yasashii ne.",en:"Thanks. You're kind."}},
+    {t:"しかたない よ。あした は いい ひ に なる。",r:"shikata nai yo. ashita wa ii hi ni naru.",en:"Can't be helped. Tomorrow'll be better.",
+     fb:"Careful — shikata nai can land as dismissive when someone wants to be heard first.",
+     reply:{who:"her",t:"…うん。そう だ ね。",r:"...un. sou da ne.",en:"...yeah. I guess so."}}]},
+  {who:"her",t:"じゃあ、また あした。き を つけて ね。",r:"jaa, mata ashita. ki o tsukete ne.",en:"Okay — see you tomorrow. Take care, yeah?",nw:["n30"]},
+  {who:"you",t:"うん。おやすみ。だいすき。",r:"un. oyasumi. daisuki.",en:"Yeah. Goodnight. Love you.",choose:true,alt:["u1e","u3c"]},
+ ]},
+
+{id:"sc11",title:"A guest on the mountain",emo:"⛷️",learn:["u9p","u9q","u9r","n24"],
+ setting:"Your 10am private lesson. A Japanese guest in his fifties, first time on a board, very polite and very nervous.",
+ lines:[
+  {who:"you",t:"おはようございます！よろしく おねがいします。",r:"ohayou gozaimasu! yoroshiku onegai shimasu.",en:"Good morning! Let's have a good lesson.",choose:true,alt:["u1a","u5b"]},
+  {who:"guest",t:"よろしく おねがいします。はじめて なんです。",r:"yoroshiku onegai shimasu. hajimete nan desu.",en:"Likewise. It's my first time."},
+  {who:"you",t:"だいじょうぶ です！ゆっくり いきましょう。",r:"daijoubu desu! yukkuri ikimashou.",en:"No problem! We'll take it slowly.",choose:true,alt:["u4i","u2m"]},
+  {who:"guest",t:"ちょっと こわい です…",r:"chotto kowai desu...",en:"I'm a little scared..."},
+  {who:"you",t:"わかります。まっすぐ、ゆっくり。だいじょうぶ。",r:"wakarimasu. massugu, yukkuri. daijoubu.",en:"I understand. Straight, slowly. You're fine.",nw:["u9p"],choose:true,alt:["u2l","u10t"]},
+  {who:"guest",t:"はい！",r:"hai!",en:"Okay!"},
+  {who:"you",t:"いい ですね！つぎ は みぎ に まがって！",r:"ii desu ne! tsugi wa migi ni magatte!",en:"Nice! Now turn right!",nw:["u9q"]},
+  {who:"guest",t:"できた！",r:"dekita!",en:"I did it!"},
+  {who:"you",t:"すごい！じょうず です よ！",r:"sugoi! jouzu desu yo!",en:"Amazing! You're good at this!",choose:true,alt:["u6b","u10r"]},
+  {who:"guest",t:"ありがとうございます！せんせい、また おしえて ください。",r:"arigatou gozaimasu! sensei, mata oshiete kudasai.",en:"Thank you! Please teach me again sometime.",nw:["n24"]},
+ ]},
+
+{id:"sc12",title:"When plans fall over",emo:"🌧️",learn:["u10r","u10t","u10e","u10f"],
+ setting:"Storm day. The mountain's shut for wind and the trip you'd both been counting on is off.",
+ lines:[
+  {who:"her",t:"ねえ、あした の やま、しまってる みたい。",r:"nee, ashita no yama, shimatteru mitai.",en:"Hey — looks like the mountain's closed tomorrow.",nw:["n21"]},
+  {who:"you",branch:[
+    {t:"うそ！まじで？",r:"uso! maji de?",en:"No way! Seriously?",good:true,
+     fb:"✓ React first. Japanese conversation runs on this — she'll feel the news landed.",
+     reply:{who:"her",t:"まじ。かぜ が つよい から。",r:"maji. kaze ga tsuyoi kara.",en:"Seriously. Because the wind's strong."}},
+    {t:"やっぱり。てんき わるかった もんね。",r:"yappari. tenki warukatta mon ne.",en:"Knew it. The forecast was bad, eh.",nw:["u10e"],
+     fb:"Calm and knowing — but skipping the reaction can read as not caring much.",
+     reply:{who:"her",t:"そう なんだ よね…ざんねん。",r:"sou nanda yo ne... zannen.",en:"Right? ...such a shame.",nw:["u10r"]}},
+    {t:"そっか。しかたない ね。",r:"sokka. shikata nai ne.",en:"Ah. Can't be helped, eh.",nw:["u10t"],
+     fb:"Very Japanese, very accepting. Just don't skip straight to it — she may want a beat of disappointment first.",
+     reply:{who:"her",t:"うん…でも たのしみ に してた のに。",r:"un... demo tanoshimi ni shiteta noni.",en:"Yeah... but I was really looking forward to it."}}]},
+  {who:"you",t:"ざんねん。ほんとう に たのしみ だった。",r:"zannen. hontou ni tanoshimi datta.",en:"That's a shame. I was really looking forward to it.",nw:["u10r"],choose:true,alt:["u10p","u3b"]},
+  {who:"her",t:"あさって は どう？",r:"asatte wa dou?",en:"How about the day after?"},
+  {who:"you",branch:[
+    {t:"たぶん だいじょうぶ！しごと、３じ に おわる。",r:"tabun daijoubu! shigoto, san-ji ni owaru.",en:"Probably fine! I finish work at three.",good:true,nw:["u10f"],
+     fb:"✓ Hedge, then give her the actual detail. Tabun softens without being vague.",
+     reply:{who:"her",t:"いいね！じゃあ ３じはん に むかえに いく！",r:"ii ne! jaa san-ji-han ni mukae ni iku!",en:"Nice! I'll come get you at three thirty then!",nw:["n25"]}},
+    {t:"むり かも…しごと ちゅう。",r:"muri kamo... shigoto-chuu.",en:"Might not work... I'm on shift.",
+     fb:"Honest, but it closes the door. Adding what time you finish keeps it open.",
+     reply:{who:"her",t:"そっか…ざんねん。",r:"sokka... zannen.",en:"Ah... shame."}},
+    {t:"いいね！なんじ でも いい よ。",r:"ii ne! nanji demo ii yo.",en:"Sounds good! Any time works.",
+     fb:"Keen and easy — though 'any time' quietly hands her all the planning.",
+     reply:{who:"her",t:"じゃあ ひる から ね！",r:"jaa hiru kara ne!",en:"Then from midday!"}}]},
+  {who:"you",t:"たのしみ！",r:"tanoshimi!",en:"Can't wait!",choose:true,alt:["u2d","u10j"]},
+ ]},
+
+{id:"sc13",title:"Sunday, nothing planned",emo:"☀️",learn:["u10x","u10v","u10b","u10l","n23"],
+ setting:"Slow Sunday morning. Coffee's on, nowhere to be. This is the conversation you actually want to be able to have.",
+ lines:[
+  {who:"her",t:"おはよう〜。よく ねた？",r:"ohayou~. yoku neta?",en:"Morning~. Sleep well?"},
+  {who:"you",t:"おはよう。うん、よく ねた！",r:"ohayou. un, yoku neta!",en:"Morning. Yeah, slept great!",choose:true,alt:["u2c","u1b"]},
+  {who:"her",t:"きのう、ともだち と はなした んだ。",r:"kinou, tomodachi to hanashita nda.",en:"I talked with my friend yesterday."},
+  {who:"you",branch:[
+    {t:"へえ〜、それで？",r:"hee~, sore de?",en:"Oh yeah? And then?",good:true,nw:["u10v"],
+     fb:"✓ This is the whole game. A reaction plus 'and then?' keeps her talking — and you learning.",
+     reply:{who:"her",t:"あたらしい しごと、みつけた って！すごく ない？",r:"atarashii shigoto, mitsuketa tte! sugoku nai?",en:"She found a new job! Isn't that great?"}},
+    {t:"そうなんだ。",r:"sou nanda.",en:"Oh, I see.",nw:["u10b"],
+     fb:"Correct, but it's a full stop. Add sore de? and the story keeps rolling.",
+     reply:{who:"her",t:"うん。…あ、あたらしい しごと みつけた って！",r:"un. ...a, atarashii shigoto mitsuketa tte!",en:"Yeah. ...oh, she found a new job!"}},
+    {t:"だれ？",r:"dare?",en:"Who?",
+     fb:"Fair question — just note that interrupting for detail stalls the story. Reactions first, details after.",
+     reply:{who:"her",t:"ゆか だよ！しごと、かわった の。",r:"Yuka da yo! shigoto, kawatta no.",en:"Yuka! She changed jobs."}}]},
+  {who:"you",t:"へえ〜！よかった ね。",r:"hee~! yokatta ne.",en:"Wow! That's great.",choose:true,alt:["u10r","u2l"]},
+  {who:"her",t:"ね〜。デイビッド は？きょう どう する？",r:"ne~. Deibiddo wa? kyou dou suru?",en:"Right? What about you — what shall we do today?"},
+  {who:"you",branch:[
+    {t:"なんでも いい よ。なに したい？",r:"nandemo ii yo. nani shitai?",en:"Anything's fine. What do you want to do?",
+     fb:"Easy-going, but it puts the whole decision on her. Fine occasionally, not every time.",
+     reply:{who:"her",t:"え〜、また それ！",r:"e~, mata sore!",en:"Ugh, that again!"}},
+    {t:"じつは、いきたい カフェ が ある んだ。",r:"jitsu wa, ikitai kafe ga aru nda.",en:"Actually, there's a café I want to go to.",good:true,nw:["n23"],
+     fb:"✓ Jitsu wa sets up a reveal and having an actual plan is worth more than any grammar.",
+     reply:{who:"her",t:"え、ほんとう に？いこう いこう！",r:"e, hontou ni? ikou ikou!",en:"Really? Let's go, let's go!"}},
+    {t:"とりあえず コーヒー のもう！",r:"toriaezu koohii nomou!",en:"Coffee first, let's figure it out after!",
+     fb:"Very natural — toriaezu is exactly for this. It just delays the decision rather than making one.",
+     reply:{who:"her",t:"それ！さんせい！",r:"sore! sansei!",en:"That! Agreed!"}}]},
+  {who:"you",t:"ちなみに、しごと なんじ に おわる？",r:"chinami ni, shigoto nanji ni owaru?",en:"By the way, what time do you finish work?",nw:["u10l"],choose:true,alt:["u9c","u6h"]},
+  {who:"her",t:"あした は ５じ。むかえに きて くれる？",r:"ashita wa go-ji. mukae ni kite kureru?",en:"Tomorrow it's five. Could you come get me?"},
+  {who:"you",t:"もちろん！",r:"mochiron!",en:"Of course!",choose:true,alt:["u4i","u10j"]},
+  {who:"her",t:"ありがとう！しあわせ〜。",r:"arigatou! shiawase~.",en:"Thanks! I'm so happy."},
+  {who:"you",t:"わたし も。きょう、どう だった？って まいにち きく ね。",r:"watashi mo. kyou, dou datta? tte mainichi kiku ne.",en:"Me too. I'll ask 'how was your day?' every day, yeah.",nw:["u10x"],choose:true,alt:["u2m","u9v"]},
+ ]},
+];
+
+/* ================= STORAGE ================= */
+const KEY="nihongo15_v1";
+function load(){
+  try{const d=JSON.parse(localStorage.getItem(KEY));if(d)return d;}catch(e){}
+  return {items:{},sessions:0,tests:[],streak:0,lastDay:null,totalNew:0,scenes:{}};
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+let S=load();
+if(!S.scenes)S.scenes={};
+function rec(id){if(!S.items[id])S.items[id]={s:0,c:0,w:0,last:0,seen:0};return S.items[id];}
+const seenIds=()=>ITEMS.filter(i=>S.items[i.id]&&S.items[i.id].seen>0);
+const DAY=864e5;
+const INTERVALS=[0,1,2,4,7,14]; // days by strength
+function isDue(it){const r=S.items[it.id];if(!r||!r.seen)return false;
+  return (Date.now()-r.last)>=INTERVALS[Math.min(r.s,5)]*DAY*0.9;}
+function today(){return new Date().toISOString().slice(0,10);}
+
+/* ================= HELPERS ================= */
+const $=id=>document.getElementById(id);
+const app=document.getElementById("app");
+function esc(s){return s.replace(/</g,"&lt;");}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function jpText(it){return it.tok.map(t=>t.t).join("");}
+function roText(it){return it.tok.filter(t=>!/^[?！!]/.test(t.r)).map(t=>t.r).join(" ");}
+function glossHTML(it,md){
+  return `<div class="gloss${md?' md':''}">`+it.tok.map(t=>
+    `<div class="tok"><span class="ro">${esc(t.r)}</span><span class="jp">${esc(t.t)}</span><span class="en">${esc(t.g)}</span></div>`
+  ).join("")+`</div>`;
+}
+function dotsHTML(s){let h='<div class="dots">';for(let i=0;i<5;i++)h+=`<i class="${i<s?'on':''}"></i>`;return h+'</div>';}
+function grade(id,ok,amt){const r=rec(id);r.last=Date.now();r.seen++;
+  if(ok){r.c++;r.s=Math.min(5,r.s+(amt||1));}else{r.w++;r.s=Math.max(0,r.s-1);}save();}
+function unitAcc(u){let c=0,w=0;ITEMS.filter(i=>i.u===u).forEach(i=>{const r=S.items[i.id];if(r){c+=r.c;w+=r.w;}});
+  return (c+w)===0?null:c/(c+w);}
+function accColor(a){return a>=0.85?"var(--good)":a>=0.6?"var(--warn)":"var(--bad)";}
+
+/* ================= HOME ================= */
+function home(){
+  const seen=seenIds().length, total=ITEMS.length;
+  const due=ITEMS.filter(isDue).length;
+  const strong=seenIds().filter(i=>S.items[i.id].s>=4).length;
+  const lastTest=S.tests[S.tests.length-1];
+  app.innerHTML=`<div class="fade">
+    <div class="spread" style="margin-bottom:4px">
+      <span class="lbl acc">NIHONGO 15</span>
+      <span class="lbl">🔥 ${S.streak} DAY STREAK</span>
+    </div>
+    <div class="h1">おはよう、<br>David.</div>
+    <div class="sub mt8">${due?`${due} phrase${due>1?"s":""} due for review — perfect time for a session.`:seen?"Nothing overdue. A session will teach you new phrases.":"Fifteen minutes before first lift. Let's start."}</div>
+    <div class="stats mt20">
+      <div class="stat"><div class="num">${seen}<span style="font-size:13px;color:var(--dim)">/${total}</span></div><div class="lbl">PHRASES MET</div></div>
+      <div class="stat"><div class="num" style="color:var(--good)">${strong}</div><div class="lbl">SOLID</div></div>
+      <div class="stat"><div class="num" style="color:${lastTest?accColor(lastTest.score/100):"var(--txt)"}">${lastTest?lastTest.score+"%":"—"}</div><div class="lbl">LAST TEST</div></div>
+    </div>
+    <button class="btn primary mt20" onclick="startSession()">START 15-MIN SESSION</button>
+    <button class="btn blue mt12" onclick="scenesHome()">CONVERSATIONS · ${Object.keys(S.scenes).length}/${SCENES.length} DONE</button>
+    <button class="btn ghost mt12" onclick="chatHome()">💬 TEXT HER${(S.chat&&S.chat.sent)?` · ${S.chat.sent} SENT`:""}</button>
+    <button class="btn ghost mt12" onclick="startTest()" ${seen<8?"disabled":""}>TAKE A TEST ${seen<8?"· MEET 8 PHRASES FIRST":""}</button>
+    <div class="lbl mt28" style="margin-bottom:10px">YOUR PROGRESS</div>
+    <div class="card" style="padding:6px 4px">${UNITS.map(u=>{
+      const its=ITEMS.filter(i=>i.u===u.id);
+      const met=its.filter(i=>S.items[i.id]&&S.items[i.id].seen>0).length;
+      const acc=unitAcc(u.id);
+      return `<div class="unit-row spread">
+        <div class="row"><span style="font-size:20px">${u.emo}</span>
+          <div><div style="font-size:14px;font-weight:700">${u.name}</div>
+          <div style="font-size:11px;color:var(--dim)">${met}/${its.length} met${acc!==null?` · ${Math.round(acc*100)}% accurate`:""}</div></div></div>
+        <div class="pbar" style="max-width:70px"><div style="width:${met/its.length*100}%"></div></div>
+      </div>`;}).join("")}</div>
+    ${S.tests.length?`<div class="lbl mt28" style="margin-bottom:10px">TEST HISTORY</div>
+    <div class="card" style="padding:14px 16px">${S.tests.slice(-5).reverse().map(t=>
+      `<div class="spread" style="padding:6px 0"><span class="sub">${t.date}</span><b style="color:${accColor(t.score/100)}">${t.score}%</b></div>`).join("")}</div>`:""}
+    <div class="sub center mt28" style="font-size:11px;color:var(--dim)">Progress saves on this device · ${S.sessions} sessions done</div>
+  </div>`;
+}
+
+/* ================= SESSION ================= */
+let sess=null;
+/* New cards are drawn round-robin across topics, not straight down the list —
+   otherwise later units (Out & About, Small Talk) stay locked behind 100 cards.
+   Units you've already started come first, but every session opens new ground. */
+function pickFresh(n){
+  const unseen=ITEMS.filter(i=>!S.items[i.id]||!S.items[i.id].seen);
+  const byUnit={};
+  unseen.forEach(i=>{(byUnit[i.u]=byUnit[i.u]||[]).push(i);});
+  const met=u=>ITEMS.filter(i=>i.u===u&&S.items[i.id]&&S.items[i.id].seen).length;
+  const order=Object.keys(byUnit).map(Number).sort((a,b)=>{
+    const ma=met(a),mb=met(b);
+    if((ma>0)!==(mb>0))return ma>0?-1:1;   // units in progress first
+    if(ma!==mb)return mb-ma;                // then the furthest along
+    return a-b;                             // then by unit order
+  });
+  // rotate the starting unit each session so no topic waits its turn forever
+  const off=(S.sessions||0)%(order.length||1);
+  order.push(...order.splice(0,off));
+  const out=[];
+  while(out.length<n&&order.some(u=>byUnit[u].length)){
+    for(const u of order){ if(out.length>=n)break; if(byUnit[u].length)out.push(byUnit[u].shift()); }
+  }
+  return out;
+}
+function startSession(){
+  const review=shuffle(ITEMS.filter(isDue)).sort((a,b)=>rec(a.id).s-rec(b.id).s).slice(0,6);
+  const fresh=pickFresh(review.length>=5?4:5);
+  sess={review,fresh,phase:"intro",idx:0,quiz:[],qIdx:0,right:0,wrong:0,t0:Date.now(),results:{}};
+  renderSession();
+}
+function elapsed(){return Math.floor((Date.now()-sess.t0)/60000);}
+function sessTop(title,prog){
+  return `<div class="topbar"><button class="xbtn" onclick="quitSession()">✕</button>
+    <div style="flex:1"><div class="lbl acc">${title}</div>
+    <div class="pbar mt8"><div style="width:${prog*100}%"></div></div></div>
+    <span class="timer">${elapsed()}′</span></div>`;
+}
+function quitSession(){if(confirm("End this session? Progress on graded cards is already saved."))home();}
+
+function renderSession(){
+  const s=sess;
+  if(s.phase==="intro"){
+    app.innerHTML=`<div class="fade center" style="margin:auto 0;display:flex;flex-direction:column;justify-content:center;flex:1">
+      <div class="big-emo">🏔️</div>
+      <div class="h1 mt16">Today's session</div>
+      <div class="sub mt12">${s.review.length?`<b style="color:var(--acc2)">${s.review.length} review</b> · `:""}<b style="color:var(--acc)">${s.fresh.length} new</b> · then a quick practice round</div>
+      <button class="btn primary mt28" onclick="nextPhase()">GO · いこう！</button>
+      <button class="btn ghost mt12" onclick="home()">BACK</button></div>`;
+    return;
+  }
+  if(s.phase==="review")return reviewCard();
+  if(s.phase==="learn")return learnCard();
+  if(s.phase==="quiz")return quizCard();
+  if(s.phase==="done")return sessionDone();
+}
+function nextPhase(){
+  const s=sess;
+  if(s.phase==="intro")s.phase=s.review.length?"review":(s.fresh.length?"learn":"quiz");
+  else if(s.phase==="review")s.phase=s.fresh.length?"learn":"quiz";
+  else if(s.phase==="learn")s.phase="quiz";
+  s.idx=0;
+  if(s.phase==="quiz")buildQuiz();
+  renderSession();
+}
+
+/* --- review flashcards (self-graded) --- */
+function reviewCard(){
+  const s=sess,it=s.review[s.idx];
+  if(!it)return nextPhase();
+  app.innerHTML=`<div class="fade">${sessTop("WARM-UP REVIEW",s.idx/s.review.length)}
+    <div class="card center" style="padding:34px 20px">
+      <span class="tag rev">REVIEW ${s.idx+1}/${s.review.length}</span>
+      <div class="mt20">${glossOrHide(it)}</div>
+      <div id="reveal" class="hidden">
+        <div class="natural">${esc(it.en)}</div>
+        <div class="mnem" style="text-align:left"><span class="emo">${it.emo}</span><span class="txt">${it.mn}</span></div>
+      </div>
+      <button id="showBtn" class="btn blue mt20" onclick="revealCard()">SHOW MEANING</button>
+      <div id="gradeRow" class="grades hidden">
+        <button class="btn g-again" onclick="gradeReview(0)">AGAIN<br><small>forgot it</small></button>
+        <button class="btn g-good" onclick="gradeReview(1)">GOOD<br><small>got there</small></button>
+        <button class="btn g-easy" onclick="gradeReview(2)">EASY<br><small>instant</small></button>
+      </div>
+    </div></div>`;
+}
+function glossOrHide(it){
+  return `<div class="gloss">`+it.tok.map(t=>
+    `<div class="tok"><span class="ro">${esc(t.r)}</span><span class="jp">${esc(t.t)}</span><span class="en rv hidden">${esc(t.g)}</span></div>`).join("")+`</div>`;
+}
+function revealCard(){
+  document.querySelectorAll(".rv").forEach(e=>e.classList.remove("hidden"));
+  $("reveal").classList.remove("hidden");$("gradeRow").classList.remove("hidden");$("showBtn").classList.add("hidden");
+}
+function gradeReview(g){
+  const it=sess.review[sess.idx];
+  if(g===0){grade(it.id,false);sess.results[it.id]=false;}
+  else{grade(it.id,true,g);sess.results[it.id]=true;}
+  sess.idx++;renderSession();
+}
+
+/* --- learn new --- */
+function learnCard(){
+  const s=sess,it=s.fresh[s.idx];
+  if(!it)return nextPhase();
+  const u=UNITS.find(u=>u.id===it.u);
+  app.innerHTML=`<div class="fade">${sessTop("NEW · "+u.name.toUpperCase(),s.idx/s.fresh.length)}
+    <div class="card center" style="padding:34px 20px">
+      <span class="tag new">NEW ${s.idx+1}/${s.fresh.length}</span>
+      <div class="mt20">${glossHTML(it)}</div>
+      <div class="natural">${esc(it.en)}</div>
+      <div class="mnem" style="text-align:left"><span class="emo">${it.emo}</span><span class="txt">${it.mn}</span></div>
+      <button class="btn primary mt20" onclick="learnNext('${it.id}')">GOT IT · つぎ</button>
+    </div></div>`;
+}
+function learnNext(id){const r=rec(id);r.seen++;r.last=Date.now();S.totalNew++;save();sess.idx++;renderSession();}
+
+/* --- quiz --- */
+function realTokCount(it){return it.tok.filter(t=>!/^[?？！!、]/.test(t.t.trim())).length;}
+function eligibleTypes(it){
+  const types=["jp2en","en2jp"];
+  if(realTokCount(it)>=3)types.push("build");
+  if(ART_MAP[it.id])types.push("picture");
+  if(particleTok(it))types.push("particle");
+  return types;
+}
+/* build a mixed question set from a pool of items. `known` = ids the learner
+   has met, used to gate conversational modes whose answer must be recognisable */
+function makeQuestions(pool,cap){
+  const qs=[];
+  pool.forEach(it=>{const ts=eligibleTypes(it);qs.push({it,type:ts[Math.floor(Math.random()*ts.length)]});});
+  const known=new Set(seenIds().map(i=>i.id).concat(pool.map(i=>i.id)));
+  shuffle(PAIRS.filter(p=>known.has(p.a))).slice(0,2).forEach(p=>qs.push({type:"respond",pair:p}));
+  shuffle(SCENARIOS.filter(sc=>known.has(sc.a))).slice(0,2).forEach(sc=>qs.push({type:"scenario",sc}));
+  // conversational drills — only once the answers are things you've actually met
+  shuffle(REACTS.filter(r=>known.has(r.a))).slice(0,2).forEach(r=>qs.push({type:"react",r}));
+  shuffle(CHAINS.filter(c=>c.turns.every(t=>known.has(t.a)))).slice(0,1).forEach(c=>qs.push({type:"chain",c}));
+  return shuffle(qs).slice(0,cap);
+}
+function buildQuiz(){
+  const s=sess;
+  const pool=[...s.fresh,...s.review];
+  if(!pool.length){s.phase="done";return;}
+  s.quiz=makeQuestions(pool,12);s.qIdx=0;
+}
+const jpFmt=c=>`${esc(c.jp)}<span class="cr">${esc(c.ro)}</span>`;
+function quizCard(){
+  const s=sess,q=s.quiz[s.qIdx];
+  if(!q){s.phase="done";return renderSession();}
+  const top=sessTop(s.isTest?"TEST":"PRACTICE",s.qIdx/s.quiz.length);
+  if(q.type==="build")return buildQ(q,top);
+  if(q.type==="picture")return pictureQ(q,top);
+  if(q.type==="respond")return respondQ(q,top);
+  if(q.type==="scenario")return scenarioQ(q,top);
+  if(q.type==="particle")return particleQ(q,top);
+  if(q.type==="react")return reactQ(q,top);
+  if(q.type==="chain")return chainQ(q);
+  const it=q.it;
+  let stem,choices;
+  if(q.type==="jp2en"){
+    stem=`<div class="mt20">${glossNoGloss(it)}</div><div class="sub center mt16">What does this mean?</div>`;
+    const wrong=shuffle(ITEMS.filter(x=>x.id!==it.id)).slice(0,5);
+    choices=shuffle([{txt:it.en,ok:true},...wrong.map(w=>({txt:w.en,ok:false}))]);
+    renderMC(top,stem,choices,it,c=>esc(c.txt));
+  }else{
+    stem=`<div class="natural mt20" style="font-size:20px">${esc(it.en)}</div><div class="sub center mt16">How do you say it?</div>`;
+    const wrong=shuffle(ITEMS.filter(x=>x.id!==it.id)).slice(0,5);
+    choices=shuffle([{jp:jpText(it),ro:roText(it),ok:true},...wrong.map(w=>({jp:jpText(w),ro:roText(w),ok:false}))]);
+    renderMC(top,stem,choices,it,jpFmt);
+  }
+}
+
+/* --- picture match: illustration -> phrase --- */
+function pictureQ(q,top){
+  const it=q.it;
+  const stem=`<div class="art big">${ART[ART_MAP[it.id]]}</div><div class="sub center mt16">Which phrase matches the picture?</div>`;
+  const wrong=shuffle(ITEMS.filter(x=>x.id!==it.id)).slice(0,5);
+  const choices=shuffle([{jp:jpText(it),ro:roText(it),ok:true},...wrong.map(w=>({jp:jpText(w),ro:roText(w),ok:false}))]);
+  renderMC(top,stem,choices,it,jpFmt);
+}
+/* --- best response: her line -> your reply --- */
+function respondQ(q,top){
+  const p=q.pair,qi=ITEMS.find(i=>i.id===p.q),ai=ITEMS.find(i=>i.id===p.a);
+  const stem=`<div class="bubble-who">She says</div><div class="bubble">
+    <div class="bjp">${esc(jpText(qi))}</div><div class="bro">${esc(roText(qi))}</div><div class="ben">"${esc(qi.en)}"</div></div>
+    <div class="sub center mt16">Pick your best reply.</div>`;
+  const wrong=shuffle(ITEMS.filter(x=>x.id!==ai.id&&x.id!==qi.id)).slice(0,5);
+  const choices=shuffle([{jp:jpText(ai),ro:roText(ai),ok:true},...wrong.map(w=>({jp:jpText(w),ro:roText(w),ok:false}))]);
+  renderMC(top,stem,choices,ai,jpFmt,{emo:"💬",explain:p.why});
+}
+/* --- situation match: scene -> phrase --- */
+function scenarioQ(q,top){
+  const sc=q.sc,ai=ITEMS.find(i=>i.id===sc.a);
+  const stem=`<div class="situation"><span class="semo">${sc.emo||"🗺️"}</span>${esc(sc.s)}</div><div class="sub center mt16">What do you say?</div>`;
+  const wrong=shuffle(ITEMS.filter(x=>x.id!==ai.id)).slice(0,5);
+  const choices=shuffle([{jp:jpText(ai),ro:roText(ai),ok:true},...wrong.map(w=>({jp:jpText(w),ro:roText(w),ok:false}))]);
+  renderMC(top,stem,choices,ai,jpFmt,{emo:sc.emo||"🗺️",explain:sc.why});
+}
+/* --- reaction drill: her statement -> the right aizuchi --- */
+function reactQ(q,top){
+  const r=q.r,ai=ITEMS.find(i=>i.id===r.a);
+  const stem=`<div class="bubble-who">She says</div><div class="bubble">
+    <div class="bjp">${esc(r.t)}</div><div class="bro">${esc(r.r)}</div><div class="ben">"${esc(r.en)}"</div></div>
+    <div class="sub center mt16">React. What noise does a Japanese speaker make here?</div>`;
+  const pool=REACTION_POOL.filter(id=>id!==r.a).map(id=>ITEMS.find(i=>i.id===id)).filter(Boolean);
+  const wrong=shuffle(pool).slice(0,5);
+  const choices=shuffle([{jp:jpText(ai),ro:roText(ai),ok:true},...wrong.map(w=>({jp:jpText(w),ro:roText(w),ok:false}))]);
+  renderMC(top,stem,choices,ai,jpFmt,{emo:"👂",explain:r.why});
+}
+
+/* --- chain drill: a whole two-turn exchange, one card --- */
+function chainQ(q){window._ch={c:q.c,step:0};renderChain();}
+function chLine(who,l){return bubbleHTML({who,t:l.t,r:l.r,en:l.en});}
+function chAnswer(id){const it=ITEMS.find(i=>i.id===id);return{t:jpText(it),r:roText(it),en:it.en};}
+function renderChain(){
+  const st=window._ch,c=st.c,done=st.step>=c.turns.length;
+  const top=sessTop(sess.isTest?"TEST":"CONVERSATION",sess.qIdx/sess.quiz.length);
+  let chat=`<div class="setting-banner">${esc(c.setting)}</div>`;
+  c.turns.forEach((t,i)=>{
+    if(i<=st.step)chat+=chLine("her",t.say);
+    if(i<st.step)chat+=chLine("you",chAnswer(t.a));
+  });
+  let ctrl="";
+  if(done){
+    ctrl=`<div class="mnem"><span class="emo">${c.emo}</span><span class="txt">${c.turns[c.turns.length-1].why}</span></div>
+      <button class="btn primary mt16" onclick="quizNext()">NEXT</button>`;
+  }else{
+    const t=c.turns[st.step],ai=ITEMS.find(i=>i.id===t.a);
+    const wrong=(t.alt||[]).map(id=>ITEMS.find(i=>i.id===id)).filter(Boolean);
+    const extra=shuffle(ITEMS.filter(x=>x.id!==t.a&&!(t.alt||[]).includes(x.id))).slice(0,Math.max(0,5-wrong.length));
+    const opts=shuffle([{jp:jpText(ai),ro:roText(ai),ok:true},...wrong.concat(extra).map(w=>({jp:jpText(w),ro:roText(w),ok:false}))]);
+    window._chOpts=opts;
+    ctrl=`<div class="sub center mb">Turn ${st.step+1} of ${c.turns.length} — your reply.</div>
+      <div class="choices">${opts.map((o,k)=>`<button class="choice" id="cc${k}" onclick="pickChain(${k})">${jpFmt(o)}</button>`).join("")}</div>
+      <div id="chAfter" class="hidden"><div class="mnem"><span class="emo">${c.emo}</span><span class="txt">${t.why}</span></div>
+        <button class="btn primary mt16" onclick="advChain()">つづける ▸</button></div>`;
+  }
+  app.innerHTML=`<div class="fade">${top}<div class="card" style="padding:20px 16px"><div class="chat" style="margin-bottom:4px">${chat}</div>${ctrl}</div></div>`;
+}
+function pickChain(k){
+  const st=window._ch,opts=window._chOpts,t=st.c.turns[st.step],ok=opts[k].ok;
+  if(st.locked)return;st.locked=true;
+  opts.forEach((o,j)=>{if(o.ok)$("cc"+j).classList.add("right");});
+  if(!ok)$("cc"+k).classList.add("wrong");
+  grade(t.a,ok);ok?sess.right++:sess.wrong++;
+  sess.results[t.a]=sess.results[t.a]===false?false:ok;
+  $("chAfter").classList.remove("hidden");
+}
+function advChain(){window._ch.step++;window._ch.locked=false;renderChain();}
+
+/* --- fill the particle --- */
+function particleQ(q,top){
+  const it=q.it,pt=particleTok(it);
+  const disp=it.tok.map((t,idx)=>idx===pt.i
+    ?`<div class="tok"><span class="ro">?</span><span class="jp blank">◯</span></div>`
+    :`<div class="tok"><span class="ro">${esc(t.r)}</span><span class="jp">${esc(t.t)}</span></div>`).join("");
+  const stem=`<div class="gloss md mt8">${disp}</div><div class="natural">${esc(it.en)}</div><div class="sub center mt16">Which particle fills the gap?</div>`;
+  const wrong=shuffle(PARTICLE_POOL.filter(x=>x.t!==pt.t)).slice(0,5);
+  const choices=shuffle([{jp:pt.t,ro:pt.r,ok:true},...wrong.map(w=>({jp:w.t,ro:w.r,ok:false}))]);
+  renderMC(top,stem,choices,it,jpFmt);
+}
+function glossNoGloss(it){
+  return `<div class="gloss md">`+it.tok.map(t=>
+    `<div class="tok"><span class="ro">${esc(t.r)}</span><span class="jp">${esc(t.t)}</span></div>`).join("")+`</div>`;
+}
+let lock=false;
+function renderMC(top,stem,choices,it,fmt,opts){
+  opts=opts||{};lock=false;
+  const emo=opts.emo||it.emo,explain=opts.explain||it.mn;
+  app.innerHTML=`<div class="fade">${top}<div class="card" style="padding:26px 18px">${stem}
+    <div class="choices">${choices.map((c,i)=>
+      `<button class="choice" id="ch${i}" onclick="pick(${i})">${fmt(c)}</button>`).join("")}</div>
+    <div id="after" class="hidden"><div class="mnem"><span class="emo">${emo}</span><span class="txt">${explain}</span></div>
+    <button class="btn primary mt16" onclick="quizNext()">NEXT</button></div>
+  </div></div>`;
+  window._choices=choices;window._qit=it;
+}
+function pick(i){
+  if(lock)return;lock=true;
+  const cs=window._choices,it=window._qit,ok=cs[i].ok;
+  cs.forEach((c,j)=>{if(c.ok)$("ch"+j).classList.add("right");});
+  if(!ok)$("ch"+i).classList.add("wrong");
+  grade(it.id,ok);ok?sess.right++:sess.wrong++;
+  sess.results[it.id]=sess.results[it.id]===false?false:ok;
+  $("after").classList.remove("hidden");
+}
+function quizNext(){sess.qIdx++;renderSession();}
+
+/* --- sentence builder --- */
+function buildQ(q,top){
+  const it=q.it;
+  const toks=it.tok.map((t,i)=>({...t,i})).filter(t=>!/^[？?！!]/.test(t.t.trim()));
+  window._b={it,order:toks.map(t=>t.i),placed:[],toks};
+  const pool=shuffle(toks);
+  app.innerHTML=`<div class="fade">${top}<div class="card" style="padding:26px 18px">
+    <div class="natural" style="font-size:19px;margin-top:0">${esc(it.en)}</div>
+    <div class="sub center mt8" style="font-size:12px">Tap the words in Japanese order</div>
+    <div class="built mt16" id="built"></div>
+    <div class="pool">${pool.map(t=>
+      `<button class="chip" id="pt${t.i}" onclick="place(${t.i})">${esc(t.t)}<small>${esc(t.r)}</small></button>`).join("")}</div>
+    <div id="bres" class="hidden mt16"></div>
+  </div></div>`;
+}
+function place(i){
+  const b=window._b;
+  b.placed.push(i);
+  $("pt"+i).classList.add("used");
+  const t=b.toks.find(t=>t.i===i);
+  $("built").innerHTML+=`<span class="chip">${esc(t.t)}<small>${esc(t.r)}</small></span>`;
+  if(b.placed.length===b.order.length){
+    const ok=b.placed.every((v,k)=>v===b.order[k]);
+    grade(b.it.id,ok);ok?sess.right++:sess.wrong++;
+    sess.results[b.it.id]=sess.results[b.it.id]===false?false:ok;
+    $("bres").classList.remove("hidden");
+    $("bres").innerHTML=`<div class="natural" style="color:${ok?"var(--good)":"var(--bad)"}">${ok?"✓ Perfect":"✗ Not quite"}</div>
+      ${ok?"":`<div class="mt12">${glossHTML(b.it,true)}</div>`}
+      <button class="btn primary mt16" onclick="quizNext()">NEXT</button>`;
+  }
+}
+
+/* --- session done --- */
+function sessionDone(){
+  const s=sess,total=s.right+s.wrong;
+  const acc=total?Math.round(s.right/total*100):100;
+  // streak
+  const t=today(),y=new Date(Date.now()-DAY).toISOString().slice(0,10);
+  if(S.lastDay!==t){S.streak=(S.lastDay===y)?S.streak+1:1;S.lastDay=t;}
+  S.sessions++;save();
+  const missed=Object.keys(s.results).filter(id=>s.results[id]===false).map(id=>ITEMS.find(i=>i.id===id));
+  app.innerHTML=`<div class="fade center" style="display:flex;flex-direction:column;justify-content:center;flex:1">
+    <div class="big-emo">${acc>=85?"🎉":acc>=60?"💪":"🌱"}</div>
+    <div class="h1 mt16">おつかれさま！</div>
+    <div class="sub mt8">Session done in ${Math.max(1,elapsed())} min · ${s.fresh.length} new phrases met</div>
+    ${total?`<div class="score-ring mt16" style="color:${accColor(acc/100)}">${acc}%</div><div class="lbl">PRACTICE ACCURACY</div>`:""}
+    <div class="sub mt16" style="max-width:400px;margin-left:auto;margin-right:auto">${honestSession(acc,total,missed)}</div>
+    ${missed.length?`<div class="card mt20" style="text-align:left"><div class="lbl" style="margin-bottom:10px">SLIPPED TODAY — THEY'LL BE BACK TOMORROW</div>
+      ${missed.map(m=>`<div class="spread" style="padding:6px 0"><span style="font-weight:600">${esc(jpText(m))}</span><span class="sub" style="font-size:12px">${esc(m.en)}</span></div>`).join("")}</div>`:""}
+    <button class="btn primary mt20" onclick="home()">DONE</button></div>`;
+}
+function honestSession(acc,total,missed){
+  if(!total)return "All new material today — the quiz kicks in next session.";
+  if(acc>=90)return "That was clean. If it felt easy, it was — tomorrow will push harder with these in the review queue.";
+  if(acc>=70)return "Solid, not solid <i>enough</i> to coast. The ones you missed aren't learned yet — meeting them again tomorrow is what locks them in.";
+  if(acc>=50)return "Honest read: about half of this hasn't stuck. That's normal for new material, but don't add more units until this set stops slipping.";
+  return "Rough one — most of these aren't in memory yet. Shorten the loop: re-run a session later today instead of waiting for tomorrow.";
+}
+
+/* ================= TEST ================= */
+let test=null;
+function startTest(){
+  const qs=makeQuestions(shuffle(seenIds()),14);
+  sess={quiz:qs,qIdx:0,right:0,wrong:0,t0:Date.now(),results:{},phase:"quiz",review:[],fresh:[],isTest:true};
+  renderSession();
+}
+/* test shares the quiz renderer; done screen branches */
+const _origDone=sessionDone;
+sessionDone=function(){
+  if(!sess.isTest)return _origDone();
+  const total=sess.right+sess.wrong||1;
+  const score=Math.round(sess.right/total*100);
+  const perUnit={};
+  Object.keys(sess.results).forEach(id=>{
+    const it=ITEMS.find(i=>i.id===id);
+    if(!perUnit[it.u])perUnit[it.u]={c:0,n:0};
+    perUnit[it.u].n++;if(sess.results[id])perUnit[it.u].c++;
+  });
+  S.tests.push({date:today(),score});save();
+  const rows=Object.keys(perUnit).map(u=>{
+    const p=perUnit[u],a=p.c/p.n,un=UNITS.find(x=>x.id==u);
+    return {un,a,n:p.n};
+  }).sort((x,y)=>x.a-y.a);
+  app.innerHTML=`<div class="fade">
+    <div class="center mt20"><div class="lbl acc">TEST RESULT</div>
+    <div class="score-ring mt12" style="color:${accColor(score/100)}">${score}%</div>
+    <div class="sub mt8">${sess.right}/${total} correct · ${Math.max(1,Math.floor((Date.now()-sess.t0)/60000))} min</div></div>
+    <div class="card mt20"><div class="lbl" style="margin-bottom:14px">BY TOPIC</div>
+      ${rows.map(r=>`<div class="fb-row"><div class="spread">
+        <span class="name">${r.un.emo} ${r.un.name}</span><span class="pct" style="color:${accColor(r.a)}">${Math.round(r.a*100)}%</span></div>
+        <div class="pbar"><div style="width:${r.a*100}%;background:${accColor(r.a)}"></div></div></div>`).join("")}
+    </div>
+    <div class="card mt16"><div class="lbl" style="margin-bottom:10px">HONEST FEEDBACK</div>
+      <div class="sub">${honestTest(score,rows)}</div></div>
+    <button class="btn primary mt20" onclick="home()">DONE</button></div>`;
+};
+function honestTest(score,rows){
+  const weak=rows.filter(r=>r.a<0.6).map(r=>r.un.name);
+  const small=rows.some(r=>r.n<2)?" (Small sample on some topics — take another test in a few days for a truer read.)":"";
+  if(score>=90)return `This is genuinely solid recall. You're ready to <b>use these out loud</b> — the gap between tapping the right answer and saying it to her at speed is the next wall, and only speaking breaks it.${small}`;
+  if(score>=75)return `Good, but not conversational yet. ${weak.length?`<b>${weak.join(" and ")}</b> ${weak.length>1?"are":"is"} dragging you down — hit ${weak.length>1?"those units":"that unit"} in your next two sessions before adding anything new.`:"No single weak spot — just reps. Two more sessions and re-test."}${small}`;
+  if(score>=50)return `Half-known is not known — in real conversation these will vanish under pressure. ${weak.length?`Start with <b>${weak[0]}</b>, your weakest topic.`:""} Stop adding new units, re-run reviews daily, and re-test in 3 days.${small}`;
+  return `Straight up: this set isn't in memory yet, and that's fine — it means the sessions are still doing their job. Shrink the goal: pick <b>one unit</b>, run it daily until it hits 80%, then move on.${small}`;
+}
+
+/* ================= CONVERSATION SCENES ================= */
+let scene=null;
+function scenesHome(){
+  const done=S.scenes||{};
+  app.innerHTML=`<div class="fade">
+    <div class="topbar"><button class="xbtn" onclick="home()">‹</button>
+      <div style="flex:1"><div class="lbl acc">CONVERSATIONS</div></div></div>
+    <div class="h1">Real talk.</div>
+    <div class="sub mt8">The phrases you know, woven into full conversations — with new words picked up along the way. Read it through, then play your side.</div>
+    <div class="card mt20" style="padding:2px 4px">${SCENES.map(sc=>{
+      const isDone=!!done[sc.id];
+      const newN=sc.learn.length;
+      return `<div class="scene-row" onclick="sceneIntro('${sc.id}')">
+        <div class="scene-check ${isDone?'done':''}">${isDone?'✓':''}</div>
+        <div style="flex:1"><div style="font-size:15px;font-weight:700">${sc.emo} ${esc(sc.title)}</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:2px">${sc.lines.length} lines · ${newN} new word${newN>1?'s':''}${isDone?' · done':''}</div></div>
+        <span style="color:var(--dim);font-size:18px">›</span>
+      </div>`;}).join("")}</div>
+    <div class="sub center mt20" style="font-size:11px;color:var(--dim)">New words from scenes join your normal reviews automatically.</div>
+  </div>`;
+}
+function sceneIntro(id){
+  const sc=SCENES.find(s=>s.id===id);
+  const words=sc.learn.map(w=>ITEMS.find(i=>i.id===w)).filter(Boolean);
+  app.innerHTML=`<div class="fade">
+    <div class="topbar"><button class="xbtn" onclick="scenesHome()">‹</button>
+      <div style="flex:1"><div class="lbl acc">${sc.emo} ${esc(sc.title.toUpperCase())}</div></div></div>
+    <div class="setting-banner" style="text-align:left;font-size:14px;color:var(--txt)">${esc(sc.setting)}</div>
+    <div class="lbl mt20" style="margin-bottom:10px">NEW WORDS YOU'LL PICK UP</div>
+    <div class="card" style="padding:14px 16px">${words.map(w=>
+      `<div class="spread" style="padding:7px 0"><span style="font-weight:600">${esc(jpText(w))} <span style="color:var(--acc2);font-size:12px;font-weight:600">${esc(roText(w))}</span></span><span class="sub" style="font-size:12px">${esc(w.en)}</span></div>`).join("")}</div>
+    <button class="btn primary mt20" onclick="startScene('${sc.id}','read')">READ THROUGH</button>
+    <button class="btn ghost mt12" onclick="startScene('${sc.id}','roleplay')">ROLEPLAY · YOU SPEAK EVERY LINE</button>
+    <div class="sub center mt12" style="font-size:12px">Roleplay makes every one of your lines a choice — the real test.</div>
+  </div>`;
+}
+function startScene(id,mode){
+  const def=SCENES.find(s=>s.id===id);
+  // working copy — branching rewrites lines as you choose, so never touch the original
+  scene={def,mode,lines:JSON.parse(JSON.stringify(def.lines)),i:0,fb:null,right:0,wrong:0};
+  renderScene();
+}
+function sceneTop(){
+  const sc=scene.def;
+  return `<div class="topbar"><button class="xbtn" onclick="scenesHome()">✕</button>
+    <div style="flex:1"><div class="lbl acc">${sc.emo} ${esc(sc.title.toUpperCase())}</div>
+    <div class="pbar mt8"><div style="width:${scene.i/scene.lines.length*100}%"></div></div></div>
+    <span class="timer">${scene.mode==='roleplay'?'ROLEPLAY':'READ'}</span></div>`;
+}
+const WHO_NAME={you:"You",her:"Her",mum:"Her mum",dad:"Her dad",staff:"Shop staff",stranger:"A local",friend:"Her friend",guest:"Your guest",boss:"Your boss"};
+function bubbleHTML(l){
+  const you=l.who==="you";
+  const name=WHO_NAME[l.who]||"Them";
+  const chips=(l.nw||[]).map(id=>{const it=ITEMS.find(x=>x.id===id);
+    return it?`<span class="nwchip"><b>${esc(jpText(it))}</b> ${esc(roText(it))} — ${esc(it.en)}</span>`:"";}).join("");
+  return `<div class="cbwrap ${you?'you':'them'}"><div class="cbname">${name}</div>
+    <div class="cbubble"><div class="cjp">${esc(l.t)}</div><div class="cro">${esc(l.r)}</div><div class="cen">${esc(l.en)}</div></div>
+    ${chips?`<div class="nwrow">${chips}</div>`:""}</div>`;
+}
+function renderScene(){
+  const sc=scene.def, L=scene.lines, shown=L.slice(0,scene.i), next=L[scene.i];
+  const chat=`<div class="setting-banner">${esc(sc.setting)}</div>`+shown.map(bubbleHTML).join("");
+  let controls="";
+  if(!next){return sceneRecap();}
+  const branching = next.who==="you" && next.branch;
+  const interactive = next.who==="you" && (next.choose || branching || scene.mode==="roleplay");
+  if(scene.fb) controls+=`<div class="sfb ${scene.fb.ok?'ok':'no'}">${scene.fb.msg}</div>`;
+  if(interactive && !scene.fb){
+    let opts;
+    if(branching){
+      // every option is a real thing you could say — the conversation bends to fit
+      opts=shuffle(next.branch.map((b,bi)=>({t:b.t,r:b.r,ok:!!b.good,bi})));
+      controls+=`<div class="sub center mb">Your turn — all of these work. Which do you mean?</div>`;
+    }else{
+      const correct={t:next.t,r:next.r,ok:true};
+      const distr=(next.alt&&next.alt.length?next.alt:defaultAlts(next)).map(id=>{const it=ITEMS.find(x=>x.id===id);return{t:jpText(it),r:roText(it),ok:false};});
+      opts=shuffle([correct,...distr]);
+      controls+=`<div class="sub center mb">Your turn — what do you say?</div>`;
+    }
+    scene._opts=opts;
+    controls+=`<div class="choices">`+
+      opts.map((o,k)=>`<button class="choice" onclick="pickScene(${k})">${esc(o.t)}<span class="cr">${esc(o.r)}</span></button>`).join("")+`</div>`;
+  } else {
+    const label = scene.fb ? "つづける ▸" : (scene.i===0?"START ▸":(next.who==="you"?"SAY IT ▸":"つぎ ▸"));
+    controls+=`<button class="btn primary mt8" onclick="revealNext()">${label}</button>`;
+  }
+  app.innerHTML=`<div class="fade">${sceneTop()}<div class="chat">${chat}</div>${controls}</div>`;
+  window.scrollTo(0,document.body.scrollHeight);
+}
+function defaultAlts(next){ // used only in roleplay for lines with no preset distractors
+  return shuffle(ITEMS.filter(i=>jpText(i)!==next.t)).slice(0,2).map(i=>i.id);
+}
+function revealNext(){ scene.fb=null; scene.i++; renderScene(); }
+function pickScene(k){
+  const o=scene._opts[k], line=scene.lines[scene.i];
+  if(line.branch && o.bi!==undefined){
+    // commit your choice into the transcript, then splice in what it makes her say
+    const b=line.branch[o.bi];
+    scene.lines[scene.i]={who:"you",t:b.t,r:b.r,en:b.en,nw:b.nw||[]};
+    if(b.reply)scene.lines.splice(scene.i+1,0,b.reply);
+    if(o.ok)scene.right++;else scene.wrong++;
+    scene.fb={ok:!!o.ok,msg:b.fb||(o.ok?"✓ Natural — that's what a Japanese speaker would reach for.":"That works, but there's a smoother way. See how she takes it 👇")};
+    scene.i++;renderScene();return;
+  }
+  if(o.ok){scene.right++;scene.fb={ok:true,msg:"✓ Perfect — that's the line."};}
+  else{scene.wrong++;scene.fb={ok:false,msg:"Not quite. The natural reply comes next 👇"};}
+  scene.i++; // reveal the correct line regardless
+  renderScene();
+}
+function sceneRecap(){
+  const sc=scene.def;
+  const nw=sc.learn.map(id=>ITEMS.find(x=>x.id===id)).filter(Boolean);
+  nw.forEach(it=>{const r=rec(it.id);if(!r.seen){r.seen++;r.last=Date.now();S.totalNew++;}});
+  const first=!S.scenes[sc.id];
+  S.scenes[sc.id]=today();save();
+  const total=scene.right+scene.wrong;
+  const acc=total?Math.round(scene.right/total*100):null;
+  app.innerHTML=`<div class="fade center" style="display:flex;flex-direction:column;justify-content:center;flex:1">
+    <div class="big-emo">${sc.emo}</div>
+    <div class="h1 mt16">${first?"Scene complete!":"Nice — replayed it."}</div>
+    <div class="sub mt8">You wove ${scene.lines.length} lines together${acc!==null?` · ${acc}% of your lines spot-on`:""}.</div>
+    <div class="card mt20" style="text-align:left"><div class="lbl" style="margin-bottom:10px">NEW WORDS — NOW IN YOUR REVIEWS</div>
+      ${nw.map(w=>`<div class="spread" style="padding:6px 0"><span style="font-weight:600">${esc(jpText(w))} <span style="color:var(--acc2);font-size:12px">${esc(roText(w))}</span></span><span class="sub" style="font-size:12px">${esc(w.en)}</span></div>`).join("")}</div>
+    <button class="btn primary mt20" onclick="drillScene()">DRILL THESE WORDS NOW</button>
+    <button class="btn ghost mt12" onclick="startScene('${sc.id}','roleplay')">ROLEPLAY IT</button>
+    <button class="btn ghost mt12" onclick="scenesHome()">BACK TO CONVERSATIONS</button></div>`;
+}
+function drillScene(){
+  const nw=scene.def.learn.map(id=>ITEMS.find(x=>x.id===id)).filter(Boolean);
+  sess={quiz:makeQuestions(nw,Math.min(10,nw.length*2)),qIdx:0,right:0,wrong:0,t0:Date.now(),results:{},phase:"quiz",review:[],fresh:[],isTest:false};
+  renderSession();
+}
+
+
+/* ================= CHAT — texting her =================
+   She texts you in Japanese; you text back in Japanese (or type English and let
+   the app build the Japanese from phrases you've learnt). Works fully offline
+   from the phrase bank. Optional: paste a Claude API key in the chat settings
+   and she becomes free-form — still steered towards the phrases you've met. */
+
+/* --- her openers. need = item ids she uses (gated on what you've met);
+   on = if your reply contains any of these ids, she answers with `her`.
+   Lines are written with spaces between words, like the scenes. --- */
+const CHAT_TOPICS=[
+{id:"c1",need:["u1a","u2h"],her:{t:"おはよう！げんき？",r:"ohayou! genki?",en:"Morning! You doing good?"},
+ on:[{any:["u2h","n19","u2g","u2k","u2o","u6f"],her:{t:"よかった！きょう なに する？",r:"yokatta! kyou nani suru?",en:"Oh good! What are you doing today?",need:["u10q","u4a"]}},
+     {any:["u2c","u2d"],her:{t:"そっか。おつかれさま。",r:"sokka. otsukaresama.",en:"Ah, I see. You must be tired.",need:["u10o","u1g"]}},
+     {any:["u2e","u8g"],her:{t:"さむい ね〜。コーヒー のむ？",r:"samui ne~. koohii nomu?",en:"It's cold, eh. Want a coffee?",need:["u2e","u3g"]}}],
+ else:{t:"そうなんだ。",r:"sou nanda.",en:"Oh, I see.",need:["u10b"]}},
+{id:"c2",need:["u7a"],her:{t:"いま なに してる？",r:"ima nani shiteru?",en:"What are you doing right now?"},
+ on:[{any:["u7e","n28","u2m"],her:{t:"そっか、がんばって！",r:"sokka, ganbatte!",en:"Ah okay — good luck!",need:["u10o","u5g"]}},
+     {any:["n1","u8c","u4g","n2"],her:{t:"いいね！き を つけて ね。",r:"ii ne! ki o tsukete ne.",en:"Nice! Take care out there.",need:["u10p","n30"]}},
+     {any:["u2c","u2d","u1b"],her:{t:"ゆっくり やすんで ね。",r:"yukkuri yasunde ne.",en:"Rest up properly, okay?",need:["u6e","n26"]}},
+     {any:["u3g","u2a","u3f","n11"],her:{t:"いいな〜。わたし も おなか すいた。",r:"ii na~. watashi mo onaka suita.",en:"Jealous. I'm hungry too.",need:["u8f","u2a"]}}],
+ else:{t:"へえ〜。",r:"hee~",en:"Huh, interesting.",need:["u10a"]}},
+{id:"c3",need:["u2a","u3a"],her:{t:"おなか すいた〜。なに たべたい？",r:"onaka suita~. nani tabetai?",en:"I'm hungry. What do you want to eat?"},
+ on:[{any:["u3l"],her:{t:"わたし も なんでも いい。しかたない ね。",r:"watashi mo nandemo ii. shikata nai ne.",en:"Anything's fine for me too. Can't be helped, eh.",need:["u8f","u3l","u10t"]}},
+     {any:["u3j","u3g","u3k","u3i","n11","u9k"],her:{t:"いいね！いこう！",r:"ii ne! ikou!",en:"Nice! Let's go!",need:["u10p","u4c"]}},
+     {any:["u2a","u8f","u2b","n27"],her:{t:"おなじ！はやく いこう！",r:"onaji! hayaku ikou!",en:"Same! Let's go quick!",need:["n27","u4c"]}}],
+ else:{t:"そうなんだ。たのしみ！",r:"sou nanda. tanoshimi!",en:"Oh I see. Can't wait!",need:["u10b","u4h"]}},
+{id:"c4",need:["u4b"],her:{t:"あした ひま？",r:"ashita hima?",en:"You free tomorrow?"},
+ on:[{any:["n19","u4c","u4h","u10p","u4b"],her:{t:"うれしい！なんじ に あう？",r:"ureshii! nanji ni au?",en:"Yay! What time shall we meet?",need:["u2g","u4f"]}},
+     {any:["u4i","u7e","u2m","n28"],her:{t:"ざんねん。また あとで ね。",r:"zannen. mata ato de ne.",en:"That's a shame. Catch you later.",need:["u10r","u1h"]}},
+     {any:["u6j","u10f","u10j"],her:{t:"そっか。また あした ね。",r:"sokka. mata ashita ne.",en:"Okay. See you tomorrow then.",need:["u10o","u4e"]}}],
+ else:{t:"りょうかい！",r:"ryoukai!",en:"Roger!",need:["u7c"]}},
+{id:"c5",need:["u4k"],her:{t:"なんじ に おわる？",r:"nanji ni owaru?",en:"What time do you finish?"},
+ on:[{any:["u6j","u10f"],her:{t:"そっか。おしえて ね。",r:"sokka. oshiete ne.",en:"Okay. Let me know, yeah?",need:["u10o","n24"]}},
+     {any:["u7g","u2m"],her:{t:"りょうかい。がんばって！",r:"ryoukai. ganbatte!",en:"Roger. Good luck!",need:["u7c","u5g"]}}],
+ else:{t:"りょうかい！むかえに いく ね。",r:"ryoukai! mukae ni iku ne.",en:"Roger! I'll come pick you up.",need:["u7c","n25"]}},
+{id:"c6",need:["u10x"],her:{t:"きょう どう だった？",r:"kyou dou datta?",en:"How was your day?"},
+ on:[{any:["n18","u2g","u2k","n4","u10p"],her:{t:"よかった！わたし も たのしかった。",r:"yokatta! watashi mo tanoshikatta.",en:"Oh good! Mine was fun too.",need:["u10q","u8f","n18"]}},
+     {any:["u2d","u2m","u1g"],her:{t:"おつかれさま。ゆっくり やすんで ね。",r:"otsukaresama. yukkuri yasunde ne.",en:"Good work today. Rest up properly.",need:["u1g","u6e","n26"]}},
+     {any:["u2e","u8g"],her:{t:"さむい ね。だいじに ね。",r:"samui ne. daiji ni ne.",en:"It's cold, eh. Take care of yourself.",need:["u2e","u5i"]}},
+     {any:["u10j","u2c"],her:{t:"そっか。おつかれさま。",r:"sokka. otsukaresama.",en:"I see. Good work anyway.",need:["u10o","u1g"]}}],
+ else:{t:"そうなんだ。それで？",r:"sou nanda. sore de?",en:"Oh I see. And then?",need:["u10b","u10v"]}},
+{id:"c7",need:["u5c"],her:{t:"あいたい…",r:"aitai...",en:"I miss you..."},
+ on:[{any:["u5c","u7b","u8f","n27","u2n","u5k"],her:{t:"うれしい。はやく あいたい ね。",r:"ureshii. hayaku aitai ne.",en:"That makes me happy. Can't wait to see you.",need:["u2g","u7b"]}},
+     {any:["u4b","u4c","u4f","u4e"],her:{t:"いいね！あした ひま？",r:"ii ne! ashita hima?",en:"Nice! You free tomorrow?",need:["u10p","u4b"]}},
+     {any:["u5a","u5b"],her:{t:"わたし も だいすき。",r:"watashi mo daisuki.",en:"I love you too.",need:["u8f","u5b"]}}],
+ else:{t:"だいすき。",r:"daisuki.",en:"Love you.",need:["u5b"]}},
+{id:"c8",need:["u2c","u1b"],her:{t:"ねむい〜。おやすみ。",r:"nemui~. oyasumi.",en:"I'm sleepy. Goodnight."},
+ on:[{any:["u1b","u7d","u5i"],her:{t:"ありがとう ね。おやすみ。",r:"arigatou ne. oyasumi.",en:"Thanks, hey. Night.",need:["u5h","u1b"]}},
+     {any:["u4d","u5c","u2n"],her:{t:"また あした ね。だいすき。",r:"mata ashita ne. daisuki.",en:"See you tomorrow. Love you.",need:["u4e","u5b"]}}],
+ else:{t:"いい ゆめ みて ね。",r:"ii yume mite ne.",en:"Sweet dreams.",need:["u7d"]}},
+{id:"c9",need:["u7h"],her:{t:"ついた？",r:"tsuita?",en:"Did you get there?"},
+ on:[{any:["u7h","n19","u6f"],her:{t:"よかった！",r:"yokatta!",en:"Oh good!",need:["u10q"]}},
+     {any:["u7g","n13"],her:{t:"りょうかい。き を つけて ね。",r:"ryoukai. ki o tsukete ne.",en:"Roger. Take care.",need:["u7c","n30"]}},
+     {any:["u7i","u9f"],her:{t:"いま えき。",r:"ima eki.",en:"At the station now.",need:["u7i","u9f"]}}],
+ else:{t:"そっか。",r:"sokka.",en:"Ah, okay.",need:["u10o"]}},
+{id:"c10",need:["u7i"],her:{t:"いま どこ？",r:"ima doko?",en:"Where are you right now?"},
+ on:[{any:["n1","u8c","u4g","n2"],her:{t:"いいね！ゆき どう？",r:"ii ne! yuki dou?",en:"Nice! How's the snow?",need:["u10p","u8d","u10u"]}},
+     {any:["u7e","n28","u2m"],her:{t:"おつかれさま！がんばって！",r:"otsukaresama! ganbatte!",en:"Good work! Keep it up!",need:["u1g","u5g"]}},
+     {any:["u1c"],her:{t:"おかえり！",r:"okaeri!",en:"Welcome home!",need:["u1d"]}},
+     {any:["u9f","u9n"],her:{t:"そっか。き を つけて ね。",r:"sokka. ki o tsukete ne.",en:"Okay. Travel safe.",need:["u10o","n30"]}}],
+ else:{t:"そうなんだ。あとで でんわ する ね。",r:"sou nanda. ato de denwa suru ne.",en:"I see. I'll call you later.",need:["u10b","u7f"]}},
+{id:"c11",need:["n21","n22","u8d","n4"],her:{t:"ねえ、きいて！きょう ゆき すごい よ！",r:"nee, kiite! kyou yuki sugoi yo!",en:"Hey, listen! The snow's amazing today!"},
+ on:[{any:["u6g","u10m","u10n","n4","u10a"],her:{t:"ほんとう！スキー いこう！",r:"hontou! sukii ikou!",en:"Really! Let's go skiing!",need:["u6g","u4g"]}},
+     {any:["u4g","u4c","u4h","u10p"],her:{t:"いこう いこう！たのしみ！",r:"ikou ikou! tanoshimi!",en:"Let's go, let's go! Can't wait!",need:["u4c","u4h"]}},
+     {any:["u7e","u2m","n28","u4i"],her:{t:"ざんねん だね。しかたない。",r:"zannen da ne. shikata nai.",en:"That's a shame. Can't be helped.",need:["u10r","u10t"]}}],
+ else:{t:"そうなんだ。",r:"sou nanda.",en:"Oh, I see.",need:["u10b"]}},
+{id:"c12",need:["u3g"],her:{t:"コーヒー のむ？",r:"koohii nomu?",en:"Want a coffee?"},
+ on:[{any:["n19","u3g","u10p","u9j","u8b"],her:{t:"りょうかい！ちょっと まって。",r:"ryoukai! chotto matte.",en:"Roger! Hang on a sec.",need:["u7c","u4d"]}},
+     {any:["u4i","u9v","u3k","u2b"],her:{t:"そっか。みず は？",r:"sokka. mizu wa?",en:"Okay. Water then?",need:["u10o","u3k"]}}],
+ else:{t:"そうなんだ。",r:"sou nanda.",en:"I see.",need:["u10b"]}},
+{id:"c13",need:["u7e","u7f"],her:{t:"ごめん、しごとちゅう。あとで でんわ する。",r:"gomen, shigoto-chuu. ato de denwa suru.",en:"Sorry, I'm at work. I'll call you later."},
+ on:[{any:["u7c","u2i","u10s","u5g","u1g"],her:{t:"ありがとう ね。また あとで！",r:"arigatou ne. mata ato de!",en:"Thanks. Talk later!",need:["u5h","u1h"]}}],
+ else:{t:"また あとで ね。",r:"mata ato de ne.",en:"Later, okay?",need:["u1h"]}},
+{id:"c14",need:["u3j","u3k"],her:{t:"からい！みず ください！",r:"karai! mizu kudasai!",en:"It's spicy! Water, please!"},
+ on:[{any:["u2i","u9v","u10u"],her:{t:"だいじょうぶ。でも おいしい！",r:"daijoubu. demo oishii!",en:"I'm fine. But it's delicious!",need:["u2i","u10g","u3b"]}},
+     {any:["u3k","n9"],her:{t:"ありがとう！",r:"arigatou!",en:"Thanks!",need:["u5h"]}}],
+ else:{t:"からい〜。",r:"karai~",en:"So spicy.",need:["u3j"]}},
+{id:"c15",need:["u2e"],her:{t:"さむい〜！",r:"samui~!",en:"It's freezing!"},
+ on:[{any:["u2e","n27","u8f","u8g","u10d"],her:{t:"ぎゅって して！",r:"gyutte shite!",en:"Hug me!",need:["u5f"]}},
+     {any:["u5f","u3g","u5i"],her:{t:"うれしい！だいすき。",r:"ureshii! daisuki.",en:"Yay! Love you.",need:["u2g","u5b"]}}],
+ else:{t:"しかたない ね。ゆき が すき だから。",r:"shikata nai ne. yuki ga suki dakara.",en:"Can't be helped, eh. It's because I like snow.",need:["u10t","u8d","u10h"]}},
+{id:"c16",need:["u5a"],her:{t:"すき だよ。",r:"suki da yo.",en:"I like you."},
+ on:[{any:["u5a","u5b","u8f","n27"],her:{t:"うれしい！いっしょ に いよう ね。",r:"ureshii! issho ni iyou ne.",en:"Yay! Let's stay together, okay?",need:["u2g","u5e"]}},
+     {any:["u5d","u5h","u5j"],her:{t:"ありがとう。だいすき。",r:"arigatou. daisuki.",en:"Thanks. Love you.",need:["u5h","u5b"]}}],
+ else:{t:"…だいじょうぶ？",r:"...daijoubu?",en:"...you okay?",need:["u2i"]}},
+{id:"c17",need:["u9n","u4f"],her:{t:"つぎ の でんしゃ、なんじ？",r:"tsugi no densha, nanji?",en:"The next train — what time?"},
+ on:[{any:["u6j","u10f","u6b"],her:{t:"そっか。しかたない。",r:"sokka. shikata nai.",en:"Okay. Can't be helped.",need:["u10o","u10t"]}},
+     {any:["u7g","u4d","n13"],her:{t:"りょうかい！",r:"ryoukai!",en:"Roger!",need:["u7c"]}}],
+ else:{t:"りょうかい！",r:"ryoukai!",en:"Roger!",need:["u7c"]}},
+{id:"c18",need:["u9k"],her:{t:"ここ、おすすめ は？",r:"koko, osusume wa?",en:"What do you recommend here?"},
+ on:[{any:["u3j","u3g","u3i","n11","u9b"],her:{t:"いいね！おなじ の ください。",r:"ii ne! onaji no kudasai.",en:"Nice! I'll have the same.",need:["u10p","n27","u3k"]}},
+     {any:["u3l","u6j","u10j"],her:{t:"むり〜！おしえて！",r:"muri~! oshiete!",en:"No way! Tell me!",need:["u4i","n24"]}}],
+ else:{t:"たしかに。",r:"tashika ni.",en:"Fair point.",need:["u10d"]}},
+{id:"c19",need:["n29","u2h","u10w"],her:{t:"ひさしぶり！げんき だった？",r:"hisashiburi! genki datta?",en:"Long time no see! Been well?"},
+ on:[{any:["u2h","n19","u2g","u6f"],her:{t:"よかった！わたし も げんき だよ。",r:"yokatta! watashi mo genki da yo.",en:"Good! I'm doing well too.",need:["u10q","u8f","u2h","u5a"]}},
+     {any:["u2d","u2m"],her:{t:"そっか。おつかれさま。",r:"sokka. otsukaresama.",en:"I see. You've been working hard.",need:["u10o","u1g"]}}],
+ else:{t:"あいたかった！",r:"aitakatta!",en:"I missed you!",need:["u5k"]}},
+{id:"c20",need:["n2","u4i"],her:{t:"きょう リフト むり。",r:"kyou rifuto muri.",en:"No lifts today."},
+ on:[{any:["u10r","u10t","u10n","u10m","u6g"],her:{t:"しかたない ね。えいが みに いこう？",r:"shikata nai ne. eiga mi ni ikou?",en:"Can't be helped. Go see a movie?",need:["u10t","n17","u4c"]}},
+     {any:["u4j","u4a","u3a"],her:{t:"えいが は どう？",r:"eiga wa dou?",en:"How about a movie?",need:["n17","u10u"]}}],
+ else:{t:"ざんねん だね。",r:"zannen da ne.",en:"That's a shame, eh.",need:["u10r"]}},
+{id:"c21",need:["n17","u4c"],her:{t:"えいが みに いこう！",r:"eiga mi ni ikou!",en:"Let's go see a movie!"},
+ on:[{any:["u10p","u4c","u4h","n19"],her:{t:"うれしい！なんじ に あう？",r:"ureshii! nanji ni au?",en:"Yay! What time shall we meet?",need:["u2g","u4f"]}},
+     {any:["u4i","u2m","u7e"],her:{t:"そっか。ざんねん。また あとで ね。",r:"sokka. zannen. mata ato de ne.",en:"Okay. Shame. Catch you later.",need:["u10o","u10r","u1h"]}}],
+ else:{t:"たのしみ！",r:"tanoshimi!",en:"Can't wait!",need:["u4h"]}},
+{id:"c22",need:["n5","u2i"],her:{t:"あぶない！だいじょうぶ？",r:"abunai! daijoubu?",en:"Whoa, careful! You okay?"},
+ on:[{any:["u2i","u10s","u2l","u9v"],her:{t:"よかった。き を つけて ね。",r:"yokatta. ki o tsukete ne.",en:"Phew. Be careful, okay?",need:["u10q","n30"]}},
+     {any:["u2d"],her:{t:"ゆっくり やすんで。",r:"yukkuri yasunde.",en:"Rest up.",need:["u6e","n26"]}}],
+ else:{t:"だいじに ね。",r:"daiji ni ne.",en:"Take care of yourself.",need:["u5i"]}},
+{id:"c23",need:["u5j"],her:{t:"いつも ありがとう ね。",r:"itsumo arigatou ne.",en:"Thanks for everything, always."},
+ on:[{any:["u8f","n27","u5j","u5h","u10s"],her:{t:"しあわせ。",r:"shiawase.",en:"I'm happy.",need:["u2o"]}},
+     {any:["u5a","u5b"],her:{t:"わたし も だいすき。",r:"watashi mo daisuki.",en:"I love you too.",need:["u8f","u5b"]}}],
+ else:{t:"うれしい。",r:"ureshii.",en:"That makes me happy.",need:["u2g"]}},
+{id:"c24",need:["n11","u3a"],her:{t:"ひるごはん なに たべたい？",r:"hirugohan nani tabetai?",en:"What do you want for lunch?"},
+ on:[{any:["u3l"],her:{t:"また それ〜。",r:"mata sore~",en:"That again~",need:["u1h"]}},
+     {any:["u3j","u3g","u3i","u9k","u9b"],her:{t:"いいね。いこう！",r:"ii ne. ikou!",en:"Nice. Let's go!",need:["u10p","u4c"]}},
+     {any:["u7e","u2m","n28"],her:{t:"そっか。さきに たべる ね。",r:"sokka. saki ni taberu ne.",en:"Okay. I'll eat first then.",need:["u10o","u3h"]}}],
+ else:{t:"たのしみ！",r:"tanoshimi!",en:"Can't wait!",need:["u4h"]}},
+];
+
+/* --- English → Japanese hints: extra trigger words per phrase --- */
+const EN_HINTS={
+u1a:"good morning hi hello hey",u1b:"night goodnight sleep bye",u1c:"home back",u1d:"welcome",u1e:"leaving off going out bye",u1f:"safe take care bye",u1g:"work tired good job thanks effort",
+u1h:"later bye see you",u1i:"morning polite",
+u2a:"hungry starving food",u2b:"thirsty drink",u2c:"sleepy tired bed",u2d:"tired exhausted worn out knackered",u2e:"cold freezing",u2f:"hot warm",u2g:"happy glad",u2h:"how are you well good ok",u2i:"okay ok alright fine",
+u2j:"cold touch",u2k:"feels good nice",u2l:"scary scared",u2m:"busy",u2n:"lonely miss",u2o:"happy content",
+u3a:"eat food want hungry dinner",u3b:"delicious tasty yum yummy good",u3c:"eat lets start meal",u3d:"meal thanks finished",u3e:"try this taste",u3f:"full stuffed",u3g:"coffee drink want",
+u3h:"go ahead eat first without me",u3i:"seconds more refill",u3j:"spicy hot",u3k:"water please",u3l:"anything whatever dont mind fine",
+u4a:"today doing plans what",u4b:"tomorrow free busy",u4c:"go lets",u4d:"wait hang on sec second moment",u4e:"tomorrow see you bye",u4f:"time meet when",u4g:"ski skiing snowboard board ride lets go",
+u4h:"cant wait excited looking forward",u4i:"cant no way impossible nope",u4j:"where go",u4k:"finish time when done",
+u5a:"like you love",u5b:"love you",u5c:"miss you see you want",u5d:"cute",u5e:"together stay",u5f:"hug cuddle",u5g:"luck good you got this go",u5h:"thanks thank you cheers",
+u5i:"take care yourself",u5j:"thanks always everything",u5k:"missed you",
+u6a:"what this",u6b:"understand dont get it",u6c:"again repeat say once more",u6d:"japanese say how",u6e:"slowly slow please",u6f:"yeah right thats true exactly",u6g:"really",u6h:"who",u6i:"mean meaning",u6j:"know dont idea",
+u7a:"doing now what up",u7b:"cant wait see you soon miss",u7c:"ok okay got it roger sure yep",u7d:"dreams sweet night",u7e:"sorry work working busy",u7f:"call later phone ring",
+u7g:"late running",u7h:"arrived there get got",u7i:"where are you now",
+u8a:"im david name",u8b:"coffee drink",u8c:"mountain going hill",u8d:"snow like love",u8e:"mine this",u8f:"me too same also",u8g:"because cold",u8h:"with you together",
+u9a:"excuse me sorry",u9b:"this one please",u9c:"how much cost price",u9d:"total all together",u9e:"toilet bathroom where",u9f:"station where",u9g:"have this got",u9h:"bag no need",u9i:"card pay",
+u9j:"yes please",u9k:"recommend suggest",u9l:"two table",u9m:"separate split bill",u9n:"train next",u9o:"platform which",u9p:"straight ahead",u9q:"right turn",u9r:"close near",u9s:"walk there",
+u9t:"ticket buy",u9u:"little japanese only speak",u9v:"no thanks im good fine",
+u10a:"huh interesting oh",u10b:"i see oh really",u10c:"makes sense ah",u10d:"true good point fair",u10e:"knew it thought so",u10f:"probably maybe perhaps",u10g:"but though",u10h:"so thats why",
+u10i:"for now first",u10j:"not really nothing much",u10k:"like sort of",u10l:"by the way",u10m:"seriously for real",u10n:"no way what",u10o:"got it ah okay i see",u10p:"nice sounds good great cool",
+u10q:"good thank goodness phew glad",u10r:"shame pity bummer sad",u10s:"no worries not at all its fine",u10t:"cant be helped oh well",u10u:"how was it",u10v:"and then what happened",u10w:"was it okay",u10x:"how was your day",
+n1:"slopes mountain hill",n2:"lift chairlift",n3:"alright lets do this",n4:"amazing wow awesome",n5:"careful watch out dangerous",n6:"good at skilled",n7:"lots a lot much",n8:"more",n9:"here you go",
+n10:"thank you polite",n11:"lunch",n12:"finished done over",n13:"not yet still",n14:"nice meet you",n15:"nice meet",n16:"long way go",n17:"movie film cinema",n18:"fun was great",n19:"yeah yes yep mm",
+n20:"hello phone",n21:"hey listen",n22:"guess what listen",n23:"actually honest",n24:"tell me teach show",n25:"pick you up collect",n26:"rest",n27:"same me too",n28:"working work",n29:"long time",n30:"take care safe careful drive",
+};
+const EN_STOP=new Set("i im i'm am is are the a an to be it its of my me you your we do does did and so lets let's just really very that this there here on in at for with was were will ill i'll can could would should have has had".split(" "));
+
+let chat=null;   // {log:[...], topic:{id,...}|null, mode:'jp'|'en', show:0..2, busy:false}
+const CHAT_KEY_STORE="nihongo15_apikey", CHAT_MODEL_STORE="nihongo15_model";
+const DEFAULT_MODEL="claude-sonnet-4-5";
+const apiKey=()=>{try{return localStorage.getItem(CHAT_KEY_STORE)||"";}catch(e){return "";}};
+const apiModel=()=>{try{return localStorage.getItem(CHAT_MODEL_STORE)||DEFAULT_MODEL;}catch(e){return DEFAULT_MODEL;}};
+if(!S.chat)S.chat={log:[],used:[],show:2,mode:"jp",sent:0};
+
+/* ---------- text normalisation & recognition ---------- */
+const normJP=s=>s.replace(/[\s　、。！!？?〜~…・.,\-]/g,"");
+const normRO=s=>s.toLowerCase().replace(/[^a-z]/g,"");
+/* every learnable chunk: whole phrases + their individual words */
+const CHUNKS=(()=>{
+  const out=[];const seen=new Set();
+  ITEMS.forEach(it=>{
+    const t=normJP(jpText(it));if(t&&!seen.has("p"+t)){seen.add("p"+t);out.push({t,ro:normRO(roText(it)),r:roText(it),en:it.en,id:it.id,kind:"phrase"});}
+    it.tok.forEach(tk=>{const tt=normJP(tk.t);if(!tt||/^[?？!！]/.test(tk.t.trim()))return;
+      if(seen.has("w"+tt))return;seen.add("w"+tt);
+      out.push({t:tt,ro:normRO(tk.r),r:tk.r,en:tk.g.replace(/\[|\]/g,""),id:it.id,kind:"word"});});
+  });
+  return out.sort((a,b)=>b.t.length-a.t.length);
+})();
+const CHUNKS_RO=CHUNKS.filter(c=>c.ro).slice().sort((a,b)=>b.ro.length-a.ro.length);
+/* segment a Japanese (or romaji) message into known chunks + leftovers */
+function segmentInput(raw){
+  const isRo=/^[a-zA-Z\s.,!?'~\-]+$/.test(raw.trim());
+  let s=isRo?normRO(raw):normJP(raw);
+  const segs=[];let i=0;
+  while(i<s.length){
+    let hit=null;
+    for(const c of (isRo?CHUNKS_RO:CHUNKS)){const key=isRo?c.ro:c.t;if(s.startsWith(key,i)){hit=c;break;}}
+    if(hit){segs.push({...hit,known:true});i+=(isRo?hit.ro:hit.t).length;}
+    else{const last=segs[segs.length-1];const ch=s[i];
+      if(last&&!last.known)last.t+=ch;else segs.push({t:ch,known:false});i++;}
+  }
+  return {segs,isRo};
+}
+/* items the message contains, as ids (for her to react to) */
+function idsIn(segs){const ids=new Set();segs.filter(s=>s.known).forEach(s=>{ids.add(s.id);
+  /* a bare word also counts as every phrase that is exactly that word */
+  ITEMS.forEach(it=>{if(normJP(jpText(it))===s.t)ids.add(it.id);});});return ids;}
+function segsHTML(segs){
+  return `<div class="segs">`+segs.map(s=>s.known
+    ?`<span class="seg"><b>${esc(s.t)}</b> <span class="sr">${esc(s.r)}</span> — ${esc(s.en)}</span>`
+    :`<span class="seg unk">${esc(s.t)} — ?</span>`).join("")+`</div>`;
+}
+function segsMeaning(segs){
+  const parts=segs.map(s=>s.known?s.en:"[?]");
+  return parts.join(" · ");
+}
+
+/* ---------- English → Japanese (offline) ---------- */
+function enWords(s){return s.toLowerCase().replace(/[^a-z' ]/g," ").split(/\s+/).filter(w=>w&&!EN_STOP.has(w));}
+function scoreItem(it,words){
+  const bag=new Set(enWords(it.en).concat(it.tok.map(t=>enWords(t.g.replace(/[\[\]\-\/]/g," "))).flat()).concat(enWords(EN_HINTS[it.id]||"")));
+  let hit=0;words.forEach(w=>{if(bag.has(w))hit++;else{for(const b of bag){if(b.length>3&&(b.startsWith(w)||w.startsWith(b))){hit+=.6;break;}}}});
+  if(!hit)return 0;
+  const full=it.en.toLowerCase().replace(/[^a-z ]/g," ").replace(/\s+/g," ").trim();
+  const q=words.join(" ");
+  let bonus=0;if(full&&q===enWords(full).join(" "))bonus+=2;
+  if(words._inp&&words._inp.length>3&&full.includes(words._inp))bonus+=.5;
+  // texting her is casual — polite forms only win when asked for
+  const polite=/polite/i.test(it.en)&&!words.includes("polite");
+  return (hit/Math.sqrt(words.length)+bonus)*(polite?.6:1);
+}
+function en2jp(text){
+  const knownSet=new Set(seenIds().map(i=>i.id));
+  const rank=(chunk)=>{const words=enWords(chunk);if(!words.length)return[];
+    words._inp=chunk.toLowerCase().replace(/[^a-z ]/g," ").replace(/\s+/g," ").trim();
+    return ITEMS.map(it=>({it,s:scoreItem(it,words)*(knownSet.has(it.id)?1:.7)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,4);};
+  const missingOf=(pieces)=>{const bag=new Set();pieces.forEach(it=>{enWords(it.en).forEach(w=>bag.add(w));it.tok.forEach(t=>enWords(t.g.replace(/[\[\]\-\/]/g," ")).forEach(w=>bag.add(w)));enWords(EN_HINTS[it.id]||"").forEach(w=>bag.add(w));});
+    return enWords(text).filter(w=>!bag.has(w)&&![...bag].some(b=>b.length>3&&(b.startsWith(w)||w.startsWith(b))));};
+  let best=rank(text);
+  // several clauses → translate each, then stitch
+  const clauses=text.split(/[,.!?;]| and | but | then /i).map(c=>c.trim()).filter(Boolean);
+  if(clauses.length>1){
+    const pieces=[];clauses.forEach(c=>{const r=rank(c);if(r.length&&r[0].s>=.7&&pieces[pieces.length-1]!==r[0].it)pieces.push(r[0].it);});
+    if(pieces.length>1||(pieces.length&&!(best.length&&best[0].s>=1)))return {pieces,alts:best.slice(0,3).map(x=>x.it).filter(it=>!pieces.includes(it)),note:pieces[0].mn,partial:pieces.length<clauses.length,missing:missingOf(pieces)};
+  }
+  if(best.length&&best[0].s>=1)return {pieces:[best[0].it],alts:best.slice(1).map(x=>x.it),note:best[0].it.mn,missing:missingOf([best[0].it])};
+  if(best.length)return {pieces:[best[0].it],alts:best.slice(1).map(x=>x.it),note:best[0].it.mn,weak:true,missing:missingOf([best[0].it])};
+  return null;
+}
+
+/* ---------- her side (offline engine) ---------- */
+function chatKnown(){return new Set(seenIds().map(i=>i.id));}
+function lineNW(line,known){return (line.need||[]).filter(id=>!known.has(id));}
+function pickTopic(){
+  const known=chatKnown();
+  const used=S.chat.used||[];
+  const score=t=>lineNW(t,known).length;
+  // a fresh thread opens like a real one — with a greeting or a check-in
+  if(!S.chat.log.length){const openers=["c1","c2","c19","c6","c10"].map(id=>CHAT_TOPICS.find(t=>t.id===id));
+    const ok=openers.filter(t=>score(t)===0);return (ok.length?ok:[openers[0]])[Math.floor(Math.random()*(ok.length||1))];}
+  let pool=CHAT_TOPICS.filter(t=>!used.includes(t.id));
+  if(pool.length<4){S.chat.used=[];pool=CHAT_TOPICS.slice();}
+  // prefer openers made entirely of phrases you've met; allow one new word if we must
+  let fully=pool.filter(t=>score(t)===0);
+  if(!fully.length)fully=pool.filter(t=>score(t)<=1);
+  if(!fully.length)fully=pool.sort((a,b)=>score(a)-score(b)).slice(0,3);
+  return fully[Math.floor(Math.random()*fully.length)];
+}
+function herSay(line,opts){
+  const known=chatKnown();
+  const nw=lineNW(line,known);
+  // words she uses that you haven't met count as met — they join your reviews
+  nw.forEach(id=>{const r=rec(id);if(!r.seen){r.seen++;r.last=Date.now();S.totalNew++;}});
+  const msg={who:"her",t:line.t,r:line.r,en:line.en,nw,q:/[？?]$/.test(line.t.trim()),...(opts||{})};
+  S.chat.log.push(msg);if(S.chat.log.length>60)S.chat.log=S.chat.log.slice(-60);save();
+  return msg;
+}
+function herOpener(){
+  const t=pickTopic();S.chat.used=(S.chat.used||[]).concat(t.id);
+  chat.topic=t;return herSay({...t.her,need:t.need},{topic:t.id});
+}
+function herReply(ids){
+  const t=chat.topic;
+  let line=null;
+  if(t){for(const o of t.on){if(o.any.some(id=>ids.has(id))){line=o.her;break;}}}
+  if(!line){ // fixed pairs: if you said her side of a pair, she answers with the reply
+    const p=PAIRS.find(p=>ids.has(p.q));if(p){const it=ITEMS.find(i=>i.id===p.a);line={t:jpText(it),r:roText(it),en:it.en,need:[p.a]};}
+  }
+  if(!line&&t)line=t.else;
+  if(!line){const it=ITEMS.find(i=>i.id===shuffle(REACTION_POOL)[0]);line={t:jpText(it),r:roText(it),en:it.en,need:[it.id]};}
+  chat.topic=null;
+  return herSay(line);
+}
+
+/* ---------- Claude API (optional) ---------- */
+function knownVocabList(){
+  return seenIds().map(i=>`${jpText(i)} (${roText(i)}) = ${i.en}`).join("\n");
+}
+function chatSystemPrompt(){
+  return `You are David's Japanese girlfriend texting him on LINE. You are warm, playful, a little teasing, and you keep the conversation going. He is an Australian snowboard instructor living in Queenstown, NZ, learning Japanese to talk with you.
+
+RULES FOR YOUR JAPANESE
+- Casual spoken Japanese, hiragana/katakana ONLY (no kanji), with a space between words exactly like this: "きょう なに する？".
+- Short: one or two short sentences per message. Usually end with a question so he has something to answer.
+- Stick almost entirely to the phrases and words in his KNOWN list below. You may add at most ONE new word per message, and only when needed.
+- Never lecture. Never switch to English in your Japanese text.
+
+KNOWN PHRASES (everything he has learnt so far):
+${knownVocabList()||"(nothing yet — use only the very simplest greetings)"}
+
+ALWAYS respond with a single JSON object and nothing else, shape:
+{"you":{"en":"natural English translation of what he wrote","parts":[{"t":"japanese chunk","r":"romaji","g":"literal meaning"}],"ok":true,"fix":"short note if his Japanese was off, else empty"},
+ "her":{"t":"your reply in japanese","r":"romaji of your reply","en":"english translation","nw":[{"t":"new word","r":"romaji","en":"meaning"}]}}
+If he wrote in English (marked ENGLISH), "you" instead becomes a translation INTO Japanese he could send: {"t":"japanese","r":"romaji","en":"the english","parts":[...],"note":"one-line breakdown of the grammar/word choice, using his known phrases where possible","alts":[{"t":"...","r":"..."}]} and "her" is omitted.`;
+}
+async function callClaude(messages){
+  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{
+    "content-type":"application/json","x-api-key":apiKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:apiModel(),max_tokens:600,system:chatSystemPrompt(),messages})});
+  if(!res.ok)throw new Error("API "+res.status+": "+(await res.text()).slice(0,200));
+  const data=await res.json();
+  const txt=(data.content||[]).map(c=>c.text||"").join("");
+  const m=txt.match(/\{[\s\S]*\}/);if(!m)throw new Error("No JSON in reply");
+  return JSON.parse(m[0]);
+}
+function historyForApi(extra){
+  const msgs=[];
+  S.chat.log.slice(-16).forEach(m=>{
+    if(m.who==="her")msgs.push({role:"assistant",content:JSON.stringify({her:{t:m.t,r:m.r,en:m.en}})});
+    else if(m.who==="you")msgs.push({role:"user",content:m.t});
+  });
+  // merge consecutive same-role turns & make sure it starts with user
+  const out=[];msgs.forEach(m=>{const l=out[out.length-1];if(l&&l.role===m.role)l.content+="\n"+m.content;else out.push(m);});
+  if(out.length&&out[0].role==="assistant")out.unshift({role:"user",content:"(start of chat)"});
+  if(extra)out.push({role:"user",content:extra});
+  return out;
+}
+
+/* ---------- screen ---------- */
+function chatHome(){
+  chat={mode:S.chat.mode||"jp",busy:false,topic:null,xl:null};
+  if(!S.chat.log.length)chat.topic=null;
+  // resume the topic of her last unanswered question, if any
+  const last=S.chat.log[S.chat.log.length-1];
+  if(last&&last.who==="her"&&last.topic)chat.topic=CHAT_TOPICS.find(t=>t.id===last.topic)||null;
+  renderChat();
+  if(!S.chat.log.length)herTyping(()=>{herOpener();renderChat();});
+}
+function chatTop(){
+  const live=!!apiKey();
+  return `<div class="topbar" style="margin-bottom:12px"><button class="xbtn" onclick="home()">‹</button>
+    <div style="flex:1"><div class="lbl acc">💬 HER</div><div style="font-size:11px;color:var(--dim);margin-top:2px">${live?"free chat · Claude":"scripted from your phrases"}</div></div>
+    <span class="pill ${live?'live':''}" onclick="chatSettings()" style="cursor:pointer">${live?"● live":"○ offline"}</span>
+    <button class="xbtn" onclick="chatSettings()" title="settings">⚙</button></div>`;
+}
+function chatBubble(m,idx){
+  if(m.who==="sys")return `<div class="cbwrap sys"><div class="cbubble"><div class="sub" style="font-size:12px;text-align:center">${m.html}</div></div></div>`;
+  const show=m.reveal!==undefined?m.reveal:S.chat.show;
+  const cls=(show<1?" hideRo":"")+(show<2?" hideEn":"");
+  const you=m.who==="you";
+  const chips=(m.nw||[]).map(id=>{const it=typeof id==="string"?ITEMS.find(x=>x.id===id):null;
+    if(it)return `<span class="nwchip"><b>${esc(jpText(it))}</b> ${esc(roText(it))} — ${esc(it.en)}</span>`;
+    if(id&&id.t)return `<span class="nwchip"><b>${esc(id.t)}</b> ${esc(id.r||"")} — ${esc(id.en||"")}</span>`;return "";}).join("");
+  let body;
+  if(you){
+    body=`<div class="cjp raw">${esc(m.t)}</div>`+(m.en?`<div class="cen">${esc(m.en)}</div>`:"")+(m.segs?segsHTML(m.segs):"")+(m.parts?`<div class="segs">${m.parts.map(p=>`<span class="seg"><b>${esc(p.t)}</b> <span class="sr">${esc(p.r||"")}</span> — ${esc(p.g||"")}</span>`).join("")}</div>`:"")+(m.fix?`<div class="fixnote">✎ ${esc(m.fix)}</div>`:"");
+  }else{
+    body=`<div class="cjp">${esc(m.t)}</div><div class="cro">${esc(m.r)}</div><div class="cen">${esc(m.en)}</div>`;
+  }
+  return `<div class="cbwrap ${you?'you':'them'}${you?'':cls}" data-i="${idx}"><div class="cbname">${you?"You":"Her"}</div>
+    <div class="cbubble" onclick="chatReveal(${idx})">${body}</div>${chips?`<div class="nwrow">${chips}</div>`:""}</div>`;
+}
+function chatReveal(i){const m=S.chat.log[i];if(!m||m.who!=="her")return;
+  const cur=m.reveal!==undefined?m.reveal:S.chat.show;m.reveal=cur>=2?0:cur+1;save();renderChat(true);}
+function cycleShow(){S.chat.show=(S.chat.show+1)%3;S.chat.log.forEach(m=>delete m.reveal);save();renderChat(true);}
+function setMode(m){chat.mode=m;S.chat.mode=m;chat.xl=null;save();renderChat(true);setTimeout(()=>{const el=$("cin");if(el)el.focus();},50);}
+function renderChat(keepInput){
+  const val=keepInput&&$("cin")?$("cin").value:"";
+  const log=S.chat.log.map(chatBubble).join("");
+  const showLbl=["JP ONLY","JP + ROMAJI","FULL"][S.chat.show];
+  const en=chat.mode==="en";
+  let xl="";
+  if(chat.xl){const x=chat.xl;
+    xl=`<div class="xlate fade"><div class="lbl" style="margin-bottom:8px;color:var(--acc2)">${x.weak?"CLOSEST I CAN BUILD":x.partial?"PART OF IT":"IN JAPANESE"}</div>
+      <div class="xjp">${esc(x.t)}</div><div class="xro">${esc(x.r)}</div><div class="xen">${esc(x.en)}</div>
+      ${x.parts&&x.parts.length?`<div class="segs">${x.parts.map(p=>`<span class="seg"><b>${esc(p.t)}</b> <span class="sr">${esc(p.r||"")}</span> — ${esc(p.g||"")}</span>`).join("")}</div>`:""}
+      ${x.note?`<div class="xnote">${x.note}</div>`:""}
+      ${x.alts&&x.alts.length?`<div class="lbl mt12" style="font-size:9px">OR MAYBE</div><div class="xalts">${x.alts.map((a,k)=>`<button class="xalt" onclick="useAlt(${k})">${esc(a.t)}<small>${esc(a.r)}</small></button>`).join("")}</div>`:""}
+      <div class="xbtns"><button class="btn primary" onclick="sendXl()">SEND THIS ▸</button><button class="btn ghost" onclick="editXl()">EDIT IT</button></div></div>`;
+  }
+  app.innerHTML=`<div class="chatwrap">${chatTop()}
+    <div class="chatlog" id="clog">${log||""}${chat.busy?`<div class="cbwrap them"><div class="cbname">Her</div><div class="cbubble"><span class="typing"><i></i><i></i><i></i></span></div></div>`:""}</div>
+    <div class="composer">${xl}
+      <div class="modes">
+        <button class="mbtn pink ${en?'':'on'}" onclick="setMode('jp')">日本語</button>
+        <button class="mbtn ${en?'on':''}" onclick="setMode('en')">English → 日本語</button>
+        <button class="mbtn push" onclick="cycleShow()">${showLbl}</button>
+      </div>
+      <div class="crow"><textarea id="cin" class="cinput ${en?'en':''}" rows="1" placeholder="${en?"Type what you want to say in English…":"にほんご で かいて… (romaji works too)"}" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();chatSend();}"></textarea>
+        <button class="sendbtn ${en?'blue':''}" onclick="chatSend()" ${chat.busy?"disabled":""}>${en?"訳":"➤"}</button></div>
+      <div class="sub center mt8" style="font-size:11px;color:var(--dim)">${en?"I'll build it from phrases you've learnt and show the breakdown before you send.":"Tap her bubbles to peek at the translation · Enter to send"}</div>
+    </div></div>`;
+  if(keepInput&&val)$("cin").value=val;
+  window.scrollTo(0,document.body.scrollHeight);
+}
+function herTyping(fn,ms){chat.busy=true;renderChat(true);setTimeout(()=>{chat.busy=false;fn();},ms||700+Math.random()*600);}
+
+async function chatSend(){
+  const el=$("cin");const raw=(el.value||"").trim();if(!raw||chat.busy)return;
+  if(chat.mode==="en"){el.value="";await translateEnglish(raw);return;}
+  el.value="";
+  const live=!!apiKey();
+  if(live){await sendLive(raw);return;}
+  sendOffline(raw);
+}
+function sendOffline(raw){
+  const {segs}=segmentInput(raw);
+  const ids=idsIn(segs);
+  const known=segs.filter(s=>s.known).length;
+  const you={who:"you",t:raw,segs,en:known?segsMeaning(segs):"",fix:known?"":"I couldn't match that to anything you've learnt yet — she'll just react. Try the English → 日本語 mode if you're stuck."};
+  S.chat.log.push(you);S.chat.sent=(S.chat.sent||0)+1;save();
+  // reps: recognised phrases count as a correct recall
+  ids.forEach(id=>{const it=ITEMS.find(i=>i.id===id);if(it&&S.items[id]&&S.items[id].seen)grade(id,true,0);});
+  renderChat();
+  herTyping(()=>{
+    const reply=herReply(ids);renderChat();
+    if(!reply.q)herTyping(()=>{herOpener();renderChat();},900+Math.random()*900);
+  });
+}
+async function sendLive(raw){
+  const you={who:"you",t:raw};S.chat.log.push(you);S.chat.sent=(S.chat.sent||0)+1;save();
+  chat.busy=true;renderChat();
+  try{
+    const out=await callClaude(historyForApi());
+    if(out.you){you.en=out.you.en||"";you.parts=out.you.parts||[];you.fix=out.you.fix||"";}
+    if(out.her&&out.her.t){S.chat.log.push({who:"her",t:out.her.t,r:out.her.r||"",en:out.her.en||"",nw:out.her.nw||[],q:true});}
+    save();
+  }catch(e){
+    S.chat.log.pop(); // drop your line; the scripted engine re-adds it
+    S.chat.log.push({who:"sys",html:`Couldn't reach Claude (${esc(String(e.message||e))}) — scripted reply instead.`});
+    chat.busy=false;sendOffline(raw);return;
+  }
+  chat.busy=false;renderChat();
+}
+async function translateEnglish(raw){
+  if(apiKey()){
+    chat.busy=true;renderChat();
+    try{
+      const out=await callClaude(historyForApi("ENGLISH: "+raw));
+      const y=out.you||{};
+      chat.xl={t:y.t||"",r:y.r||"",en:raw,parts:y.parts||[],note:y.note?esc(y.note):"",alts:(y.alts||[]).map(a=>({t:a.t,r:a.r||""}))};
+      chat.busy=false;renderChat();return;
+    }catch(e){chat.busy=false;}
+  }
+  const res=en2jp(raw);
+  if(!res){chat.xl={t:"—",r:"",en:raw,parts:[],note:"Nothing you've learnt says that yet. Say it simpler — or say something else: <b>そうなんだ</b> (I see) and <b>へえ〜</b> (huh) keep any chat alive.",alts:[]};renderChat();return;}
+  const parts=[];res.pieces.forEach(it=>it.tok.forEach(t=>{if(!/^[?？!！]/.test(t.t.trim()))parts.push({t:t.t,r:t.r,g:t.g});}));
+  const jp=res.pieces.map(jpText).map(t=>/[？?！!]$/.test(t)?t:t+"。").join("").replace(/。$/,"");
+  const miss=res.missing&&res.missing.length?`<b>No phrase yet for:</b> ${esc(res.missing.join(", "))}. `:"";
+  chat.xl={t:jp,r:res.pieces.map(roText).join(" / "),en:res.pieces.map(i=>i.en).join(" / "),parts,
+    note:miss+(res.partial?"I could only build part of that. ":"")+(res.weak?"Loose match — this is the nearest phrase you know. ":"")+(res.note||""),
+    alts:res.alts.map(a=>({t:jpText(a),r:roText(a)})),raw};
+  renderChat();
+}
+function useAlt(k){const a=chat.xl.alts[k];const it=ITEMS.find(i=>jpText(i)===a.t);
+  chat.xl={t:a.t,r:a.r,en:it?it.en:chat.xl.en,parts:it?it.tok.filter(t=>!/^[?？!！]/.test(t.t.trim())).map(t=>({t:t.t,r:t.r,g:t.g})):[],note:it?it.mn:"",alts:chat.xl.alts.filter((_,i)=>i!==k)};renderChat();}
+function sendXl(){const x=chat.xl;if(!x||!x.t||x.t==="—")return;chat.xl=null;chat.mode="jp";S.chat.mode="jp";
+  if(apiKey())sendLive(x.t);else sendOffline(x.t);}
+function editXl(){const x=chat.xl;chat.xl=null;chat.mode="jp";S.chat.mode="jp";renderChat();const el=$("cin");if(el&&x&&x.t!=="—"){el.value=x.t;el.focus();}}
+
+function chatSettings(){
+  const k=apiKey();
+  app.innerHTML=`<div class="fade">
+    <div class="topbar"><button class="xbtn" onclick="chatHome()">‹</button><div style="flex:1"><div class="lbl acc">CHAT SETTINGS</div></div></div>
+    <div class="h1">Make her real.</div>
+    <div class="sub mt8">Out of the box she texts from a script built on the phrases you've met. Add a Claude API key and she becomes free-form — anything you type gets properly translated and broken down, and she still sticks to what you've learnt.</div>
+    <div class="card mt20"><div class="lbl">CLAUDE API KEY</div>
+      <div class="keyrow"><input id="keyin" class="keyin" type="password" placeholder="sk-ant-…" value="${esc(k)}"></div>
+      <div class="lbl mt16">MODEL</div>
+      <div class="keyrow"><input id="modelin" class="keyin" value="${esc(apiModel())}"></div>
+      <div class="sub mt12" style="font-size:12px">Stored only in this browser. Calls go straight from this page to Anthropic — nothing else sees the key. Get one at console.anthropic.com.</div>
+      <button class="btn primary mt16" onclick="saveKey()">SAVE</button>
+      ${k?`<button class="btn ghost mt12" onclick="localStorage.removeItem('${CHAT_KEY_STORE}');chatSettings()">REMOVE KEY · BACK TO OFFLINE</button>`:""}
+    </div>
+    <div class="card mt16"><div class="lbl">THIS CHAT</div>
+      <div class="sub mt8" style="font-size:13px">${S.chat.log.filter(m=>m.who==="you").length} messages from you in the current thread · ${S.chat.sent||0} sent all-time.</div>
+      <button class="btn ghost mt12" onclick="if(confirm('Clear the conversation?')){S.chat.log=[];S.chat.used=[];save();chatHome();}">START A NEW CHAT</button>
+    </div>
+  </div>`;
+}
+function saveKey(){const k=$("keyin").value.trim(),m=$("modelin").value.trim();
+  if(k)localStorage.setItem(CHAT_KEY_STORE,k);else localStorage.removeItem(CHAT_KEY_STORE);
+  if(m&&m!==DEFAULT_MODEL)localStorage.setItem(CHAT_MODEL_STORE,m);else localStorage.removeItem(CHAT_MODEL_STORE);
+  chatHome();}
+
+/* ================= INIT ================= */
+home();
+
+</script>
+</body>
+</html>

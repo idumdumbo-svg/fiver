@@ -6,6 +6,7 @@ var CACHE = 'fiver-__VERSION__';
 var ASSETS = [
   './',
   './index.html',
+  './nihongo.html',
   './manifest.webmanifest',
   './favicon.ico',
   './icons/icon-180.png',

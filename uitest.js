@@ -413,120 +413,77 @@ function launchOpts() {
   await page.click('.mode-btn[data-mode="money"]');
   await page.waitForTimeout(300);
 
-  /* ---- food: adding to and removing from previous days ---- */
+  /* ---- food: a daily tracker — today only, past days kept in Foods ---- */
   await page.click('.mode-btn[data-mode="food"]');
   await page.waitForTimeout(400);
 
   const todayTotal = await page.textContent('#eatVal');
-  check('the day stepper is there', (await page.locator('#eatPrev').count()) === 1);
-  check('you cannot step into the future',
-    await page.locator('#eatNext').isDisabled());
-  check('no way back to today while you are on it',
-    (await page.locator('#eatToday:not(.hidden)').count()) === 0);
-
-  // step back two days
-  await page.click('#eatPrev'); await page.waitForTimeout(250);
-  await page.click('#eatPrev'); await page.waitForTimeout(250);
-  check('stepping back changes the day shown',
-    (await page.textContent('#eatLabel')) !== 'TODAY',
+  const todayRows = await page.locator('#eatEntries .entry').count();
+  check('no day stepper on the food screen', (await page.locator('#eatPrev').count()) === 0);
+  check('no date picker on the food screen', (await page.locator('#eatDayPick').count()) === 0);
+  check('the hero is labelled today', (await page.textContent('#eatLabel')).startsWith('TODAY'),
     await page.textContent('#eatLabel'));
-  check('a way back to today appears',
-    (await page.locator('#eatToday:not(.hidden)').count()) === 1);
-  check('stepping back can now go forward again',
-    !(await page.locator('#eatNext').isDisabled()));
-  check('a past day starts empty', (await page.textContent('#eatVal')) === '0',
-    await page.textContent('#eatVal'));
-  check('the list is headed with the day, not "Today"',
-    (await page.textContent('#eatListTitle')) !== 'Today',
-    await page.textContent('#eatListTitle'));
+  check('no week figure on the food screen', (await page.locator('#eatWeek').count()) === 0);
+  check('no history chart on the food screen', (await page.locator('#eatChart').count()) === 0);
+  await page.locator('#kcalSlider').fill('450'); await page.waitForTimeout(250);
+  check('the log button no longer names a day', (await page.textContent('#logSlider')).trim() === 'Log 450',
+    await page.textContent('#logSlider'));
+  await page.locator('#kcalSlider').fill('0'); await page.waitForTimeout(200);
 
-  // log to it via the slider
-  await page.locator('#kcalSlider').fill('450');
-  await page.waitForTimeout(250);
-  const backBtn = await page.textContent('#logSlider');
-  // "Log 450 · 2 Sep" — the date is on the button so a tap is never ambiguous,
-  // short-form so it can't squeeze "Enter amount" beside it onto two lines.
-  check('the log button names the day it will land on',
-    /Log 450 · \d+ \w{3}/.test(backBtn), backBtn);
-  await page.click('#logSlider'); await page.waitForTimeout(450);
-  check('the past day now holds the entry', (await page.textContent('#eatVal')) === '450',
-    await page.textContent('#eatVal'));
-
-  const dayOfEntry = await page.evaluate(() => {
-    const f = JSON.parse(localStorage.getItem('fiver.food.v1'));
-    const e = f.entries[f.entries.length - 1];
-    return e.day;
-  });
+  // plant two past days straight into storage — the UI has no way to
+  // create them, which is the point
   const twoBack = await page.evaluate(() => {
     const pad = n => (n < 10 ? '0' : '') + n;
-    const d = new Date(); d.setDate(d.getDate() - 2);
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-  });
-  check('it is stamped with the day you were viewing', dayOfEntry === twoBack,
-    dayOfEntry + ' vs ' + twoBack);
-
-  const tsInDay = await page.evaluate(() => {
+    const key = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
     const f = JSON.parse(localStorage.getItem('fiver.food.v1'));
-    const e = f.entries[f.entries.length - 1];
-    const d = new Date(e.ts);
-    const pad = n => (n < 10 ? '0' : '') + n;
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    const d2 = new Date(); d2.setDate(d2.getDate() - 2); d2.setHours(13, 0, 0, 0);
+    const d1 = new Date(); d1.setDate(d1.getDate() - 1); d1.setHours(19, 30, 0, 0);
+    f.entries.push({ id:'h1', ts:d2.getTime(), day:key(d2), kcal:700, label:'Ramen' });
+    f.entries.push({ id:'h2', ts:d2.getTime() + 3600e3, day:key(d2), kcal:300, label:'Snack' });
+    f.entries.push({ id:'h3', ts:d1.getTime(), day:key(d1), kcal:2500, label:'Big dinner' });
+    localStorage.setItem('fiver.food.v1', JSON.stringify(f));
+    return key(d2);
   });
-  check('and its timestamp sits inside that day too', tsInDay === twoBack,
-    tsInDay + ' vs ' + twoBack);
-
-  // two entries in the same minute must not share an undo
-  await page.locator('#kcalSlider').fill('200'); await page.waitForTimeout(200);
-  await page.click('#logSlider'); await page.waitForTimeout(400);
-  check('a second backdated entry adds up', (await page.textContent('#eatVal')) === '650',
-    await page.textContent('#eatVal'));
-  const sameTs = await page.evaluate(() => {
-    const f = JSON.parse(localStorage.getItem('fiver.food.v1'));
-    const n = f.entries.length;
-    return f.entries[n - 1].ts === f.entries[n - 2].ts;
-  });
-  await page.click('#toastAct'); await page.waitForTimeout(450);
-  check('undo removes one entry even when both share a timestamp',
-    (await page.textContent('#eatVal')) === '450',
-    'sharedTs=' + sameTs + ' total=' + (await page.textContent('#eatVal')));
-
-  // removing from a past day
-  check('the past day lists its entry', (await page.locator('#eatEntries .entry').count()) === 1,
-    await page.locator('#eatEntries .entry').count());
-  await page.click('#eatEntries .entry'); await page.waitForTimeout(400);
-  await page.click('#askOk'); await page.waitForTimeout(450);
-  check('an entry can be removed from a past day',
-    (await page.textContent('#eatVal')) === '0', await page.textContent('#eatVal'));
-
-  // today is untouched by all of that
-  await page.click('#eatToday'); await page.waitForTimeout(400);
-  check('the today button comes back', (await page.textContent('#eatLabel')).startsWith('TODAY'),
-    await page.textContent('#eatLabel'));
-  check("today's total was never touched", (await page.textContent('#eatVal')) === todayTotal,
-    (await page.textContent('#eatVal')) + ' was ' + todayTotal);
-
-  // the picker cannot be pushed past today
-  await page.evaluate(() => {
-    const pad = n => (n < 10 ? '0' : '') + n;
-    const d = new Date(); d.setDate(d.getDate() + 5);
-    const inp = document.getElementById('eatDayPick');
-    inp.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-    inp.dispatchEvent(new Event('change'));
-  });
-  await page.waitForTimeout(400);
-  check('a future date is clamped back to today',
-    (await page.textContent('#eatLabel')).startsWith('TODAY'),
-    await page.textContent('#eatLabel'));
-
-  // and the selected day resets on reload rather than stranding you
-  await page.click('#eatPrev'); await page.waitForTimeout(300);
   await page.reload(); await page.waitForTimeout(700);
-  check('a reload lands back on today, not the day you were correcting',
-    (await page.textContent('#eatLabel')).startsWith('TODAY'),
-    await page.textContent('#eatLabel'));
+  check('past days never touch today\'s total', (await page.textContent('#eatVal')) === todayTotal,
+    (await page.textContent('#eatVal')) + ' was ' + todayTotal);
+  check('past entries are not listed on today', (await page.locator('#eatEntries .entry').count()) === todayRows,
+    await page.locator('#eatEntries .entry').count());
+
+  await page.click('#foodTabs .tab[data-view="foods"]'); await page.waitForTimeout(300);
+  check('no weekly budget field any more', (await page.locator('#weeklyBudget').count()) === 0);
+  check('previous days are listed in Foods', (await page.locator('#histList .foodrow').count()) === 2,
+    await page.locator('#histList .foodrow').count());
+  check('newest past day first', /Yesterday/.test(await page.textContent('#histList .foodrow')),
+    await page.textContent('#histList .foodrow'));
+  check('a past day shows its total', /1,000/.test(await page.textContent('#histList')),
+    await page.textContent('#histList'));
+  await page.click('#histList .foodrow >> nth=1'); await page.waitForTimeout(400);
+  check('opening a past day shows its entries', (await page.locator('#histEntries .entry').count()) === 2,
+    await page.locator('#histEntries .entry').count());
+  check('and the sheet sums it', /1,000 kcal in 2 entries/.test(await page.textContent('#histSum')),
+    await page.textContent('#histSum'));
+  await page.click('#closeHist'); await page.waitForTimeout(350);
+  check('the past-day sheet closes', (await page.locator('#histSheet.on').count()) === 0);
+  await page.click('#foodTabs .tab[data-view="eat"]'); await page.waitForTimeout(300);
 
   await page.click('.mode-btn[data-mode="money"]');
   await page.waitForTimeout(300);
+
+  /* ---- Japanese: a third app, framed in ---- */
+  await page.click('.mode-btn[data-mode="nihongo"]');
+  await page.waitForTimeout(1200);
+  check('the Japanese view opens', (await page.locator('#v-nihongo.on').count()) === 1);
+  check('the money dock is hidden while Japanese is up',
+    !(await page.locator('.dock').isVisible()));
+  const jpFrame = page.frameLocator('#jpFrame');
+  check('the Japanese app boots inside the frame',
+    /NIHONGO 15/.test(await jpFrame.locator('#app').textContent()));
+  await page.reload(); await page.waitForTimeout(1200);
+  check('Japanese mode is remembered', (await page.locator('#v-nihongo.on').count()) === 1);
+  await page.click('.mode-btn[data-mode="money"]');
+  await page.waitForTimeout(300);
+  check('money comes back with its dock', await page.locator('.dock').isVisible());
 
   /* ---- currency ---- */
   await page.click('#moneyTabs .tab[data-view="setup"]');

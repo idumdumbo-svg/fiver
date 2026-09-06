@@ -105,6 +105,7 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .foodrow{display:flex;align-items:center;gap:12px;padding:11px 2px;
   border-bottom:1px solid var(--line-soft);width:100%;text-align:left}
 .foodrow:last-child{border-bottom:0}
+.foodrow .fkcal{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
 .foodrow .fname{flex:1;min-width:0;font-weight:600;font-size:14px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .foodrow .fkcal{font-family:"Archivo",sans-serif;font-weight:700;font-variation-settings:"wdth" 112;
@@ -530,6 +531,13 @@ body.sheeting .toast{bottom:auto;top:calc(12px + env(safe-area-inset-top));
 body.sheeting .toast.on{transform:translate(-50%,0)}
 
 .hidden{display:none !important}
+/* Japanese: a whole app of its own, framed in. It scrolls inside the frame,
+   so the shell drops its bottom padding and dock while it's up. */
+#app.jp main{padding:0;gap:0}
+#v-nihongo{flex:1;display:none;flex-direction:column}
+#v-nihongo.on{display:flex}
+.jpframe{border:0;width:100%;flex:1;min-height:calc(100dvh - 58px);background:#0b0d10;display:block}
+#app.jp .dock{display:none}
 .note-line{font-size:12px;color:var(--muted);line-height:1.45}
 select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
   background-position:calc(100% - 17px) 19px,calc(100% - 12px) 19px;background-size:5px 5px;background-repeat:no-repeat}
@@ -541,6 +549,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
     <div class="modesw" id="modeSw">
       <button class="mode-btn on" data-mode="money">Money</button>
       <button class="mode-btn" data-mode="food">Food</button>
+      <button class="mode-btn" data-mode="nihongo">日本語</button>
     </div>
   </div>
 
@@ -770,17 +779,16 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
     </section>
 
     <!-- ============ FOOD: TODAY ============ -->
+    <!-- ============ NIHONGO (Japanese) ============ -->
+    <section class="view" id="v-nihongo">
+      <iframe class="jpframe" id="jpFrame" title="Nihongo 15 — Japanese practice" loading="lazy"></iframe>
+    </section>
+
     <section class="view" id="v-eat">
       <div class="card hero">
         <div class="hero-date">
-          <span class="daynav">
-            <button class="arw" id="eatPrev" aria-label="Previous day">‹</button>
-            <button class="dlabel" id="eatLabel" aria-label="Pick a day">TODAY</button>
-            <button class="arw" id="eatNext" aria-label="Next day">›</button>
-            <input type="date" id="eatDayPick" aria-label="Pick a day">
-          </span>
+          <span class="eyebrow" id="eatLabel">TODAY</span>
           <span class="eyebrow" id="eatStreak"></span>
-          <button class="backtoday hidden" id="eatToday">Today</button>
         </div>
         <div class="hero-amount">
           <span class="val" id="eatVal">0</span><span class="unit">kcal</span>
@@ -829,18 +837,6 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         <div class="empty" id="eatEmpty"><p id="eatEmptyMsg">Nothing logged yet today.</p></div>
       </div>
 
-      <div class="card">
-        <div class="row" style="margin-bottom:6px">
-          <h2>Last 14 days</h2>
-          <span class="eyebrow" id="eatAvg"></span>
-        </div>
-        <div class="chart" id="eatChart"></div>
-        <div class="chart-x" id="eatChartX"></div>
-        <div class="ledger" style="margin-top:12px">
-          <div class="lrow"><span class="k">Days under budget</span><span class="v" id="eatUnder">—</span></div>
-          <div class="lrow"><span class="k">This week</span><span class="v" id="eatWeek">—</span></div>
-        </div>
-      </div>
     </section>
 
     <!-- ============ FOOD: FOODS ============ -->
@@ -851,11 +847,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
           <label for="dailyBudget">Daily</label>
           <input class="input" id="dailyBudget" inputmode="numeric" placeholder="2200">
         </div>
-        <div class="field">
-          <label for="weeklyBudget">Weekly (optional)</label>
-          <input class="input" id="weeklyBudget" inputmode="numeric" placeholder="">
-          <span class="note-line" id="weeklyHint"></span>
-        </div>
+        <span class="note-line">The day resets at midnight. Today is the only day on the Today screen.</span>
       </div>
 
       <div class="card stack">
@@ -874,6 +866,15 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
           <span class="eyebrow" id="foodCount"></span>
         </div>
         <div id="foodList"></div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:4px">
+          <h2>Previous days</h2>
+          <span class="eyebrow" id="histCount"></span>
+        </div>
+        <span class="note-line" style="display:block;margin-bottom:6px">Kept out of the way on purpose. Open a day to see what you logged.</span>
+        <div id="histList"></div>
       </div>
     </section>
 
@@ -1086,6 +1087,16 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
       <button class="btn" id="askCancel">Cancel</button>
       <button class="btn primary" id="askOk">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ PAST DAY (food) ============ -->
+<div class="sheet" id="histSheet">
+  <div class="grabber"></div>
+  <div class="sheet-head"><h3 id="histTitle">—</h3><button class="x" id="closeHist" aria-label="Close">×</button></div>
+  <div class="stack">
+    <p class="note-line" id="histSum"></p>
+    <div class="entries" id="histEntries"></div>
   </div>
 </div>
 
@@ -1306,7 +1317,9 @@ function saveFood(){
   catch(e){ toast("Couldn't save — this browser's storage is full."); }
 }
 /* The one thing the two halves share. */
-function foodDayStart(){ return state.settings.dayStartHour || 0; }
+// Food is a plain daily tracker: the day turns over at midnight, whatever
+// the money side's day-start setting says.
+function foodDayStart(){ return 0; }
 function foodToday(){ return dayKey(Date.now(), foodDayStart()); }
 
 /* Which day the food screen is showing. Deliberately NOT persisted:
@@ -1491,6 +1504,7 @@ function render(){
   refreshView();
   renderWelcome();
   renderMode();
+  if(mode === 'nihongo') return;
   if(mode === 'food'){ renderEat(); renderFoods(); return; }
   renderNudge();
   renderFresh();
@@ -1955,48 +1969,42 @@ function renderMode(){
   $('moneyTabs').style.display = mode === 'money' ? '' : 'none';
   $('foodTabs').style.display = mode === 'food' ? '' : 'none';
   $('openAdd').parentNode.style.display = mode === 'money' ? '' : 'none';
+  $('app').classList.toggle('jp', mode === 'nihongo');
+  if(mode === 'nihongo') mountNihongo();
+}
+
+/* The Japanese app is its own page (nihongo.html), loaded on first use so
+   it costs nothing until you open it. Hosted: a real file, cached by the
+   service worker for offline. Single-file builds: inlined by build.js. */
+function mountNihongo(){
+  var f = $('jpFrame');
+  if(f.dataset.mounted) return;
+  f.dataset.mounted = '1';
+  if(window.__FIVER_HOSTED__) f.src = './nihongo.html';
+  else if(window.__NIHONGO_SRC__) f.srcdoc = window.__NIHONGO_SRC__;
+  else f.src = './nihongo.html';
 }
 
 function renderEat(){
   // A day roll-over while the app sat open must not strand you on a
-  // "today" that is now yesterday's date.
-  if(foodDay > foodToday()) foodDay = foodToday();
-  var k = foodDay, isToday = onFoodToday();
+  // "today" that is now yesterday's date. Today is the only day here.
+  foodDay = foodToday();
+  var k = foodDay;
   var t = dayKcal(foodState, k);
   var c = compareToBudget(foodState, k);
   var streak = loggingStreak(foodState, k);
 
-  // prettyDay is relative for today/yesterday and already carries the
-  // date for anything older — appending shortDate to both gave "WED 2 SEP · 2 SEP".
-  var rel = prettyDay(k);
-  $('eatLabel').textContent = (rel === 'Today' || rel === 'Yesterday')
-    ? rel.toUpperCase() + ' · ' + shortDate(k)
-    : rel.toUpperCase();
-  $('eatLabel').classList.toggle('past', !isToday);
-  $('eatNext').disabled = isToday;
-  $('eatToday').classList.toggle('hidden', isToday);
-  $('eatStreak').classList.toggle('hidden', !isToday);
+  $('eatLabel').textContent = 'TODAY · ' + shortDate(k).toUpperCase();
   $('eatStreak').textContent = streak > 0 ? streak + ' DAY' + (streak===1?'':'S') + ' LOGGED' : '';
-  $('eatDayPick').value = k;
-  $('eatDayPick').max = foodToday();
-
-  // say plainly which day a tap will land on
-  var dayName = prettyDay(k);
-  $('eatListTitle').textContent = dayName;
-  $('eatEmptyMsg').textContent = isToday
-    ? 'Nothing logged yet today.'
-    : 'Nothing logged on ' + dayName + '.';
-  $('quickNote').textContent = isToday
-    ? "Slide to roughly what it was. Estimates, always — that's the point."
-    : 'Adding to ' + dayName + '. Tap Today above to come back.';
+  $('eatListTitle').textContent = 'Today';
+  $('eatEmptyMsg').textContent = 'Nothing logged yet today.';
+  $('quickNote').textContent = "Slide to roughly what it was. Estimates, always — that's the point.";
   $('eatVal').textContent = fmtKcal(t.total);
   $('eatCount').textContent = t.count === 1 ? '1 ENTRY' : t.count + ' ENTRIES';
 
-  var avg = avgKcal(foodState, k, 7);
   var sub = [];
   if(c.budget) sub.push('of <b>' + fmtKcal(c.budget) + '</b>');
   if(t.count === 0) sub.push('nothing logged yet');
-  else if(avg) sub.push('your average is <b>' + fmtKcal(avg.value) + '</b>');
   $('eatSub').innerHTML = sub.join(' &nbsp;·&nbsp; ') || 'Nothing logged yet';
 
   // meter
@@ -2007,7 +2015,7 @@ function renderEat(){
     fill.classList.toggle('over', c.over);
     $('eatLeft').innerHTML = c.over
       ? '<b style="color:var(--over)">' + fmtKcal(c.diff) + ' over</b>'
-      : '<b>' + fmtKcal(c.left) + '</b> left' + (isToday ? ' today' : ' that day');
+      : '<b>' + fmtKcal(c.left) + '</b> left today';
     $('eatBudgetNote').textContent = c.pct + '% of budget';
   } else {
     fill.style.width = '0%';
@@ -2053,48 +2061,59 @@ function renderEat(){
     .sort(function(a,b){ return b.ts - a.ts; });
   todays.forEach(function(e){ list.appendChild(eatRow(e)); });
   $('eatEmpty').classList.toggle('hidden', todays.length > 0);
+}
 
-  // 14-day chart
-  var ser = kcalSeries(foodState, k, 14);
-  var vals = ser.map(function(d){ return d.kcal; }).filter(function(x){ return x != null; });
-  var max = Math.max.apply(null, vals.concat([c.budget || 0, 500]));
-  var chart = $('eatChart'); chart.innerHTML = '';
-  ser.forEach(function(d){
-    var wrap = el('div','bwrap');
-    if(d.kcal == null){
-      wrap.appendChild(el('div','gap'));
-      wrap.title = prettyDay(d.day) + ' — not logged';
-    } else {
-      var cls = 'bar';
-      if(d.day === k) cls += ' today';
-      else if(c.budget && d.kcal > c.budget) cls += ' over';
-      var bar = el('div', cls);
-      bar.style.height = Math.max(2, (d.kcal/max)*88) + 'px';
-      wrap.title = prettyDay(d.day) + ' — ' + fmtKcal(d.kcal);
-      wrap.appendChild(bar);
-    }
-    chart.appendChild(wrap);
+/* Past days: grouped, newest first, and only reachable from Foods. The
+   Today screen never shows them — a daily tracker shows the day. */
+function foodHistory(){
+  var t = foodToday(), by = {};
+  foodState.entries.forEach(function(e){
+    if(e.day >= t) return;
+    if(!by[e.day]) by[e.day] = { day:e.day, total:0, count:0 };
+    by[e.day].total += e.kcal; by[e.day].count++;
   });
-  if(c.budget){
-    var line = el('div','baseline-line');
-    line.style.bottom = ((c.budget/max)*88) + 'px';
-    line.appendChild(el('span','baseline-tag','budget ' + fmtKcal(c.budget)));
-    chart.appendChild(line);
+  return Object.keys(by).sort().reverse().map(function(d){ return by[d]; });
+}
+function renderHistory(){
+  var days = foodHistory();
+  $('histCount').textContent = days.length ? days.length + ' DAY' + (days.length===1?'':'S') : '';
+  var box = $('histList'); box.innerHTML = '';
+  if(!days.length){
+    box.appendChild(el('div','empty','Nothing yet. Yesterday shows up here tomorrow.'));
+    return;
   }
-  var xs = $('eatChartX'); xs.innerHTML = '';
-  ser.forEach(function(d,i){
-    var lab = el('span', null, (i%2===0 || i===13) ? d.day.slice(8) : '');
-    if(d.day === k){ lab.style.color = 'var(--accent-ink)'; lab.style.fontWeight = '600'; }
-    xs.appendChild(lab);
+  days.slice(0, 60).forEach(function(d){
+    var c = compareToBudget(foodState, d.day);
+    var r = el('button','foodrow');
+    r.appendChild(el('span','fname', prettyDay(d.day) + (prettyDay(d.day)==='Yesterday' ? ' · ' + shortDate(d.day) : '')));
+    r.appendChild(el('span','fuses', d.count + (d.count===1?' entry':' entries')));
+    var amt = el('span','fkcal', fmtKcal(d.total));
+    if(c.budget) amt.style.color = c.over ? 'var(--over)' : 'var(--good)';
+    r.appendChild(amt);
+    r.onclick = function(){ openHistDay(d.day); };
+    box.appendChild(r);
   });
-
-  $('eatAvg').textContent = avg ? 'AVG ' + fmtKcal(avg.value) : '';
-  var du = daysUnder(foodState, k, 7);
-  $('eatUnder').textContent = c.budget ? du.under + ' of ' + du.of + ' logged days' : '—';
-  var wp = weekProgress(foodState, k);
-  $('eatWeek').textContent = wp.budget
-    ? fmtKcal(wp.total) + ' of ' + fmtKcal(wp.budget)
-    : fmtKcal(wp.total);
+}
+function openHistDay(day){
+  var t = dayKcal(foodState, day), c = compareToBudget(foodState, day);
+  var rel = prettyDay(day);
+  $('histTitle').textContent = rel === 'Yesterday' ? rel + ' · ' + shortDate(day) : rel;
+  $('histSum').textContent = fmtKcal(t.total) + ' kcal in ' + t.count + (t.count===1?' entry':' entries') +
+    (c.budget ? (c.over ? ' — ' + fmtKcal(c.diff) + ' over budget' : ' — ' + fmtKcal(c.left) + ' under budget') : '');
+  var list = $('histEntries'); list.innerHTML = '';
+  foodState.entries.filter(function(e){ return e.day === day; })
+    .sort(function(a,b){ return b.ts - a.ts; })
+    .forEach(function(e){
+      var b = el('div','entry');
+      b.appendChild(el('span','badge','KCAL'));
+      var body = el('span','body');
+      body.appendChild(el('span','cat', e.label || 'Something'));
+      body.appendChild(el('span','meta', timeOf(e.ts)));
+      b.appendChild(body);
+      var amt = el('span','amt'); amt.appendChild(el('span','r', fmtKcal(e.kcal))); b.appendChild(amt);
+      list.appendChild(b);
+    });
+  showSheet('histSheet');
 }
 
 function eatRow(e){
@@ -2113,11 +2132,7 @@ function eatRow(e){
 
 function renderFoods(){
   $('dailyBudget').value = foodState.settings.dailyBudget || '';
-  $('weeklyBudget').value = foodState.settings.weeklyBudget || '';
-  var wb = weeklyBudget(foodState);
-  $('weeklyHint').textContent = wb && !wb.explicit
-    ? 'Leave blank and it is seven days of your daily budget — ' + fmtKcal(wb.value) + '.'
-    : 'Leave blank and it is seven days of your daily budget.';
+  renderHistory();
 
   var foods = sortedFoods(foodState);
   $('foodCount').textContent = foods.length ? foods.length + ' SAVED' : '';
@@ -2150,7 +2165,7 @@ function labelForKcal(v){
    the plain modal rather than earning a keypad of its own. */
 function openEatSheet(){
   ask({
-    title: onFoodToday() ? 'Something else' : 'Add to ' + prettyDay(foodDay),
+    title: 'Something else',
     hint:'Roughly how many calories? Estimate — it rounds up to the nearest 10.',
     value:'', placeholder:'450', okLabel:'Log it',
     onOk: function(v){
@@ -2975,6 +2990,7 @@ function hideSheet(){
   $('destSheet').classList.remove('on');
   $('pauseSheet').classList.remove('on');
   $('bankSheet').classList.remove('on');
+  $('histSheet').classList.remove('on');
   document.body.classList.remove('sheeting');
   pausePending = null;
 }
@@ -3038,7 +3054,7 @@ function wire(){
       var tabs = mode === 'food' ? $('foodTabs') : $('moneyTabs');
       tabs.querySelectorAll('.tab').forEach(function(x,i){ x.classList.toggle('on', i===0); });
       document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
-      $(mode === 'food' ? 'v-eat' : 'v-today').classList.add('on');
+      $(mode === 'food' ? 'v-eat' : mode === 'nihongo' ? 'v-nihongo' : 'v-today').classList.add('on');
       window.scrollTo({top:0, behavior:'instant'});
       render();
     };
@@ -3054,7 +3070,7 @@ function wire(){
     var btn = $('logSlider');
     btn.disabled = v <= 0;
     btn.textContent = v > 0
-      ? 'Log ' + fmtKcal(v) + (onFoodToday() ? '' : ' · ' + shortDate(foodDay))
+      ? 'Log ' + fmtKcal(v)
       : 'Log it';
     // webkit has no ::-moz-range-progress, so the filled track is painted here
     var pct = (v / 1000) * 100;
@@ -3076,31 +3092,11 @@ function wire(){
 
   $('openEat').onclick = openEatSheet;
 
-  /* ---- food: which day am I logging to ---- */
-  $('eatPrev').onclick = function(){ setFoodDay(shiftDay(foodDay, -1)); };
-  $('eatNext').onclick = function(){ setFoodDay(shiftDay(foodDay, 1)); };
-  $('eatToday').onclick = function(){ setFoodDay(foodToday()); };
-  // The date input sits invisibly over the label and is only clickable
-  // for the moment it takes to open, so it can't swallow arrow taps.
-  $('eatLabel').onclick = function(){
-    var inp = $('eatDayPick');
-    inp.classList.add('armed');
-    if(inp.showPicker){ try{ inp.showPicker(); }catch(e){ inp.click(); } }
-    else inp.click();
-    setTimeout(function(){ inp.classList.remove('armed'); }, 400);
-  };
-  $('eatDayPick').onchange = function(){
-    if(this.value) setFoodDay(this.value);
-  };
+  $('closeHist').onclick = hideSheet;
   $('addFood').onclick = saveNewFood;
   $('dailyBudget').oninput = function(){
     foodState.settings.dailyBudget = parseKcal(this.value) || null;
-    saveFood(); renderEat(); $('weeklyHint').textContent =
-      'Leave blank and it is seven days of your daily budget.';
-  };
-  $('weeklyBudget').oninput = function(){
-    foodState.settings.weeklyBudget = parseKcal(this.value) || null;
-    saveFood(); renderEat();
+    saveFood(); renderEat(); renderHistory();
   };
 
   $('openAdd').onclick = function(){ openAdd('spend'); };
@@ -3616,10 +3612,10 @@ wire();
 wireSignIn();
 wirePWA();
 maybeFetchRates();
-try{ mode = localStorage.getItem(MODE_KEY) === 'food' ? 'food' : 'money'; }catch(e){}
-if(mode === 'food'){
+try{ var m0 = localStorage.getItem(MODE_KEY); mode = (m0 === 'food' || m0 === 'nihongo') ? m0 : 'money'; }catch(e){}
+if(mode !== 'money'){
   document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
-  $('v-eat').classList.add('on');
+  $(mode === 'food' ? 'v-eat' : 'v-nihongo').classList.add('on');
 }
 render();
 

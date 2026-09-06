@@ -20,13 +20,9 @@ function opts(){const l='/opt/pw-browsers/chromium';const o={args:['--no-sandbox
     await p.click('#foodTabs .tab[data-view="eat"]'); await p.waitForTimeout(300);
     await p.locator('#kcalSlider').fill('600'); await p.click('#logSlider'); await p.waitForTimeout(400);
     await p.screenshot({path:`f-today-${sc}.png`});
-    // step back two days and log there
-    await p.click('#eatPrev'); await p.waitForTimeout(250);
-    await p.click('#eatPrev'); await p.waitForTimeout(300);
-    await p.locator('#kcalSlider').fill('450'); await p.waitForTimeout(250);
-    await p.screenshot({path:`f-past-${sc}.png`});
-    await p.click('#logSlider'); await p.waitForTimeout(3600);
-    await p.screenshot({path:`f-past-logged-${sc}.png`});
+    // past days live in Foods, not on the Today screen
+    await p.click('#foodTabs .tab[data-view="foods"]'); await p.waitForTimeout(300);
+    await p.screenshot({path:`f-foods-${sc}.png`});
     const ov=await p.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
     console.log(sc,'overflow',ov,'errors',errs);
     await c.close();

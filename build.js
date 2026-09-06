@@ -37,8 +37,16 @@ var tpl = fs.readFileSync('template.html', 'utf8');
 // as a special replacement pattern and splice the file into itself
 var body = tpl.replace('/*LOGIC*/', function () { return logic; });
 
+// The Japanese app is a complete page of its own. Hosted builds ship it as
+// a file next to index.html; the single-file builds inline it so they stay
+// one file you can open off disk. JSON.stringify makes it a safe JS string;
+// the one thing it can't guard is a literal "</script>" inside, so split it.
+var nihongo = fs.readFileSync('nihongo.html', 'utf8');
+var inlineJp = '<script>window.__NIHONGO_SRC__=' +
+  JSON.stringify(nihongo).replace(/<\/script/g, '<\\/script') + ';<\/script>\n';
+
 // artifact build: no doctype/html/head/body — the viewer wraps it
-fs.writeFileSync('fiver.html', body);
+fs.writeFileSync('fiver.html', inlineJp + body);
 
 function document_(inner, extraHead) {
   return '<!doctype html>\n<html lang="en">\n<head>\n' +
@@ -51,7 +59,7 @@ function document_(inner, extraHead) {
 }
 
 // standalone build: one file, openable straight off disk
-fs.writeFileSync('fiver-standalone.html', document_(body));
+fs.writeFileSync('fiver-standalone.html', document_(inlineJp + body));
 
 // ---- hosted build: an installable PWA ----
 var pkg = {
@@ -95,6 +103,7 @@ fs.readdirSync('assets/icons').forEach(function (f) {
   fs.copyFileSync('assets/icons/' + f, 'dist/icons/' + f);
 });
 fs.writeFileSync('dist/index.html', document_(body, hostedHead));
+fs.writeFileSync('dist/nihongo.html', nihongo);
 fs.writeFileSync('dist/manifest.webmanifest', JSON.stringify(pkg, null, 2));
 fs.writeFileSync('dist/sw.js',
   fs.readFileSync('sw-template.js', 'utf8').replace('__VERSION__', version));

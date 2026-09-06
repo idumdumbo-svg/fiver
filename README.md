@@ -1,6 +1,6 @@
 # Fiver
 
-Two small trackers sharing one shell, switched with a toggle in the top bar,
+Three small apps sharing one shell, switched with a toggle in the top bar,
 and a behaviour layer over the spending side.
 
 **Money** — round every spend up to the next five. Watch the day fill up as a
@@ -8,8 +8,14 @@ wall of $5 blocks. The gap between what you spent and what you logged gets
 swept somewhere you won't spend it.
 
 **Food** — calorie estimates against a daily budget. One tap for a snack or a
-meal, and anything you eat often becomes its own chip. Step back a day to fix
-what you forgot to log.
+meal, and anything you eat often becomes its own chip. It is a daily tracker:
+the day turns over at midnight and the Today screen shows today and nothing
+else. Previous days are kept, out of the way, under Foods — open one to see
+what you logged.
+
+**日本語** — Nihongo 15, a fifteen-minute-a-day Japanese trainer (phrases,
+conversations, and a texting practice partner). A complete page of its own,
+`nihongo.html`, framed into the shell and cached for offline like the rest.
 
 **Score** — the behaviour layer. A weekly discipline score, your current week
 ranked against your own past weeks, forgiving streaks, and a pause that speaks
@@ -83,13 +89,11 @@ or record that you didn't. It cannot change the amount.
 In the trial this came from, placebo dates did nothing at all, so a random
 Tuesday gets no prompt.
 
-**Fixing a past day (food).** Arrows either side of the date step back and
-forward, and tapping the date opens a picker. Everything on the screen follows
-the day you're on — the total, the list, the quick-log slider — and the button
-names the day it will land on, so a tap is never ambiguous. You can't step
-past today. The selected day is deliberately not remembered across a reload:
-opening the app tomorrow should land on tomorrow, not on whatever day you were
-last correcting.
+**Past days (food).** There is no stepping back. The Today screen is today;
+yesterday appears under Foods → Previous days the moment the clock passes
+midnight, with its total and every entry, read-only. Nothing about earlier
+days is shown on the logging screen, so today never has anything to live up
+to.
 
 **The drift check.** When you re-check your balance, the app tells you what it
 expected first, then remembers the difference. That number is the honest
@@ -106,6 +110,7 @@ logic.js         the money maths — pure functions, no DOM, fully tested
 calories.js      the food maths — same deal, and deliberately isolated
 curb.js          the behaviour maths — score, league, freezes, the pause
 template.html    the app: markup, styles, and the UI layer over logic.js
+nihongo.html     the Japanese trainer — self-contained, framed into the shell
 sw-template.js   service worker; the build stamps a version into it
 build.js         assembles the three outputs below
 icons.py         regenerates assets/icons — run only when the mark changes
