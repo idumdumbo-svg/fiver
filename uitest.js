@@ -470,6 +470,99 @@ function launchOpts() {
   await page.click('.mode-btn[data-mode="money"]');
   await page.waitForTimeout(300);
 
+  /* ---- notes: three for today, basics, honest carry-over ---- */
+  await page.click('.mode-btn[data-mode="notes"]');
+  await page.waitForTimeout(400);
+  check('the notes view opens', (await page.locator('#v-notes.on').count()) === 1);
+  check('no dock on notes', !(await page.locator('.dock').isVisible()));
+  check('starts with an empty plan', (await page.textContent('#ntVal')) === '0');
+
+  await page.fill('#ntInp', 'wax the board tomorrow 9am'); await page.waitForTimeout(150);
+  check('typing a time previews it', /Tomorrow 9am/i.test(await page.textContent('#whenHint')),
+    await page.textContent('#whenHint'));
+  await page.press('#ntInp', 'Enter'); await page.waitForTimeout(300);
+  check('enter adds it', (await page.locator('#laterList .noterow').count()) === 1);
+  check('the time was split off the text', (await page.textContent('#laterList .nt')) === 'wax the board',
+    await page.textContent('#laterList .nt'));
+  check('and shown as meta', /Tomorrow 9am/.test(await page.textContent('#laterList .nmeta')),
+    await page.textContent('#laterList .nmeta'));
+  check('the input clears', (await page.inputValue('#ntInp')) === '');
+
+  for (const t of ['book lift pass', 'reply to mum', 'sort visa docs', 'buy wax']) {
+    await page.fill('#ntInp', t); await page.press('#ntInp', 'Enter'); await page.waitForTimeout(150);
+  }
+  check('five in later', (await page.locator('#laterList .noterow').count()) === 5);
+  check('nothing in today yet', (await page.locator('#ntTodayEmpty:not(.hidden)').count()) === 1);
+
+  // plan three
+  for (let i = 0; i < 3; i++) { await page.click('#laterList .nplan >> nth=0'); await page.waitForTimeout(150); }
+  check('three moved to today', (await page.locator('#todayList .noterow').count()) === 3);
+  check('two left in later', (await page.locator('#laterList .noterow').count()) === 2);
+  check('the fourth cannot be planned', await page.locator('#laterList .nplan >> nth=0').isDisabled());
+  check('hero says 0 of 3', (await page.textContent('#ntVal')) === '0' && /of 3/.test(await page.textContent('#ntUnit')));
+  check('plan full is announced', /PLAN FULL/.test(await page.textContent('#ntPlanCount')));
+
+  // finish one
+  await page.click('#todayList .ncheck >> nth=0'); await page.waitForTimeout(150);
+  check('the row animates before it goes', (await page.locator('#todayList .noterow.doing').count()) === 1);
+  await page.waitForTimeout(1000);
+  check('then it leaves today', (await page.locator('#todayList .noterow').count()) === 2);
+  check('hero counts it', (await page.textContent('#ntVal')) === '1');
+  check('two to go', /2 to go/.test(await page.textContent('#ntSub')), await page.textContent('#ntSub'));
+  check('a slot opens up for later items', !(await page.locator('#laterList .nplan >> nth=0').isDisabled()));
+  check('the done card appears', (await page.locator('#doneCard:not(.hidden)').count()) === 1);
+  await page.click('#doneToggle'); await page.waitForTimeout(200);
+  check('done opens on request', (await page.locator('#doneList .noterow').count()) === 1);
+  await page.click('#doneList .ncheck'); await page.waitForTimeout(300);
+  check('a done note can be put back', (await page.locator('#todayList .noterow').count()) === 3
+    && (await page.textContent('#ntVal')) === '0');
+  check('an empty done list hides its card', (await page.locator('#doneCard:not(.hidden)').count()) === 0);
+
+  // finish all three → day done
+  for (let i = 0; i < 3; i++) { await page.click('#todayList .ncheck >> nth=0'); await page.waitForTimeout(1000); }
+  check('day done', /Day done/.test(await page.textContent('#ntSub')), await page.textContent('#ntSub'));
+  check('3 of 3', (await page.textContent('#ntVal')) === '3');
+
+  // basics
+  await page.click('#basics .basic.add'); await page.waitForTimeout(300);
+  await page.fill('#askInput', 'Gym'); await page.click('#askOk'); await page.waitForTimeout(350);
+  await page.click('#basics .basic.add'); await page.waitForTimeout(300);
+  await page.fill('#askInput', 'Japanese'); await page.click('#askOk'); await page.waitForTimeout(350);
+  check('two basics', (await page.locator('#basics .basic:not(.add)').count()) === 2);
+  await page.click('#basics .basic:not(.add) >> nth=0'); await page.waitForTimeout(450);
+  check('a basic ticks', (await page.locator('#basics .basic.on').count()) === 1);
+  check('a first tick shows a streak of 1', (await page.textContent('#basics .basic.on small')) === '1');
+  await page.click('#basics .basic.on'); await page.waitForTimeout(300);
+  check('and unticks', (await page.locator('#basics .basic.on').count()) === 0);
+
+  // editing: blank = delete
+  await page.click('#laterList .ntext >> nth=0'); await page.waitForTimeout(300);
+  await page.fill('#askInput', ''); await page.click('#askOk'); await page.waitForTimeout(350);
+  check('clearing the text deletes the note', (await page.locator('#laterList .noterow').count()) === 1);
+
+  // midnight: an unfinished today item is carried, honestly
+  await page.evaluate(() => {
+    const n = JSON.parse(localStorage.getItem('fiver.notes.v1'));
+    const pad = x => (x < 10 ? '0' : '') + x;
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    const yday = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    const open = n.notes.find(x => !x.done);
+    open.today = yday; open.carried = 2; n.lastDay = yday;
+    n.notes.filter(x => x.done).forEach(x => { x.today = yday; });   // pretend all that was yesterday
+    localStorage.setItem('fiver.notes.v1', JSON.stringify(n));
+  });
+  await page.reload(); await page.waitForTimeout(800);
+  check('notes mode is remembered', (await page.locator('#v-notes.on').count()) === 1);
+  check('the carried note is back in later', (await page.locator('#laterList .noterow').count()) === 1);
+  check('with its count', /carried ×3/.test(await page.textContent('#laterList .nmeta')),
+    await page.textContent('#laterList .nmeta'));
+  check('and after three carries it asks for a decision', /Do it today or let it go/.test(await page.textContent('#laterList')));
+  check('yesterday\'s finished plan does not count today', (await page.textContent('#ntVal')) === '0');
+  check('the basics survived the reload', (await page.locator('#basics .basic:not(.add)').count()) === 2);
+
+  await page.click('.mode-btn[data-mode="money"]');
+  await page.waitForTimeout(300);
+
   /* ---- Japanese: a third app, framed in ---- */
   await page.click('.mode-btn[data-mode="nihongo"]');
   await page.waitForTimeout(1200);

@@ -68,7 +68,7 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .topbar h1 span{color:var(--accent-ink)}
 .modesw{display:flex;gap:3px;padding:3px;border-radius:999px;background:var(--sunk);
   border:1px solid var(--line)}
-.mode-btn{padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--muted);
+.mode-btn{padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--muted);
   transition:background .14s,color .14s}
 .mode-btn.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 .hero-amount .unit{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
@@ -537,7 +537,63 @@ body.sheeting .toast.on{transform:translate(-50%,0)}
 #v-nihongo{flex:1;display:none;flex-direction:column}
 #v-nihongo.on{display:flex}
 .jpframe{border:0;width:100%;flex:1;min-height:calc(100dvh - 58px);background:#0b0d10;display:block}
-#app.jp .dock{display:none}
+#app.jp .dock,#app.notes .dock{display:none}
+#app.notes main{padding-bottom:40px}
+
+/* ============ notes ============ */
+.basics{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.basic{display:inline-flex;align-items:center;gap:8px;padding:7px 12px 7px 8px;border-radius:999px;
+  border:1px solid var(--line);background:var(--surface-2);font-size:13px;font-weight:600;color:var(--ink-2);
+  transition:background .2s,border-color .2s,color .2s}
+.basic i{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--muted);display:grid;place-items:center;flex:none;
+  transition:background .2s,border-color .2s}
+.basic i svg{width:11px;height:11px;stroke:var(--on-accent);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:20;stroke-dashoffset:20;transition:stroke-dashoffset .25s ease .05s}
+.basic.on{background:var(--good-soft);border-color:transparent;color:var(--good)}
+.basic.on i{background:var(--good);border-color:var(--good)}
+.basic.on i svg{stroke-dashoffset:0}
+.basic small{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);font-weight:500}
+.basic.on small{color:var(--good)}
+.basic.add{border-style:dashed;background:transparent;color:var(--muted);font-weight:500}
+
+.noterow{display:flex;align-items:flex-start;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line-soft);
+  transition:opacity .35s ease,max-height .35s ease,padding .35s ease,margin .35s ease;max-height:120px;overflow:hidden}
+.noterow:last-child{border-bottom:0}
+.ncheck{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);flex:none;
+  display:grid;place-items:center;margin-top:1px;transition:background .18s,border-color .18s,transform .18s}
+.ncheck svg{width:13px;height:13px;stroke:var(--on-accent);stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:22;stroke-dashoffset:22;transition:stroke-dashoffset .28s ease .06s}
+.ncheck:active{transform:scale(.9)}
+.ntext{flex:1;min-width:0;text-align:left;font-size:15px;line-height:1.35;color:var(--ink);position:relative;padding-top:3px}
+.ntext .nt{position:relative;display:inline}
+.ntext .nt::after{content:"";position:absolute;left:0;top:55%;height:1.5px;width:0;background:var(--muted);transition:width .3s ease .1s}
+.ntext .nmeta{display:block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;color:var(--muted);margin-top:2px}
+.ntext .nmeta.today{color:var(--accent-ink)}
+.ntext .nmeta.overdue{color:var(--over)}
+.ntext .nmeta.decide{color:var(--brass-solid)}
+.nplan{flex:none;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:6px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:transparent;margin-top:3px}
+.nplan.in{color:var(--accent-ink);border-color:var(--accent-soft);background:var(--accent-soft)}
+.nplan:disabled{opacity:.35}
+.noterow.doing .ncheck{background:var(--good);border-color:var(--good)}
+.noterow.doing .ncheck svg{stroke-dashoffset:0}
+.noterow.doing .ntext{color:var(--muted)}
+.noterow.doing .ntext .nt::after{width:100%}
+.noterow.gone{opacity:0;max-height:0;padding-top:0;padding-bottom:0;border-bottom-width:0}
+.noterow.donerow .ncheck{background:var(--good);border-color:var(--good);opacity:.55}
+.noterow.donerow .ncheck svg{stroke-dashoffset:0;transition:none}
+.noterow.donerow .ntext{color:var(--muted)}
+.noterow.donerow .ntext .nt{text-decoration:line-through;text-decoration-color:var(--muted)}
+.noteadd{display:flex;gap:8px;align-items:center}
+.noteadd .input{flex:1;font-size:15px}
+.noteadd .btn{flex:none;padding:12px 16px}
+.whenhint{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;color:var(--accent-ink);
+  min-height:14px;margin-top:8px}
+.donehead{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;padding:0}
+.donehead .chev{color:var(--muted);transition:transform .2s}
+.donehead.open .chev{transform:rotate(90deg)}
+.alerts{font-size:12px;color:var(--muted);text-align:center;margin-top:4px}
+.alerts button{color:var(--accent-ink);font-weight:600;font-size:12px;padding:0}
 .note-line{font-size:12px;color:var(--muted);line-height:1.45}
 select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
   background-position:calc(100% - 17px) 19px,calc(100% - 12px) 19px;background-size:5px 5px;background-repeat:no-repeat}
@@ -550,6 +606,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
       <button class="mode-btn on" data-mode="money">Money</button>
       <button class="mode-btn" data-mode="food">Food</button>
       <button class="mode-btn" data-mode="nihongo">日本語</button>
+      <button class="mode-btn" data-mode="notes">Notes</button>
     </div>
   </div>
 
@@ -782,6 +839,54 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
     <!-- ============ NIHONGO (Japanese) ============ -->
     <section class="view" id="v-nihongo">
       <iframe class="jpframe" id="jpFrame" title="Nihongo 15 — Japanese practice" loading="lazy"></iframe>
+    </section>
+
+    <!-- ============ NOTES ============ -->
+    <section class="view" id="v-notes">
+      <div class="card hero">
+        <div class="hero-date">
+          <span class="eyebrow" id="ntLabel">TODAY</span>
+          <span class="eyebrow" id="ntPlanCount"></span>
+        </div>
+        <div class="hero-amount">
+          <span class="val" id="ntVal">0</span><span class="unit" id="ntUnit">of 3 today</span>
+        </div>
+        <div class="hero-sub" id="ntSub">Pick up to three things for today.</div>
+        <div class="basics" id="basics"></div>
+      </div>
+
+      <div class="card">
+        <div class="noteadd">
+          <input class="input" id="ntInp" type="text" inputmode="text" autocapitalize="sentences" autocomplete="off"
+                 placeholder="Note or reminder…" maxlength="140">
+          <button class="btn primary" id="ntAdd">Add</button>
+        </div>
+        <div class="whenhint" id="whenHint"></div>
+      </div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom:4px">
+          <h2>Today</h2>
+          <span class="eyebrow" id="todayHead"></span>
+        </div>
+        <div id="todayList"></div>
+        <div class="empty" id="ntTodayEmpty">Nothing chosen. Tap <b>today</b> on a note below to make it one of your three.</div>
+      </div>
+
+      <div class="card" id="laterCard">
+        <div class="row" style="margin-bottom:4px">
+          <h2>Later</h2>
+          <span class="eyebrow" id="laterHead"></span>
+        </div>
+        <div id="laterList"></div>
+        <div class="empty" id="laterEmpty">Nothing waiting. Write down whatever is on your mind.</div>
+      </div>
+
+      <div class="card" id="doneCard">
+        <button class="donehead" id="doneToggle"><h2 style="margin:0">Done</h2><span class="row" style="gap:8px"><span class="eyebrow" id="doneHead"></span><span class="chev">›</span></span></button>
+        <div id="doneList" class="hidden" style="margin-top:6px"></div>
+      </div>
+      <div class="alerts" id="alerts"></div>
     </section>
 
     <section class="view" id="v-eat">
@@ -1195,6 +1300,7 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 var KEY = 'fiver.v1';
 var FOOD_KEY = 'fiver.food.v1';     // its own key — lift the food app out by taking this
 var MODE_KEY = 'fiver.mode';
+var NOTES_KEY = 'fiver.notes.v1';   // its own key — lift the notes app out by taking this
 var RATES_KEY = 'fiver.rates.v1';
 var RATES_URL = 'https://api.frankfurter.dev/v1/';   // ECB reference rates, no key, CORS-open
 var mode = 'money';
@@ -1505,6 +1611,7 @@ function render(){
   renderWelcome();
   renderMode();
   if(mode === 'nihongo') return;
+  if(mode === 'notes'){ renderNotes(); return; }
   if(mode === 'food'){ renderEat(); renderFoods(); return; }
   renderNudge();
   renderFresh();
@@ -1960,6 +2067,196 @@ function renderSavings(){
 }
 
 /* ============================================================
+   notes
+   ============================================================ */
+var notesState = loadNotes();
+function loadNotes(){
+  try{
+    var raw = localStorage.getItem(NOTES_KEY);
+    if(!raw) return blankNotes();
+    var n = JSON.parse(raw), b = blankNotes();
+    n.notes = n.notes || []; n.basics = n.basics || []; n.settings = n.settings || b.settings;
+    return n;
+  }catch(e){ return blankNotes(); }
+}
+function saveNotes(){ try{ localStorage.setItem(NOTES_KEY, JSON.stringify(notesState)); }catch(e){} }
+function notesToday(){ return dayKey(Date.now(), 0); }   // midnight, like food
+
+var doneOpen = false, carriedToast = false;
+function renderNotes(){
+  var k = notesToday(), now = Date.now();
+  var carried = rollover(notesState, k);
+  var pruned = pruneDone(notesState, now);
+  if(carried.length || pruned) saveNotes();
+  if(carried.length && !carriedToast){
+    carriedToast = true;
+    toast(carried.length === 1 ? '1 thing carried over from yesterday' : carried.length + ' things carried over from yesterday');
+  }
+
+  // hero: today's plan
+  var tp = todayProgress(notesState, k), bp = basicsProgress(notesState, k);
+  $('ntLabel').textContent = prettyDay(k).toUpperCase() + ' · ' + shortDate(k).toUpperCase();
+  $('ntPlanCount').textContent = tp.of ? (tp.of < TODAY_CAP ? (TODAY_CAP - tp.of) + ' SLOT' + (TODAY_CAP-tp.of===1?'':'S') + ' FREE' : 'PLAN FULL') : '';
+  $('ntVal').textContent = tp.done;
+  $('ntUnit').textContent = 'of ' + (tp.of || TODAY_CAP) + ' today';
+  var sub;
+  if(!tp.of) sub = 'Pick up to three things for today. Three is the limit on purpose.';
+  else if(tp.complete) sub = bp.of && !bp.complete ? 'Plan done. Just the basics left.' : 'Day done. Anything else is a bonus.';
+  else { var left = tp.of - tp.done; sub = left === 1 ? 'One to go.' : left + ' to go.'; }
+  $('ntSub').textContent = sub;
+
+  // basics
+  var bx = $('basics'); bx.innerHTML = '';
+  notesState.basics.forEach(function(b){
+    var on = basicDone(b, k), st = basicStreak(b, k);
+    var btn = el('button', 'basic' + (on ? ' on' : ''));
+    btn.innerHTML = '<i><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>';
+    btn.appendChild(document.createTextNode(b.name));
+    if(st > 0){ var s = el('small', null, String(st)); btn.appendChild(s); }
+    btn.title = st > 0 ? st + ' day' + (st===1?'':'s') + ' in a row' : '';
+    btn.onclick = function(){
+      var nowOn = tickBasic(notesState, b.id, k); saveNotes();
+      if(nowOn){ btn.classList.add('on'); buzz(); setTimeout(renderNotes, 320); }
+      else renderNotes();
+    };
+    btn.oncontextmenu = function(ev){ ev.preventDefault(); editBasic(b); };
+    bx.appendChild(btn);
+  });
+  var addB = el('button','basic add', notesState.basics.length ? '+' : '+ add a daily basic');
+  addB.onclick = addBasicPrompt;
+  bx.appendChild(addB);
+
+  // lists
+  var tl = $('todayList'); tl.innerHTML = '';
+  var tn = todayNotes(notesState, k);
+  tn.forEach(function(n){ tl.appendChild(noteRow(n, k, now, 'today')); });
+  $('ntTodayEmpty').classList.toggle('hidden', tn.length > 0);
+  $('todayHead').textContent = tn.length ? tn.length + ' OF ' + TODAY_CAP : '';
+
+  var ll = $('laterList'); ll.innerHTML = '';
+  var ln = laterNotes(notesState, k);
+  ln.forEach(function(n){ ll.appendChild(noteRow(n, k, now, 'later')); });
+  $('laterEmpty').classList.toggle('hidden', ln.length > 0);
+  $('laterHead').textContent = ln.length ? ln.length + ' WAITING' : '';
+
+  var dn = doneNotes(notesState);
+  $('doneCard').classList.toggle('hidden', dn.length === 0);
+  $('doneHead').textContent = dn.length + ' THIS WEEK';
+  $('doneToggle').classList.toggle('open', doneOpen);
+  var dl = $('doneList'); dl.innerHTML = '';
+  dl.classList.toggle('hidden', !doneOpen);
+  if(doneOpen) dn.forEach(function(n){ dl.appendChild(noteRow(n, k, now, 'done')); });
+
+  renderAlerts();
+}
+function noteRow(n, k, now, where){
+  var row = el('div', 'noterow' + (where === 'done' ? ' donerow' : ''));
+  var chk = el('button', 'ncheck'); chk.setAttribute('aria-label', where === 'done' ? 'Put back' : 'Done');
+  chk.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  chk.onclick = function(){ where === 'done' ? undoDone(n) : finishNote(n, row); };
+  row.appendChild(chk);
+
+  var txt = el('button', 'ntext');
+  var span = el('span', 'nt', n.text); txt.appendChild(span);
+  var meta = [], metaCls = '';
+  if(n.due){ var ds = dueState(n, now); meta.push(fmtWhen(n, now)); metaCls = ds || ''; }
+  if(where !== 'done' && n.carried){ meta.push('carried ×' + n.carried); if(needsDecision(n)) metaCls = 'decide'; }
+  if(where === 'done'){ meta = [timeOf(n.done) + (dayKey(n.done,0) === k ? '' : ' · ' + prettyDay(dayKey(n.done,0)))]; }
+  if(meta.length){ txt.appendChild(el('span', 'nmeta ' + metaCls, meta.join(' · '))); }
+  if(where !== 'done' && needsDecision(n)) txt.appendChild(el('span', 'nmeta decide', 'Do it today or let it go.'));
+  txt.onclick = function(){ editNote(n); };
+  row.appendChild(txt);
+
+  if(where !== 'done'){
+    var pl = el('button', 'nplan' + (where === 'today' ? ' in' : ''), where === 'today' ? 'later' : 'today');
+    if(where === 'later' && planFull(notesState, k)){ pl.disabled = true; pl.title = 'Plan is full — three is the limit'; }
+    pl.setAttribute('aria-label', where === 'today' ? 'Move back to later' : 'Make it one of today\'s three');
+    pl.onclick = function(){
+      if(!planToday(notesState, n.id, k)){ toast('Three is the limit. Finish one first.'); return; }
+      saveNotes(); renderNotes();
+    };
+    row.appendChild(pl);
+  }
+  return row;
+}
+function buzz(){ try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){} }
+/* The satisfying bit, kept small: the circle fills, the tick draws, the
+   line strikes through, then the row folds away. One motion, no confetti. */
+function finishNote(n, row){
+  if(row.classList.contains('doing')) return;
+  row.classList.add('doing'); buzz();
+  setTimeout(function(){ row.classList.add('gone'); }, 520);
+  setTimeout(function(){
+    completeNote(notesState, n.id, Date.now()); saveNotes(); renderNotes();
+    var tp = todayProgress(notesState, notesToday());
+    toast(tp.complete ? 'Day done.' : 'Done', 'Undo', function(){ undoDone(n); });
+  }, 880);
+}
+function undoDone(n){ reopenNote(notesState, n.id); saveNotes(); renderNotes(); }
+function addNoteFromInput(){
+  var inp = $('ntInp'), v = inp.value.trim();
+  if(!v) return;
+  var n = addNote(notesState, v, Date.now());
+  if(!n) return;
+  inp.value = ''; $('whenHint').textContent = '';
+  saveNotes(); renderNotes();
+  var p = todayProgress(notesState, notesToday());
+  if(p.of === 0 && !n.due) toast('Added to Later. Tap today to plan it.');
+}
+function editNote(n){
+  ask({
+    title:'Edit', hint:'Change the words, add a time at the end ("fri 9am"), or clear it to delete.',
+    value: n.text + (n.due ? ' ' + fmtWhen(n, Date.now()).toLowerCase() : ''), placeholder:'', okLabel:'Save', inputmode:'text',
+    onOk:function(v){
+      v = String(v || '').trim();
+      if(!v){ var gone = removeNote(notesState, n.id); saveNotes(); renderNotes();
+        toast('Deleted', 'Undo', function(){ notesState.notes.push(gone); saveNotes(); renderNotes(); }); return; }
+      var p = parseNote(v, Date.now());
+      n.text = p.text; n.due = p.due; n.allDay = !!(p.due && !p.hasTime); n.notified = false;
+      saveNotes(); renderNotes();
+    }
+  });
+}
+function addBasicPrompt(){
+  ask({ title:'A daily basic', hint:'Something you want to do every day. Short — "Gym", "Japanese 15 min", "Log spend".',
+    value:'', placeholder:'Gym', okLabel:'Add', inputmode:'text',
+    onOk:function(v){ if(addBasic(notesState, v, Date.now())){ saveNotes(); renderNotes(); } } });
+}
+function editBasic(b){
+  ask({ title:'Remove ' + b.name + '?', hint:'Its history goes with it.', input:false, okLabel:'Remove', danger:true,
+    onOk:function(){ removeBasic(notesState, b.id); saveNotes(); renderNotes(); } });
+}
+/* Reminders: this is a page, not a phone OS. A reminder alerts while
+   Fiver is open — a toast, plus a system notification if allowed. It
+   says so plainly rather than pretending otherwise. */
+function renderAlerts(){
+  var a = $('alerts');
+  var hasTimed = notesState.notes.some(function(n){ return !n.done && n.due && !n.allDay; });
+  if(!hasTimed){ a.innerHTML = ''; return; }
+  var can = typeof Notification !== 'undefined';
+  var granted = can && Notification.permission === 'granted';
+  if(granted) a.textContent = 'Reminders alert while Fiver is open, and as notifications.';
+  else if(can && Notification.permission !== 'denied'){
+    a.innerHTML = 'Reminders alert while Fiver is open. ';
+    var b = el('button', null, 'Allow notifications'); b.onclick = function(){ Notification.requestPermission().then(renderAlerts); };
+    a.appendChild(b);
+  } else a.textContent = 'Reminders alert while Fiver is open.';
+}
+function tickReminders(){
+  var due = dueNow(notesState, Date.now());
+  if(!due.length) return;
+  due.forEach(function(n){
+    n.notified = true;
+    if(typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+      try{ new Notification(n.text, { body:'Fiver reminder', tag:n.id }); }catch(e){}
+    }
+  });
+  saveNotes();
+  toast(due.length === 1 ? '⏰ ' + due[0].text : '⏰ ' + due.length + ' reminders due');
+  if(mode === 'notes') renderNotes();
+}
+
+/* ============================================================
    food rendering
    ============================================================ */
 function renderMode(){
@@ -1970,6 +2267,7 @@ function renderMode(){
   $('foodTabs').style.display = mode === 'food' ? '' : 'none';
   $('openAdd').parentNode.style.display = mode === 'money' ? '' : 'none';
   $('app').classList.toggle('jp', mode === 'nihongo');
+  $('app').classList.toggle('notes', mode === 'notes');
   if(mode === 'nihongo') mountNihongo();
 }
 
@@ -3054,7 +3352,7 @@ function wire(){
       var tabs = mode === 'food' ? $('foodTabs') : $('moneyTabs');
       tabs.querySelectorAll('.tab').forEach(function(x,i){ x.classList.toggle('on', i===0); });
       document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
-      $(mode === 'food' ? 'v-eat' : mode === 'nihongo' ? 'v-nihongo' : 'v-today').classList.add('on');
+      $({food:'v-eat', nihongo:'v-nihongo', notes:'v-notes'}[mode] || 'v-today').classList.add('on');
       window.scrollTo({top:0, behavior:'instant'});
       render();
     };
@@ -3093,6 +3391,13 @@ function wire(){
   $('openEat').onclick = openEatSheet;
 
   $('closeHist').onclick = hideSheet;
+  $('ntAdd').onclick = addNoteFromInput;
+  $('ntInp').onkeydown = function(ev){ if(ev.key === 'Enter'){ ev.preventDefault(); addNoteFromInput(); } };
+  $('ntInp').oninput = function(){
+    var p = parseNote(this.value, Date.now());
+    $('whenHint').textContent = p.due ? '⏰ ' + fmtWhen({due:p.due, allDay:!p.hasTime}, Date.now()) : '';
+  };
+  $('doneToggle').onclick = function(){ doneOpen = !doneOpen; renderNotes(); };
   $('addFood').onclick = saveNewFood;
   $('dailyBudget').oninput = function(){
     foodState.settings.dailyBudget = parseKcal(this.value) || null;
@@ -3612,11 +3917,12 @@ wire();
 wireSignIn();
 wirePWA();
 maybeFetchRates();
-try{ var m0 = localStorage.getItem(MODE_KEY); mode = (m0 === 'food' || m0 === 'nihongo') ? m0 : 'money'; }catch(e){}
+try{ var m0 = localStorage.getItem(MODE_KEY); mode = (m0 === 'food' || m0 === 'nihongo' || m0 === 'notes') ? m0 : 'money'; }catch(e){}
 if(mode !== 'money'){
   document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
-  $(mode === 'food' ? 'v-eat' : 'v-nihongo').classList.add('on');
+  $({food:'v-eat', nihongo:'v-nihongo', notes:'v-notes'}[mode]).classList.add('on');
 }
+setInterval(tickReminders, 30000);
 render();
 
 // If the day rolls over while the app is open, redraw.

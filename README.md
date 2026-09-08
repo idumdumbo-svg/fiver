@@ -1,6 +1,6 @@
 # Fiver
 
-Three small apps sharing one shell, switched with a toggle in the top bar,
+Four small apps sharing one shell, switched with a toggle in the top bar,
 and a behaviour layer over the spending side.
 
 **Money** — round every spend up to the next five. Watch the day fill up as a
@@ -16,6 +16,16 @@ what you logged.
 **日本語** — Nihongo 15, a fifteen-minute-a-day Japanese trainer (phrases,
 conversations, and a texting practice partner). A complete page of its own,
 `nihongo.html`, framed into the shell and cached for offline like the rest.
+
+**Notes** — notes and reminders, built around three things that actually
+change behaviour. *Today* is a plan of at most three items you pick yourself;
+three is the cap on purpose. *Basics* are the few things you want to do every
+day — one tap each, reset at midnight, with a quiet count of days in a row.
+*Carry-over* is honest: a Today item not finished by midnight goes back to
+Later with a count, and after three carries the app says, once, do it or let
+it go. Type a time on the end of a line ("call mum tomorrow 9am", "wax board
+tonight", "pay rent fri", "check lifts in 2h") and it becomes a reminder;
+reminders alert while Fiver is open, and as notifications if you allow them.
 
 **Score** — the behaviour layer. A weekly discipline score, your current week
 ranked against your own past weeks, forgiving streaks, and a pause that speaks
@@ -109,6 +119,7 @@ currency.js      currencies, conversion and the round-up step
 logic.js         the money maths — pure functions, no DOM, fully tested
 calories.js      the food maths — same deal, and deliberately isolated
 curb.js          the behaviour maths — score, league, freezes, the pause
+notes.js         notes & reminders — the when-parser, the plan of three, basics
 template.html    the app: markup, styles, and the UI layer over logic.js
 nihongo.html     the Japanese trainer — self-contained, framed into the shell
 sw-template.js   service worker; the build stamps a version into it
@@ -119,7 +130,8 @@ test.js          157 money logic tests
 test-cal.js      77 food logic tests
 test-fx.js       64 currency tests
 test-curb.js     100 behaviour tests
-uitest.js        162 browser tests against the built app
+test-notes.js    95 notes tests
+uitest.js        199 browser tests against the built app
 pwatest.js       16 tests that the hosted build installs and works offline
 ```
 
