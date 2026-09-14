@@ -52,8 +52,7 @@ function document_(inner, extraHead) {
   return '<!doctype html>\n<html lang="en">\n<head>\n' +
     '<meta charset="utf-8">\n' +
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n' +
-    '<meta name="theme-color" content="#EDF0F4" media="(prefers-color-scheme: light)">\n' +
-    '<meta name="theme-color" content="#0C0F14" media="(prefers-color-scheme: dark)">\n' +
+    '<meta name="theme-color" content="#060D0C">\n' +
     (extraHead || '') +
     '</head>\n<body>\n' + inner + '\n</body>\n</html>\n';
 }
@@ -70,8 +69,8 @@ var pkg = {
   scope: './',
   display: 'standalone',
   orientation: 'portrait',
-  background_color: '#EDF0F4',
-  theme_color: '#192C42',
+  background_color: '#060D0C',
+  theme_color: '#060D0C',
   categories: ['finance', 'productivity'],
   icons: [
     { src: './icons/icon-192.png', sizes: '192x192', type: 'image/png' },

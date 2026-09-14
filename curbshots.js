@@ -4,7 +4,7 @@ function launchOpts(){ const l='/opt/pw-browsers/chromium'; const o={args:['--no
   if(fs.existsSync(l)) o.executablePath=l; return o; }
 (async () => {
   const b = await chromium.launch(launchOpts());
-  for (const scheme of ['light','dark']) {
+  for (const scheme of ['dark']) {
     const ctx = await b.newContext({ ...devices['iPhone 13'], colorScheme: scheme,
       locale:'en-NZ', timezoneId:'Pacific/Auckland' });
     const p = await ctx.newPage();

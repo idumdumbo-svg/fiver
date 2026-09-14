@@ -3,7 +3,7 @@ const path=require('path'), fs=require('fs');
 function opts(){const l='/opt/pw-browsers/chromium';const o={args:['--no-sandbox']};if(fs.existsSync(l))o.executablePath=l;return o;}
 (async()=>{
   const b=await chromium.launch(opts());
-  for(const sc of ['light','dark']){
+  for(const sc of ['dark']){
     const c=await b.newContext({...devices['iPhone 13'],colorScheme:sc,locale:'en-NZ',timezoneId:'Pacific/Auckland'});
     const p=await c.newPage();
     const errs=[]; p.on('pageerror',e=>errs.push(e.message));

@@ -73,7 +73,6 @@ function launchOpts() {
     await page.screenshot({ path: `s-eat-bottom-${scheme}.png` });
     await ctx.close();
   }
-  await run('light');
   await run('dark');
   await browser.close();
   console.log('shots done');

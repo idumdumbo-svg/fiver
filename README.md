@@ -35,7 +35,8 @@ Same idea on both trackers: one big number for today, an average of the days
 you actually logged, and rounding that always goes **up** so you never flatter
 yourself.
 
-No accounts and no server — everything lives in the browser on your device. A
+One dark theme, no light mode. No accounts and no server — everything lives in
+the browser on your device. A
 bank connection is optional, off by default, read-only, and needs a small
 Worker of your own; see [Your bank](#your-bank-optional).
 
@@ -167,8 +168,8 @@ npm test                          # logic + app + offline
 npm run serve                     # http://localhost:8080
 ```
 
-`npm run shots` writes phone-sized screenshots of every screen in both themes —
-useful for eyeballing a change without picking up your phone.
+`npm run shots` writes phone-sized screenshots of every screen — useful for
+eyeballing a change without picking up your phone.
 
 Every push to `main` runs all five suites in CI and only deploys if they pass.
 

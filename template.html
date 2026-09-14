@@ -4,38 +4,19 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <style>
-/* ============ tokens: light is the base, both themes redefined ============ */
+/* ============ tokens: one dark world, every colour painted explicitly ============ */
 :root{
-  --ground:#EDF0F4; --surface:#FFFFFF; --surface-2:#F5F7FA; --sunk:#E3E8EE;
-  --ink:#141920; --ink-2:#3B4552; --muted:#66707E; --line:#D6DDE6; --line-soft:#E6EBF1;
-  --accent:#28527A; --accent-soft:#DCE6F1; --accent-ink:#28527A; --on-accent:#FFFFFF;
-  --good:#1B6E52; --good-soft:#D5EBE0;
-  --over:#AC402B; --over-soft:#F6DED8;
-  --brass:#96702199; --brass-solid:#8A6A1E; --brass-soft:#F0E6CC;
-  --block:#3D6B98; --block-over:#C05238; --block-empty:#DCE2E9;
-  --shadow:0 1px 2px rgba(20,25,32,.06), 0 8px 24px -12px rgba(20,25,32,.18);
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --ground:#0C0F14; --surface:#151A21; --surface-2:#1B212A; --sunk:#10151B;
-    --ink:#E6ECF3; --ink-2:#C0C9D4; --muted:#8A96A5; --line:#242C36; --line-soft:#1E252E;
-    --accent:#7DAEDD; --accent-soft:#1B2A3A; --accent-ink:#9DC4EA; --on-accent:#0B0F14;
-    --good:#54C296; --good-soft:#132B23;
-    --over:#E5836A; --over-soft:#2E1A15;
-    --brass:#D9AC5599; --brass-solid:#D9AC55; --brass-soft:#2A2214;
-    --block:#5E93C6; --block-over:#D46A4C; --block-empty:#222A34;
-    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
-  }
-}
-:root[data-theme="dark"]{
-  --ground:#0C0F14; --surface:#151A21; --surface-2:#1B212A; --sunk:#10151B;
-  --ink:#E6ECF3; --ink-2:#C0C9D4; --muted:#8A96A5; --line:#242C36; --line-soft:#1E252E;
-  --accent:#7DAEDD; --accent-soft:#1B2A3A; --accent-ink:#9DC4EA; --on-accent:#0B0F14;
-  --good:#54C296; --good-soft:#132B23;
-  --over:#E5836A; --over-soft:#2E1A15;
-  --brass:#D9AC5599; --brass-solid:#D9AC55; --brass-soft:#2A2214;
-  --block:#5E93C6; --block-over:#D46A4C; --block-empty:#222A34;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  color-scheme:dark;
+  --ground:#060D0C; --surface:#0C1A19; --surface-2:#122A28; --sunk:#081312;
+  --ink:#E6FBF6; --ink-2:#A9D0C9; --muted:#6C918B; --line:#1E403C; --line-soft:#14302D;
+  --accent:#2BF5C8; --accent-soft:#0E2C28; --accent-ink:#2BF5C8; --on-accent:#04211B;
+  --good:#2BF5C8; --good-soft:#0E2C28;
+  --over:#FF4B3E; --over-soft:#2C1210;
+  --brass:#FFC46B99; --brass-solid:#FFC46B; --brass-soft:#2C2215;
+  --block:#2BF5C8; --block-over:#FF4B3E; --block-empty:#17322F;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 12px 34px -16px rgba(0,0,0,.9);
+  --glow:0 0 28px -7px var(--accent);
+  --navh:86px;
 }
 
 *{box-sizing:border-box}
@@ -57,20 +38,30 @@ input,select,textarea{font:inherit;color:inherit}
 /* ============ shell ============ */
 #app{max-width:470px;margin:0 auto;min-height:100dvh;background:var(--ground);
   display:flex;flex-direction:column;position:relative}
-main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
+main{flex:1;padding:14px 16px 176px;display:flex;flex-direction:column;gap:14px}
 .view{display:none;flex-direction:column;gap:14px}
 .view.on{display:flex}
 
 .topbar{display:flex;align-items:center;justify-content:space-between;
-  padding:14px 16px 2px;gap:10px}
-.topbar h1{margin:0;font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 78;
-  font-weight:800;font-size:17px;letter-spacing:.02em;text-transform:uppercase}
+  padding:16px 16px 2px;gap:10px}
+.topbar h1{margin:0;font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 68;
+  font-weight:800;font-size:17px;letter-spacing:.14em;text-transform:uppercase;
+  display:flex;align-items:center;gap:8px}
 .topbar h1 span{color:var(--accent-ink)}
-.modesw{display:flex;gap:3px;padding:3px;border-radius:999px;background:var(--sunk);
-  border:1px solid var(--line)}
-.mode-btn{padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--muted);
-  transition:background .14s,color .14s}
-.mode-btn.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.topbar h1 .bolt{width:15px;height:15px;fill:var(--accent);flex:none}
+
+/* the four apps: one bar, fixed under the thumb, never changes shape */
+.modesw{display:flex;gap:5px;padding:6px;border-radius:22px;background:var(--surface);
+  border:1px solid var(--line);box-shadow:0 -10px 34px -14px #000}
+.mode-btn{flex:1;min-height:62px;border-radius:16px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;color:var(--muted);
+  font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 80;font-weight:800;
+  font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;
+  transition:background .16s,color .16s,transform .08s}
+.mode-btn svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+.mode-btn.on{background:var(--accent);color:var(--on-accent);box-shadow:var(--glow)}
+.mode-btn:active{transform:scale(.96)}
 .hero-amount .unit{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);
   align-self:flex-end;margin:0 0 12px 8px;letter-spacing:.04em}
 .meter{height:14px;border-radius:7px;background:var(--block-empty);overflow:hidden;margin:16px 0 10px;
@@ -128,7 +119,15 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .sep{height:1px;background:var(--line-soft);margin:2px 0}
 
 /* ============ hero ============ */
-.hero{padding:20px 16px 16px}
+.hero{padding:20px 16px 16px;position:relative;overflow:hidden;border-color:var(--accent-soft);
+  background:radial-gradient(125% 120% at 50% 0%,#12332E 0%,var(--surface) 62%)}
+.hero::before{content:"";position:absolute;left:50%;top:32%;width:560px;height:560px;
+  transform:translate(-50%,-50%);pointer-events:none;opacity:.15;
+  background:repeating-conic-gradient(from 0deg at 50% 50%,
+    var(--accent) 0deg .9deg,transparent .9deg 4.2deg);
+  -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 8%,transparent 62%);
+  mask-image:radial-gradient(circle at 50% 50%,#000 8%,transparent 62%)}
+.hero>*{position:relative}
 .hero-date{display:flex;justify-content:space-between;align-items:baseline}
 /* day stepper — food side. Arrows either side of the date, the date
    itself opens a picker, and a way back to today once you've wandered. */
@@ -159,9 +158,10 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 /* ============ the $5 blocks ============ */
 .blocks{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:16px 0 10px}
 .blk{aspect-ratio:1;border-radius:4px;background:var(--block);
+  box-shadow:0 0 12px -3px var(--block);
   animation:pop .28s cubic-bezier(.34,1.4,.64,1) backwards}
-.blk.over{background:var(--block-over)}
-.blk.ghost{background:var(--block-empty);animation:none}
+.blk.over{background:var(--block-over);box-shadow:0 0 12px -3px var(--block-over)}
+.blk.ghost{background:var(--block-empty);box-shadow:none;animation:none}
 .blk.more{grid-column:span 10;aspect-ratio:auto;background:transparent;
   font-size:11px;color:var(--muted);text-align:center;padding-top:2px;animation:none}
 @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
@@ -224,29 +224,41 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .btn-row{display:flex;gap:9px}
 .btn-row>*{flex:1}
 
-/* ============ bottom bar ============ */
-.dock{position:fixed;bottom:0;left:0;right:0;z-index:40;
-  display:flex;flex-direction:column;align-items:center;gap:0;
-  pointer-events:none}
-.dock-inner{width:100%;max-width:470px;pointer-events:auto;
-  background:color-mix(in srgb,var(--surface) 92%,transparent);
-  backdrop-filter:blur(14px);border-top:1px solid var(--line);
-  padding:9px 14px calc(9px + env(safe-area-inset-bottom))}
-.addbtn{width:100%;padding:14px;border-radius:13px;background:var(--accent);color:var(--on-accent);
-  font-weight:700;font-size:15.5px;letter-spacing:.01em;display:flex;align-items:center;
-  justify-content:center;gap:9px;transition:transform .08s ease}
+/* ============ bottom bar: the action sits above the four apps ============ */
+.bottombar{position:fixed;bottom:0;left:0;right:0;z-index:40;
+  display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.bottombar-inner{width:100%;max-width:470px;pointer-events:auto;
+  padding:0 14px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top,var(--ground) 56%,transparent)}
+.dock{padding-bottom:11px}
+.dock-inner{width:100%}
+.addbtn{width:100%;min-height:56px;padding:14px;border-radius:14px;background:var(--accent);
+  color:var(--on-accent);font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 88;
+  font-weight:800;font-size:15px;letter-spacing:.04em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  box-shadow:var(--glow);transition:transform .08s ease}
 .addbtn:active{transform:scale(.985)}
 .dock-row{display:flex;gap:8px}
 .dock-row .addbtn{width:auto;flex:1;white-space:nowrap}
-.dock-row .addbtn.earned{flex:0 0 auto;padding:14px 20px;background:var(--good-soft);
-  color:var(--good);border:1px solid color-mix(in srgb,var(--good) 30%,transparent)}
-.tabs{display:flex;margin-top:7px}
-.tab{flex:1;padding:6px 2px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;
-  font-size:10.5px;color:var(--muted);font-family:"IBM Plex Mono",monospace;letter-spacing:.05em;
-  text-transform:uppercase}
-.tab.on{color:var(--accent-ink)}
-.tab svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;
-  stroke-linecap:round;stroke-linejoin:round}
+.dock-row .addbtn.earned{flex:0 0 auto;padding:14px 18px;background:var(--surface-2);
+  color:var(--accent);border:1px solid var(--accent-soft);box-shadow:none}
+
+/* sub-pages: a scrolling strip under the header, where five of them can breathe */
+.subnav{padding:12px 16px 0}
+.subnav:empty{display:none}
+.tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;min-height:46px;padding:0 16px;border-radius:14px;
+  display:flex;flex-direction:row;align-items:center;gap:8px;
+  background:var(--surface);border:1px solid var(--line);color:var(--muted);
+  font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 82;font-weight:700;
+  font-size:13px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
+  transition:background .15s,color .15s,border-color .15s,transform .08s}
+.tab.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);
+  box-shadow:var(--glow)}
+.tab:active{transform:scale(.97)}
+.tab svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round;flex:none}
 
 /* ============ curb: score, league, freezes, the pause ============ */
 .scorehead{display:flex;align-items:center;gap:16px}
@@ -317,7 +329,7 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .impscroll{max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 
 /* ============ sheet ============ */
-.scrim{position:fixed;inset:0;background:rgba(10,14,20,.5);z-index:50;opacity:0;
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:50;opacity:0;
   pointer-events:none;transition:opacity .2s ease;backdrop-filter:blur(2px)}
 .scrim.on{opacity:1;pointer-events:auto}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;margin:0 auto;max-width:470px;
@@ -502,14 +514,8 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
   padding:14px;border-radius:12px;font-size:15px;font-weight:600;transition:transform .08s ease}
 .signin:active{transform:scale(.985)}
 .signin svg{width:18px;height:18px;flex:none}
-.signin.apple{background:#000;color:#fff;border:1px solid #000}
-.signin.apple svg{fill:#fff}
-:root[data-theme="dark"] .signin.apple{background:#fff;color:#000;border-color:#fff}
-:root[data-theme="dark"] .signin.apple svg{fill:#000}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .signin.apple{background:#fff;color:#000;border-color:#fff}
-  :root:not([data-theme="light"]) .signin.apple svg{fill:#000}
-}
+.signin.apple{background:#fff;color:#000;border:1px solid #fff}
+.signin.apple svg{fill:#000}
 .signin.google{background:#fff;color:#1f1f1f;border:1px solid #dadce0}
 .signin-note{margin:2px 0 0;font-size:12.5px;line-height:1.5;color:var(--muted);
   padding:11px 13px;border-radius:11px;background:var(--surface-2);border:1px solid var(--line)}
@@ -517,13 +523,14 @@ main{flex:1;padding:14px 16px 148px;display:flex;flex-direction:column;gap:14px}
 .acct{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:11px;
   background:var(--surface-2);border:1px solid var(--line);font-size:13px}
 .acct .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
-.toast{position:fixed;left:50%;transform:translate(-50%,20px);bottom:150px;z-index:80;
-  background:var(--ink);color:var(--ground);padding:10px 14px;border-radius:11px;
+.toast{position:fixed;left:50%;transform:translate(-50%,20px);bottom:196px;z-index:80;
+  background:var(--surface-2);color:var(--ink);border:1px solid var(--accent-soft);
+  padding:11px 15px;border-radius:12px;
   font-size:13px;font-weight:500;display:flex;align-items:center;gap:12px;
   opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:var(--shadow);
   max-width:min(94vw,430px)}
 .toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-.toast button{color:var(--ground);font-weight:700;text-decoration:underline;font-size:13px}
+.toast button{color:var(--accent);font-weight:700;text-decoration:underline;font-size:13px}
 /* With a sheet up, the usual position lands the toast across the sheet's
    own copy. Move it clear rather than letting the two overlap. */
 body.sheeting .toast{bottom:auto;top:calc(12px + env(safe-area-inset-top));
@@ -533,12 +540,12 @@ body.sheeting .toast.on{transform:translate(-50%,0)}
 .hidden{display:none !important}
 /* Japanese: a whole app of its own, framed in. It scrolls inside the frame,
    so the shell drops its bottom padding and dock while it's up. */
-#app.jp main{padding:0;gap:0}
+#app.jp main{padding:0 0 calc(var(--navh) + env(safe-area-inset-bottom));gap:0}
 #v-nihongo{flex:1;display:none;flex-direction:column}
 #v-nihongo.on{display:flex}
-.jpframe{border:0;width:100%;flex:1;min-height:calc(100dvh - 58px);background:#0b0d10;display:block}
+.jpframe{border:0;width:100%;flex:1;min-height:calc(100dvh - 58px - var(--navh));background:var(--ground);display:block}
 #app.jp .dock,#app.notes .dock{display:none}
-#app.notes main{padding-bottom:40px}
+#app.notes main{padding-bottom:calc(var(--navh) + 28px + env(safe-area-inset-bottom))}
 
 /* ============ notes ============ */
 .basics{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
@@ -601,13 +608,22 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
 
 <div id="app">
   <div class="topbar">
-    <h1>FIV<span>E</span>R</h1>
-    <div class="modesw" id="modeSw">
-      <button class="mode-btn on" data-mode="money">Money</button>
-      <button class="mode-btn" data-mode="food">Food</button>
-      <button class="mode-btn" data-mode="nihongo">日本語</button>
-      <button class="mode-btn" data-mode="notes">Notes</button>
-    </div>
+    <h1><svg class="bolt" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg>FIV<span>E</span>R</h1>
+  </div>
+
+  <div class="subnav">
+    <div class="tabs" id="foodTabs" style="display:none">
+        <button class="tab on" data-view="eat"><svg viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 003 3v7"/><path d="M6 3v5M9 3v5"/><path d="M17 3c-1.5 2-2 4-2 6s.5 3 2 3v9"/></svg>Today</button>
+        <button class="tab" data-view="foods"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2.5"/></svg>Foods</button>
+        <button class="tab" data-view="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Setup</button>
+      </div>
+    <div class="tabs" id="moneyTabs">
+        <button class="tab on" data-view="today"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20V9M12 20V4M18 20v-7"/></svg>Today</button>
+        <button class="tab" data-view="score"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>Score</button>
+        <button class="tab" data-view="trends"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 7-9"/><path d="M15 6h5v5"/></svg>Trends</button>
+        <button class="tab" data-view="savings"><svg viewBox="0 0 24 24"><path d="M3 10h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2v-9z"/><path d="M3 10l3-6h12l3 6"/><path d="M12 14v3"/></svg>Money</button>
+        <button class="tab" data-view="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Setup</button>
+      </div>
   </div>
 
   <main>
@@ -1095,7 +1111,9 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
     </section>
   </main>
 
-  <div class="dock">
+  <div class="bottombar">
+   <div class="bottombar-inner">
+    <div class="dock">
     <div class="dock-inner">
       <div class="dock-row">
         <button class="addbtn" id="openAdd">
@@ -1104,19 +1122,15 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         </button>
         <button class="addbtn earned" id="openIncome">Earned</button>
       </div>
-      <div class="tabs" id="foodTabs" style="display:none">
-        <button class="tab on" data-view="eat"><svg viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 003 3v7"/><path d="M6 3v5M9 3v5"/><path d="M17 3c-1.5 2-2 4-2 6s.5 3 2 3v9"/></svg>Today</button>
-        <button class="tab" data-view="foods"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2.5"/></svg>Foods</button>
-        <button class="tab" data-view="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Setup</button>
-      </div>
-      <div class="tabs" id="moneyTabs">
-        <button class="tab on" data-view="today"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20V9M12 20V4M18 20v-7"/></svg>Today</button>
-        <button class="tab" data-view="score"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>Score</button>
-        <button class="tab" data-view="trends"><svg viewBox="0 0 24 24"><path d="M3 17l5-6 4 4 7-9"/><path d="M15 6h5v5"/></svg>Trends</button>
-        <button class="tab" data-view="savings"><svg viewBox="0 0 24 24"><path d="M3 10h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2v-9z"/><path d="M3 10l3-6h12l3 6"/><path d="M12 14v3"/></svg>Money</button>
-        <button class="tab" data-view="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Setup</button>
-      </div>
     </div>
+    </div>
+    <nav class="modesw" id="modeSw" aria-label="Apps">
+        <button class="mode-btn on" data-mode="money"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h18v9a2 2 0 01-2 2H5a2 2 0 01-2-2v-9z"/><path d="M3 10l3-6h12l3 6"/><path d="M12 14v3"/></svg>Money</button>
+        <button class="mode-btn" data-mode="food"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 003 3v7"/><path d="M6 3v5M9 3v5"/><path d="M17 3c-1.5 2-2 4-2 6s.5 3 2 3v9"/></svg>Food</button>
+        <button class="mode-btn" data-mode="nihongo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M9 4v3M6 7c0 5-1 8-3 10M9 9c1 4 3 6 6 7"/><path d="M14 20l3.5-9 3.5 9M15.4 17h4.2"/></svg>日本語</button>
+        <button class="mode-btn" data-mode="notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>Notes</button>
+    </nav>
+   </div>
   </div>
 </div>
 
