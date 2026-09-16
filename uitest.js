@@ -859,6 +859,131 @@ function launchOpts() {
   const backupHasKey = await page.evaluate(() =>
     JSON.stringify(JSON.parse(localStorage.getItem('fiver.v1'))).indexOf('test-key') >= 0);
   check('the bank key never enters the exportable state', !backupHasKey);
+  /* ---- the vault ---- */
+  await page.click('.mode-btn[data-mode="vault"]');
+  await page.waitForTimeout(400);
+  check('a fresh vault asks you to set a passcode',
+    (await page.textContent('#vlockTitle')).indexOf('Set') === 0);
+  check('and warns there is no reset',
+    await page.locator('#vlockWarn').isVisible());
+  check('the sub-tabs are hidden while locked',
+    !(await page.locator('#vaultTabs').isVisible()));
+  check('the money dock is gone in the vault',
+    !(await page.locator('.dock').isVisible()));
+  check('but the app nav is still there',
+    await page.locator('#modeSw').isVisible());
+
+  await page.fill('#vlockPass', 'short');
+  await page.click('#vlockGo'); await page.waitForTimeout(200);
+  check('a short passcode is refused',
+    /8 characters/.test(await page.textContent('#vlockNote')));
+
+  await page.fill('#vlockPass', 'a good long passcode');
+  await page.fill('#vlockPass2', 'a good long passcodx');
+  await page.click('#vlockGo'); await page.waitForTimeout(200);
+  check('a mismatch is refused',
+    /do not match/.test(await page.textContent('#vlockNote')));
+
+  await page.fill('#vlockPass', 'a good long passcode');
+  await page.fill('#vlockPass2', 'a good long passcode');
+  await page.click('#vlockGo'); await page.waitForTimeout(2500);
+  check('setting a passcode unlocks it', await page.locator('#vaultTabs').isVisible());
+  check('and the documents tab is showing', await page.locator('#v-docs').isVisible());
+
+  await page.click('#addDocBtn'); await page.waitForTimeout(450);
+  await page.selectOption('#docType', 'passport');
+  await page.fill('#docLabel', 'AU Passport');
+  await page.fill('#docNumber', 'PA9999123');
+  const soon = new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10);
+  await page.fill('#docExpires', soon);
+  await page.click('#docSave'); await page.waitForTimeout(700);
+  check('the document is listed', (await page.locator('.drow').count()) === 1);
+  check('with its expiry called out',
+    /days left/.test(await page.textContent('#docList')));
+  check('and a banner at the top', await page.locator('.vbanner').isVisible());
+
+  const rawStore = await page.evaluate(() => JSON.stringify(localStorage));
+  check('the passport number is not in localStorage', rawStore.indexOf('PA9999123') === -1);
+  check('nor is its label', rawStore.indexOf('AU Passport') === -1);
+  check('the vault key exists but is ciphertext', /fiver\.vault\.v1/.test(rawStore));
+
+  /* a file, encrypted into IndexedDB */
+  await page.click('.drow'); await page.waitForTimeout(450);
+  await page.setInputFiles('#docFileInput', {
+    name: 'passport-scan.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('PLAINTEXTMARKER-8842-scan-bytes-here', 'utf8')
+  });
+  await page.waitForTimeout(400);
+  check('the chosen file is shown before saving',
+    /passport-scan\.png/.test(await page.textContent('#docFileArea')));
+  await page.click('#docSave'); await page.waitForTimeout(900);
+  check('the row shows it carries a file',
+    (await page.locator('.drow .dclip').count()) === 1);
+
+  const idb = await page.evaluate(() => new Promise(res => {
+    const r = indexedDB.open('fiver-vault', 1);
+    r.onsuccess = () => {
+      const db = r.result;
+      const g = db.transaction('files', 'readonly').objectStore('files').getAll();
+      g.onsuccess = () => {
+        const out = g.result.map(f => ({
+          id: f.id,
+          ivLen: (f.iv || '').length,
+          bytes: Array.from(new Uint8Array(f.ct))
+        }));
+        db.close(); res(out);
+      };
+    };
+  }));
+  check('exactly one file is stored', idb.length === 1);
+  check('it has an iv', idb[0].ivLen > 0);
+  const asText = String.fromCharCode.apply(null, idb[0].bytes);
+  check('the file bytes on disk are not the plaintext',
+    asText.indexOf('PLAINTEXTMARKER') === -1, asText.slice(0, 40));
+  check('and are longer than the plaintext (GCM tag)',
+    idb[0].bytes.length > 36);
+
+  await page.click('#vaultTabs .tab[data-view="accounts"]'); await page.waitForTimeout(300);
+  await page.click('#addAccBtn'); await page.waitForTimeout(450);
+  await page.fill('#accService', 'IRD');
+  await page.fill('#accEmail', 'test@example.com');
+  await page.click('#accSave'); await page.waitForTimeout(600);
+  check('the account is listed', (await page.locator('.arow').count()) === 1);
+  check('grouped under its email',
+    /test@example\.com/.test(await page.textContent('#accList')));
+  check('there is no password field anywhere in the vault',
+    (await page.locator('#accSheet input[type="password"]').count()) === 0);
+
+  await page.click('#vaultTabs .tab[data-view="security"]'); await page.waitForTimeout(300);
+  await page.click('#lockNowBtn'); await page.waitForTimeout(400);
+  check('locking hides everything again',
+    !(await page.locator('#vaultTabs').isVisible()));
+  check('and asks to unlock, not to set up',
+    (await page.textContent('#vlockTitle')) === 'Locked');
+
+  await page.fill('#vlockPass', 'the wrong passcode');
+  await page.click('#vlockGo'); await page.waitForTimeout(2500);
+  check('a wrong passcode is rejected',
+    /not it/.test(await page.textContent('#vlockNote')));
+  check('and it stays locked', !(await page.locator('#vaultTabs').isVisible()));
+
+  await page.fill('#vlockPass', 'a good long passcode');
+  await page.click('#vlockGo'); await page.waitForTimeout(2500);
+  check('the right passcode opens it again', await page.locator('#vaultTabs').isVisible());
+  await page.click('#vaultTabs .tab[data-view="docs"]'); await page.waitForTimeout(300);
+  check('the document survived the lock', (await page.locator('.drow').count()) === 1);
+  check('with its number intact', await (async () => {
+    await page.click('.drow'); await page.waitForTimeout(400);
+    const n = await page.inputValue('#docNumber');
+    await page.click('#closeDoc'); await page.waitForTimeout(300);
+    return n === 'PA9999123';
+  })());
+
+  await page.click('.mode-btn[data-mode="money"]'); await page.waitForTimeout(400);
+  check('money still works after all that',
+    await page.locator('#v-today').isVisible());
+
   /* ---- screenshots, both themes ---- */
   await page.screenshot({ path: 'shot-today-light.png', fullPage: false });
   await page.click('#moneyTabs .tab[data-view="trends"]'); await page.waitForTimeout(300);

@@ -248,6 +248,8 @@ main{flex:1;padding:14px 16px 176px;display:flex;flex-direction:column;gap:14px}
 .subnav:empty{display:none}
 .tabs{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .tabs::-webkit-scrollbar{display:none}
+.tabs.scrolls{-webkit-mask-image:linear-gradient(90deg,#000 0,#000 87%,transparent 99%);
+  mask-image:linear-gradient(90deg,#000 0,#000 87%,transparent 99%)}
 .tab{flex:none;min-height:46px;padding:0 16px;border-radius:14px;
   display:flex;flex-direction:row;align-items:center;gap:8px;
   background:var(--surface);border:1px solid var(--line);color:var(--muted);
@@ -604,6 +606,97 @@ body.sheeting .toast.on{transform:translate(-50%,0)}
 .note-line{font-size:12px;color:var(--muted);line-height:1.45}
 select.input{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
   background-position:calc(100% - 17px) 19px,calc(100% - 12px) 19px;background-size:5px 5px;background-repeat:no-repeat}
+/* ============ the vault: locked by default, encrypted always ============ */
+#app.vault .dock{display:none}
+#app.vault main{padding-bottom:calc(var(--navh) + 28px + env(safe-area-inset-bottom))}
+#app.vault.vlocked .subnav{display:none}
+#app.vault.vlocked .view{display:none}
+#vaultLock{display:none}
+#app.vault.vlocked #vaultLock{display:flex;flex:1;align-items:center;justify-content:center;
+  padding:8px 0 40px}
+.vlock-inner{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.vlock-ico{width:52px;height:52px;border-radius:17px;background:var(--accent-soft);
+  border:1px solid color-mix(in srgb,var(--accent) 34%,transparent);display:grid;place-items:center;flex:none}
+.vlock-ico svg{width:24px;height:24px;stroke:var(--accent);fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+.vlock-inner h2{margin:0;font-family:"Archivo",sans-serif;font-variation-settings:"wdth" 74;
+  font-weight:800;font-size:22px;letter-spacing:.04em;text-transform:uppercase}
+.vlock-inner .blurb{margin:0;font-size:13.5px;color:var(--ink-2);max-width:34ch;line-height:1.55}
+.vlock-form{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.vlock-form .input{min-height:52px;text-align:center;letter-spacing:.08em;font-size:16px}
+.vnote{font-size:12.5px;color:var(--muted);min-height:17px;margin:0;line-height:1.5}
+.vnote.bad{color:var(--over)}
+.vnote.good{color:var(--accent)}
+.vwarn{display:flex;gap:10px;padding:12px 13px;border-radius:12px;background:var(--brass-soft);
+  border:1px solid var(--brass-solid);font-size:12.5px;color:var(--ink-2);text-align:left;line-height:1.55}
+.vwarn b{color:var(--brass-solid);font-weight:700}
+.vwarn svg{width:16px;height:16px;stroke:var(--brass-solid);fill:none;stroke-width:2;flex:none;margin-top:1px}
+
+/* document rows */
+.drow{display:flex;align-items:center;gap:12px;padding:11px 2px;width:100%;text-align:left;
+  border-bottom:1px solid var(--line-soft)}
+.drow:last-child{border-bottom:0}
+.dico{width:40px;height:40px;border-radius:12px;flex:none;display:grid;place-items:center;
+  background:var(--surface-2);border:1px solid var(--line)}
+.dico svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.drow.s-expired .dico{background:var(--over-soft);border-color:var(--over)}
+.drow.s-expired .dico svg{stroke:var(--over)}
+.drow.s-soon .dico{background:var(--brass-soft);border-color:var(--brass-solid)}
+.drow.s-soon .dico svg{stroke:var(--brass-solid)}
+.dbody{flex:1;min-width:0}
+.dbody b{display:block;font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.dmeta{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;margin-top:1px}
+.dmeta.s-expired{color:var(--over);font-weight:600}
+.dmeta.s-soon{color:var(--brass-solid);font-weight:600}
+.dmeta.s-warn{color:var(--ink-2)}
+.dclip{width:20px;height:20px;flex:none;stroke:var(--muted);fill:none;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* the expiry banner */
+.vbanner{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border-radius:14px;
+  font-size:13px;line-height:1.5;border:1px solid transparent}
+.vbanner.hot{background:var(--over-soft);border-color:var(--over);color:var(--ink)}
+.vbanner.warm{background:var(--brass-soft);border-color:var(--brass-solid);color:var(--ink)}
+.vbanner b{font-weight:700}
+.vbanner svg{width:17px;height:17px;fill:none;stroke-width:2;flex:none;margin-top:1px;
+  stroke-linecap:round;stroke-linejoin:round}
+.vbanner.hot svg{stroke:var(--over)}
+.vbanner.warm svg{stroke:var(--brass-solid)}
+
+/* accounts */
+.agroup{margin-top:14px}
+.agroup:first-child{margin-top:0}
+.agroup-head{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.agroup-head .em{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);
+  letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agroup-head .ct{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);flex:none}
+.arow{display:flex;align-items:center;gap:11px;padding:10px 2px;width:100%;text-align:left;
+  border-bottom:1px solid var(--line-soft)}
+.arow:last-child{border-bottom:0}
+.abody{flex:1;min-width:0}
+.abody b{display:block;font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.abody span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.akind{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:6px;
+  padding:3px 6px;flex:none}
+
+/* the file on a document */
+.dfile{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:12px;
+  background:var(--surface-2);border:1px solid var(--line)}
+.dfile .fi{flex:1;min-width:0}
+.dfile .fi b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.dfile .fi span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted)}
+.dpreview{width:100%;border-radius:12px;border:1px solid var(--line);display:block;
+  max-height:52dvh;object-fit:contain;background:var(--sunk)}
+.vdanger{border-color:var(--over)}
+.vdanger h2{color:var(--over)}
+
 </style>
 
 <div id="app">
@@ -617,6 +710,11 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         <button class="tab" data-view="foods"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18" cy="18" r="2.5"/></svg>Foods</button>
         <button class="tab" data-view="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>Setup</button>
       </div>
+    <div class="tabs" id="vaultTabs" style="display:none">
+      <button class="tab on" data-view="docs"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/></svg>Docs</button>
+      <button class="tab" data-view="accounts"><svg viewBox="0 0 24 24"><path d="M3 7h18v11H3z"/><path d="M3 8l9 6 9-6"/></svg>Accounts</button>
+      <button class="tab" data-view="security"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.2-2.9 7.7-7 9-4.1-1.3-7-4.8-7-9V6z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>Security</button>
+    </div>
     <div class="tabs" id="moneyTabs">
         <button class="tab on" data-view="today"><svg viewBox="0 0 24 24"><path d="M3 20h18M6 20V9M12 20V4M18 20v-7"/></svg>Today</button>
         <button class="tab" data-view="score"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/></svg>Score</button>
@@ -1109,6 +1207,99 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         </div>
       </div>
     </section>
+
+    <!-- ============ PERSONAL: the vault ============ -->
+    <div id="vaultLock">
+      <div class="vlock-inner">
+        <span class="vlock-ico">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 018 0v3"/><path d="M12 15v2"/></svg>
+        </span>
+        <h2 id="vlockTitle">Locked</h2>
+        <p class="blurb" id="vlockBlurb"></p>
+        <div class="vlock-form">
+          <input class="input" id="vlockPass" type="password" autocomplete="off" autocapitalize="off"
+                 spellcheck="false" placeholder="Passcode" aria-label="Passcode">
+          <input class="input hidden" id="vlockPass2" type="password" autocomplete="off" autocapitalize="off"
+                 spellcheck="false" placeholder="Type it again" aria-label="Repeat passcode">
+          <p class="vnote" id="vlockNote"></p>
+          <div class="vwarn hidden" id="vlockWarn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v5M12 17.5v.01"/><path d="M10.3 4.3L2.6 18a2 2 0 001.7 3h15.4a2 2 0 001.7-3L13.7 4.3a2 2 0 00-3.4 0z"/></svg>
+            <span><b>There is no way to reset this.</b> The passcode is the encryption key, and
+              nothing leaves your phone — so if you forget it, what is in here is gone for good.
+              Write it down somewhere real.</span>
+          </div>
+          <button class="btn primary wide" id="vlockGo">Unlock</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="view" id="v-docs">
+      <div id="vaultAlert"></div>
+      <div class="card">
+        <div class="row" style="margin-bottom:4px">
+          <h2>Documents</h2><span class="eyebrow" id="docCount"></span>
+        </div>
+        <div id="docList"></div>
+        <div class="empty hidden" id="docEmpty">
+          <p>Nothing stored yet. Passport, licence, CV — whatever you are asked for
+             and can never find.</p>
+        </div>
+      </div>
+      <button class="btn primary wide" id="addDocBtn">Add a document</button>
+    </section>
+
+    <section class="view" id="v-accounts">
+      <div class="card">
+        <div class="row" style="margin-bottom:4px">
+          <h2>Accounts</h2><span class="eyebrow" id="accCount"></span>
+        </div>
+        <div id="accList"></div>
+        <div class="empty hidden" id="accEmpty">
+          <p>Which service, under which email. No passwords — those belong in a
+             real password manager.</p>
+        </div>
+      </div>
+      <button class="btn primary wide" id="addAccBtn">Add an account</button>
+    </section>
+
+    <section class="view" id="v-security">
+      <div class="card">
+        <h2>How this is protected</h2>
+        <div class="stack" style="gap:9px;margin-top:8px">
+          <p class="note-line">Your passcode is stretched into an encryption key (PBKDF2, 250,000
+            rounds) and everything here is stored as AES-GCM ciphertext. Locked, it is unreadable —
+            in devtools, in an export, in a backup.</p>
+          <p class="note-line"><b style="color:var(--ink-2)">What it stops.</b> Someone picking up
+            your unlocked phone. Anyone reading the browser's storage. Anything that copies the
+            files off the device.</p>
+          <p class="note-line"><b style="color:var(--ink-2)">What it does not.</b> Malware watching
+            you type, or someone who knows your passcode. This is a single-file app one person
+            wrote — for a passport scan that is a fair trade, and it is why there is no password
+            field.</p>
+          <p class="note-line"><b style="color:var(--ink-2)">Where it lives.</b> This device only.
+            Clearing site data deletes it. Keep the originals somewhere else too.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom:12px">Locking</h2>
+        <div class="stack">
+          <div class="toggle">
+            <span><span class="t-label">Locks itself</span>
+              <span class="t-hint">After five idle minutes, and whenever you leave the app.</span></span>
+          </div>
+          <button class="btn wide" id="lockNowBtn">Lock now</button>
+          <button class="btn wide" id="changePassBtn">Change passcode</button>
+        </div>
+      </div>
+
+      <div class="card vdanger">
+        <h2>Delete everything</h2>
+        <p class="note-line" style="margin:8px 0 12px">Removes every document, file and account
+          in here, and the passcode with them. The rest of Fiver is untouched.</p>
+        <button class="btn wide" id="wipeVaultBtn" style="color:var(--over);border-color:var(--over)">Delete the vault</button>
+      </div>
+    </section>
   </main>
 
   <div class="bottombar">
@@ -1129,8 +1320,89 @@ select.input{appearance:none;background-image:linear-gradient(45deg,transparent 
         <button class="mode-btn" data-mode="food"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 003 3v7"/><path d="M6 3v5M9 3v5"/><path d="M17 3c-1.5 2-2 4-2 6s.5 3 2 3v9"/></svg>Food</button>
         <button class="mode-btn" data-mode="nihongo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M9 4v3M6 7c0 5-1 8-3 10M9 9c1 4 3 6 6 7"/><path d="M14 20l3.5-9 3.5 9M15.4 17h4.2"/></svg>日本語</button>
         <button class="mode-btn" data-mode="notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>Notes</button>
+        <button class="mode-btn" data-mode="vault"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10.5h14v9.5a1 1 0 01-1 1H6a1 1 0 01-1-1z"/><path d="M8 10.5V7.2a4 4 0 018 0v3.3"/></svg>Personal</button>
     </nav>
    </div>
+  </div>
+</div>
+
+<!-- ============ VAULT: a document ============ -->
+<div class="sheet" id="docSheet">
+  <div class="grabber"></div>
+  <div class="sheet-head"><h3 id="docSheetTitle">Document</h3><button class="x" id="closeDoc" aria-label="Close">×</button></div>
+  <div class="stack">
+    <div class="field">
+      <label for="docType">Kind</label>
+      <select class="input" id="docType"></select>
+    </div>
+    <div class="field">
+      <label for="docLabel">Name it</label>
+      <input class="input" id="docLabel" type="text" autocomplete="off" placeholder="AU passport">
+    </div>
+    <div class="field">
+      <label for="docNumber">Number <span style="color:var(--muted);font-weight:400">— optional</span></label>
+      <input class="input" id="docNumber" type="text" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="btn-row" id="docDates">
+      <div class="field"><label for="docIssued">Issued</label>
+        <input class="input" id="docIssued" type="date"></div>
+      <div class="field"><label for="docExpires">Expires</label>
+        <input class="input" id="docExpires" type="date"></div>
+    </div>
+    <div class="field">
+      <label for="docNote">Note <span style="color:var(--muted);font-weight:400">— optional</span></label>
+      <input class="input" id="docNote" type="text" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>File</label>
+      <div id="docFileArea"></div>
+      <input type="file" id="docFileInput" class="hidden" accept="image/*,application/pdf">
+    </div>
+
+    <div id="docPreviewArea"></div>
+
+    <div class="btn-row">
+      <button class="btn" id="docCancel">Cancel</button>
+      <button class="btn primary" id="docSave">Save</button>
+    </div>
+    <button class="btn wide hidden" id="docDelete" style="color:var(--over)">Delete this document</button>
+  </div>
+</div>
+
+<!-- ============ VAULT: an account ============ -->
+<div class="sheet" id="accSheet">
+  <div class="grabber"></div>
+  <div class="sheet-head"><h3 id="accSheetTitle">Account</h3><button class="x" id="closeAcc" aria-label="Close">×</button></div>
+  <div class="stack">
+    <div class="field">
+      <label for="accService">Service</label>
+      <input class="input" id="accService" type="text" autocomplete="off" placeholder="IRD">
+    </div>
+    <div class="field">
+      <label for="accEmail">Email it uses</label>
+      <input class="input" id="accEmail" type="email" autocomplete="off" spellcheck="false"
+             autocapitalize="off" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="accUser">Username or account number <span style="color:var(--muted);font-weight:400">— optional</span></label>
+      <input class="input" id="accUser" type="text" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="accKind">Category</label>
+      <select class="input" id="accKind"></select>
+    </div>
+    <div class="field">
+      <label for="accNote">Note <span style="color:var(--muted);font-weight:400">— optional</span></label>
+      <input class="input" id="accNote" type="text" autocomplete="off">
+    </div>
+    <p class="note-line" style="margin:0">No password field, on purpose — keep those in a password
+      manager or your phone's keychain.</p>
+    <div class="btn-row">
+      <button class="btn" id="accCancel">Cancel</button>
+      <button class="btn primary" id="accSave">Save</button>
+    </div>
+    <button class="btn wide hidden" id="accDelete" style="color:var(--over)">Delete this account</button>
   </div>
 </div>
 
@@ -1626,6 +1898,7 @@ function render(){
   renderMode();
   if(mode === 'nihongo') return;
   if(mode === 'notes'){ renderNotes(); return; }
+  if(mode === 'vault'){ renderVault(); return; }
   if(mode === 'food'){ renderEat(); renderFoods(); return; }
   renderNudge();
   renderFresh();
@@ -2279,10 +2552,21 @@ function renderMode(){
   });
   $('moneyTabs').style.display = mode === 'money' ? '' : 'none';
   $('foodTabs').style.display = mode === 'food' ? '' : 'none';
+  $('vaultTabs').style.display = mode === 'vault' ? '' : 'none';
+  markScrollingTabs();
   $('openAdd').parentNode.style.display = mode === 'money' ? '' : 'none';
   $('app').classList.toggle('jp', mode === 'nihongo');
   $('app').classList.toggle('notes', mode === 'notes');
+  $('app').classList.toggle('vault', mode === 'vault');
   if(mode === 'nihongo') mountNihongo();
+}
+
+/* A tab strip wider than the screen gets a soft right edge, so it reads
+   as scrollable rather than as a clipped last word. */
+function markScrollingTabs(){
+  document.querySelectorAll('.tabs').forEach(function(t){
+    t.classList.toggle('scrolls', t.scrollWidth > t.clientWidth + 2);
+  });
 }
 
 /* The Japanese app is its own page (nihongo.html), loaded on first use so
@@ -3303,6 +3587,8 @@ function hideSheet(){
   $('pauseSheet').classList.remove('on');
   $('bankSheet').classList.remove('on');
   $('histSheet').classList.remove('on');
+  $('docSheet').classList.remove('on');
+  $('accSheet').classList.remove('on');
   document.body.classList.remove('sheeting');
   pausePending = null;
 }
@@ -3343,6 +3629,567 @@ function ask(opts){
   if(opts.input !== false && opts.readonlyText == null) setTimeout(function(){ inp.focus(); inp.select(); }, 260);
 }
 
+
+/* ============================================================
+   the vault — documents and accounts, encrypted at rest
+
+   vaultKey exists only while unlocked and only in memory. Locking
+   drops it, and everything on screen goes with it: there is no
+   cached plaintext to leak. That is also why the nav shows no
+   expiry badge while locked — the app genuinely cannot read its
+   own data until you type the passcode.
+   ============================================================ */
+var VAULT_KEY_NAME = 'fiver.vault.v1';
+var vaultMeta = null;    /* salt + verifier + encrypted payload, persisted */
+var vaultKey = null;     /* CryptoKey, memory only, dropped on lock */
+var vaultData = null;    /* decrypted records, memory only */
+var vaultIdle = null;
+var vaultEditDoc = null, vaultEditAcc = null;
+var vaultNewFile = null; /* {name,type,size,bytes} chosen but not yet saved */
+var vaultUrls = [];
+var vaultArmed = null;   /* id of a delete button waiting for its second tap */
+
+function loadVaultMeta(){
+  try{ var raw = localStorage.getItem(VAULT_KEY_NAME); vaultMeta = raw ? JSON.parse(raw) : null; }
+  catch(e){ vaultMeta = null; }
+}
+function saveVaultMeta(){
+  try{ localStorage.setItem(VAULT_KEY_NAME, JSON.stringify(vaultMeta)); }
+  catch(e){ toast("Couldn't save — this browser's storage is full."); }
+}
+function persistVault(){
+  return writeVault(vaultKey, vaultMeta, vaultData).then(function(m){
+    vaultMeta = m; saveVaultMeta();
+  });
+}
+
+/* ---- file bytes live in IndexedDB, each encrypted on its own ---- */
+function vdbOpen(){
+  return new Promise(function(res, rej){
+    var r = indexedDB.open('fiver-vault', 1);
+    r.onupgradeneeded = function(){
+      var db = r.result;
+      if(!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath:'id' });
+    };
+    r.onsuccess = function(){ res(r.result); };
+    r.onerror = function(){ rej(r.error); };
+  });
+}
+function vdbReq(mode, fn){
+  return vdbOpen().then(function(db){
+    return new Promise(function(res, rej){
+      var tx = db.transaction('files', mode), req = fn(tx.objectStore('files'));
+      tx.oncomplete = function(){ db.close(); res(req ? req.result : undefined); };
+      tx.onerror = function(){ db.close(); rej(tx.error); };
+      tx.onabort = function(){ db.close(); rej(tx.error); };
+    });
+  });
+}
+function vFilePut(rec){ return vdbReq('readwrite', function(s){ return s.put(rec); }); }
+function vFileGet(id){ return vdbReq('readonly', function(s){ return s.get(id); }); }
+function vFileDel(id){ return vdbReq('readwrite', function(s){ return s.delete(id); }); }
+function vFileAll(){ return vdbReq('readonly', function(s){ return s.getAll(); }); }
+function vFileClear(){ return vdbReq('readwrite', function(s){ return s.clear(); }); }
+
+function revokeVaultUrls(){
+  vaultUrls.forEach(function(u){ try{ URL.revokeObjectURL(u); }catch(e){} });
+  vaultUrls = [];
+}
+
+/* ---- lock state ---- */
+function vaultLocked(){ return !vaultKey; }
+
+function lockVault(quiet){
+  var was = !!vaultKey;
+  vaultKey = null; vaultData = null; vaultNewFile = null; vaultArmed = null;
+  clearTimeout(vaultIdle); vaultIdle = null;
+  revokeVaultUrls();
+  if(mode === 'vault'){ hideSheet(); renderVault(); }
+  else $('app').classList.add('vlocked');
+  if(was && !quiet) toast('Vault locked');
+}
+
+function touchVault(){
+  if(!vaultKey) return;
+  clearTimeout(vaultIdle);
+  vaultIdle = setTimeout(function(){ lockVault(); }, VAULT_AUTOLOCK_MS);
+}
+
+/* ---- rendering ---- */
+function renderVault(){
+  var locked = vaultLocked();
+  $('app').classList.toggle('vlocked', locked);
+  if(locked){ renderVaultLock(); return; }
+  renderDocs();
+  renderAccounts();
+}
+
+function renderVaultLock(){
+  var fresh = !vaultMeta;
+  $('vlockTitle').textContent = fresh ? 'Set a passcode' : 'Locked';
+  $('vlockBlurb').textContent = fresh
+    ? 'Everything you put in here is encrypted with this passcode. Pick something long — a short phrase beats a clever word.'
+    : 'Your documents and accounts are encrypted. Type the passcode to read them.';
+  $('vlockPass2').classList.toggle('hidden', !fresh);
+  $('vlockWarn').classList.toggle('hidden', !fresh);
+  $('vlockGo').textContent = fresh ? 'Set it' : 'Unlock';
+  $('vlockPass').placeholder = fresh ? 'New passcode' : 'Passcode';
+  $('vlockPass').value = ''; $('vlockPass2').value = '';
+  setVlockNote('', '');
+}
+
+function setVlockNote(msg, cls){
+  var n = $('vlockNote');
+  n.textContent = msg;
+  n.className = 'vnote' + (cls ? ' ' + cls : '');
+}
+
+function docIcon(type){
+  var paths = {
+    cv:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h4"/>',
+    passport:'<rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M9 17h6"/>',
+    licence:'<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="8.5" cy="12" r="2.2"/><path d="M14 10h4M14 14h4"/>',
+    idp:'<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/>',
+    visa:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h4"/>',
+    cert:'<circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5L7 21l5-2.5L17 21l-1.5-7.5"/>',
+    insurance:'<path d="M12 3l7 3v6c0 4.2-2.9 7.7-7 9-4.1-1.3-7-4.8-7-9V6z"/>',
+    other:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>'
+  };
+  var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 24 24');
+  svg.innerHTML = paths[type] || paths.other;
+  return svg;
+}
+
+function renderDocs(){
+  var list = $('docList'), now = Date.now();
+  list.innerHTML = '';
+  var docs = sortedDocs(vaultData, now);
+  $('docCount').textContent = docs.length ? docs.length + (docs.length === 1 ? ' ITEM' : ' ITEMS') : '';
+  $('docEmpty').classList.toggle('hidden', docs.length > 0);
+
+  docs.forEach(function(d){
+    var e = expiryState(d, now);
+    var row = el('button', 'drow s-' + e.state);
+    var ico = el('span', 'dico'); ico.appendChild(docIcon(d.type)); row.appendChild(ico);
+
+    var body = el('div', 'dbody');
+    body.appendChild(el('b', null, d.label));
+    var bits = [docTypeLabel(d.type)];
+    var exp = expiryLabel(d, now);
+    if(exp) bits.push(exp);
+    else if(d.number) bits.push(d.number);
+    var meta = el('span', 'dmeta' + (exp ? ' s-' + e.state : ''), bits.join(' · '));
+    body.appendChild(meta);
+    row.appendChild(body);
+
+    if(d.fileId){
+      var clip = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      clip.setAttribute('viewBox','0 0 24 24');
+      clip.setAttribute('class','dclip');
+      clip.innerHTML = '<path d="M21 11l-8.5 8.5a5 5 0 01-7-7L14 4a3.5 3.5 0 015 5l-8.5 8.5a2 2 0 01-3-3L15 6"/>';
+      row.appendChild(clip);
+    }
+    row.onclick = function(){ openDocSheet(d.id); };
+    list.appendChild(row);
+  });
+
+  renderVaultAlert(now);
+}
+
+function renderVaultAlert(now){
+  var box = $('vaultAlert');
+  box.innerHTML = '';
+  var att = needsAttention(vaultData, now);
+  if(!att.length) return;
+  var worst = att[0];
+  var hot = worst.state === 'expired' || worst.state === 'soon';
+  var b = el('div', 'vbanner ' + (hot ? 'hot' : 'warm'));
+  var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 24 24');
+  svg.innerHTML = '<path d="M12 8v5M12 16.5v.01"/><circle cx="12" cy="12" r="9"/>';
+  b.appendChild(svg);
+
+  var txt = el('span');
+  var strong = el('b', null, worst.doc.label);
+  txt.appendChild(strong);
+  var tail = ' ' + expiryLabel(worst.doc, now).toLowerCase() + '.';
+  if(att.length > 1) tail += ' ' + (att.length - 1) + ' other' + (att.length === 2 ? '' : 's') + ' need looking at too.';
+  txt.appendChild(document.createTextNode(tail));
+  b.appendChild(txt);
+  box.appendChild(b);
+}
+
+function renderAccounts(){
+  var list = $('accList');
+  list.innerHTML = '';
+  var groups = accountsByEmail(vaultData);
+  var total = (vaultData.accounts || []).length;
+  $('accCount').textContent = total ? total + (total === 1 ? ' ACCOUNT' : ' ACCOUNTS') : '';
+  $('accEmpty').classList.toggle('hidden', total > 0);
+
+  groups.forEach(function(g){
+    var wrap = el('div', 'agroup');
+    var head = el('div', 'agroup-head');
+    head.appendChild(el('span', 'em', g.email));
+    head.appendChild(el('span', 'ct', String(g.accounts.length)));
+    wrap.appendChild(head);
+    g.accounts.forEach(function(a){
+      var row = el('button', 'arow');
+      var body = el('div', 'abody');
+      body.appendChild(el('b', null, a.service || 'Untitled'));
+      var sub = [a.username, a.note].filter(Boolean).join(' · ');
+      if(sub) body.appendChild(el('span', null, sub));
+      row.appendChild(body);
+      row.appendChild(el('span', 'akind', accountKindLabel(a.kind)));
+      row.onclick = function(){ openAccSheet(a.id); };
+      wrap.appendChild(row);
+    });
+    list.appendChild(wrap);
+  });
+}
+
+/* ---- the lock screen ---- */
+function vlockSubmit(){
+  var pass = $('vlockPass').value;
+  if(!vaultMeta){
+    var check = passcodeCheck(pass);
+    if(!check.ok){ setVlockNote(check.why, 'bad'); return; }
+    if(pass !== $('vlockPass2').value){ setVlockNote('The two do not match.', 'bad'); return; }
+    setVlockNote('Setting up…', '');
+    $('vlockGo').disabled = true;
+    newVaultMeta(pass).then(function(made){
+      vaultMeta = made.meta; vaultKey = made.key; vaultData = blankVault();
+      saveVaultMeta();
+      $('vlockGo').disabled = false;
+      touchVault();
+      renderVault();
+      toast('Vault ready');
+    }).catch(function(){
+      $('vlockGo').disabled = false;
+      setVlockNote('Could not set that up on this browser.', 'bad');
+    });
+    return;
+  }
+  if(!pass){ setVlockNote('Type your passcode.', 'bad'); return; }
+  setVlockNote('Checking…', '');
+  $('vlockGo').disabled = true;
+  unlockVault(pass, vaultMeta).then(function(key){
+    $('vlockGo').disabled = false;
+    if(!key){ setVlockNote('That is not it.', 'bad'); $('vlockPass').value = ''; return; }
+    vaultKey = key;
+    return readVault(key, vaultMeta).then(function(v){
+      vaultData = v;
+      touchVault();
+      renderVault();
+    });
+  }).catch(function(){
+    $('vlockGo').disabled = false;
+    setVlockNote('Something went wrong reading the vault.', 'bad');
+  });
+}
+
+/* ---- the document sheet ---- */
+function fillSelect(sel, items){
+  sel.innerHTML = '';
+  items.forEach(function(it){
+    var o = document.createElement('option');
+    o.value = it.id; o.textContent = it.label;
+    sel.appendChild(o);
+  });
+}
+
+function openDocSheet(id){
+  vaultEditDoc = id || null;
+  vaultNewFile = null;
+  vaultArmed = null;
+  revokeVaultUrls();
+  var d = id ? findDoc(vaultData, id) : null;
+  fillSelect($('docType'), DOC_TYPES);
+  $('docSheetTitle').textContent = d ? 'Edit document' : 'Add a document';
+  $('docType').value = d ? d.type : 'passport';
+  $('docLabel').value = d ? d.label : '';
+  $('docNumber').value = d ? d.number : '';
+  $('docIssued').value = d ? d.issued : '';
+  $('docExpires').value = d ? d.expires : '';
+  $('docNote').value = d ? d.note : '';
+  $('docDelete').classList.toggle('hidden', !d);
+  $('docDelete').textContent = 'Delete this document';
+  $('docPreviewArea').innerHTML = '';
+  syncDocDates();
+  renderDocFileArea();
+  showSheet('docSheet');
+  touchVault();
+}
+
+function syncDocDates(){
+  var t = docType($('docType').value);
+  $('docDates').classList.toggle('hidden', !t.expires);
+}
+
+function renderDocFileArea(){
+  var area = $('docFileArea');
+  area.innerHTML = '';
+  var d = vaultEditDoc ? findDoc(vaultData, vaultEditDoc) : null;
+  var has = vaultNewFile || (d && d.fileId);
+  if(!has){
+    var add = el('button', 'btn wide', 'Attach a photo or PDF');
+    add.onclick = function(){ $('docFileInput').click(); };
+    area.appendChild(add);
+    return;
+  }
+  var name = vaultNewFile ? vaultNewFile.name : d.fileName;
+  var size = vaultNewFile ? vaultNewFile.size : d.fileSize;
+  var box = el('div', 'dfile');
+  var fi = el('div', 'fi');
+  fi.appendChild(el('b', null, name));
+  fi.appendChild(el('span', null, (vaultNewFile ? 'Not saved yet · ' : '') + fmtBytes(size)));
+  box.appendChild(fi);
+  if(!vaultNewFile){
+    var view = el('button', 'btn sm', 'Open');
+    view.onclick = function(){ openDocFile(d); };
+    box.appendChild(view);
+  }
+  var swap = el('button', 'btn sm', vaultNewFile ? 'Change' : 'Replace');
+  swap.onclick = function(){ $('docFileInput').click(); };
+  box.appendChild(swap);
+  area.appendChild(box);
+}
+
+function pickDocFile(ev){
+  var f = ev.target.files && ev.target.files[0];
+  ev.target.value = '';
+  if(!f) return;
+  if(f.size > VAULT_MAX_FILE){
+    toast('That file is ' + fmtBytes(f.size) + ' — the limit is ' + fmtBytes(VAULT_MAX_FILE) + '.');
+    return;
+  }
+  f.arrayBuffer().then(function(buf){
+    vaultNewFile = { name:f.name, type:f.type || 'application/octet-stream', size:f.size, bytes:buf };
+    renderDocFileArea();
+    touchVault();
+  }).catch(function(){ toast("Couldn't read that file."); });
+}
+
+function openDocFile(d){
+  if(!d || !d.fileId) return;
+  vFileGet(d.fileId).then(function(rec){
+    if(!rec) { toast('That file is missing from this device.'); return; }
+    return decryptBytes(vaultKey, rec).then(function(plain){
+      var blob = new Blob([plain], { type: d.fileType || 'application/octet-stream' });
+      var url = URL.createObjectURL(blob);
+      vaultUrls.push(url);
+      var area = $('docPreviewArea');
+      area.innerHTML = '';
+      if(/^image\//.test(d.fileType)){
+        var img = document.createElement('img');
+        img.className = 'dpreview'; img.alt = d.label; img.src = url;
+        area.appendChild(img);
+      } else {
+        var a = document.createElement('a');
+        a.className = 'btn wide'; a.href = url; a.download = d.fileName || 'document';
+        a.textContent = 'Save a copy of ' + (d.fileName || 'the file');
+        area.appendChild(a);
+        var hint = el('p', 'note-line', 'PDFs open in whatever your phone uses for them.');
+        hint.style.margin = '8px 0 0';
+        area.appendChild(hint);
+      }
+      touchVault();
+    });
+  }).catch(function(){ toast("Couldn't open that file."); });
+}
+
+function saveDocSheet(){
+  var label = $('docLabel').value.trim();
+  var type = $('docType').value;
+  if(!label && !$('docNumber').value.trim()){
+    toast('Give it a name so you can find it.');
+    return;
+  }
+  var t = docType(type);
+  var patch = {
+    type: type,
+    label: label || docTypeLabel(type),
+    number: $('docNumber').value.trim(),
+    issued: t.expires ? $('docIssued').value : '',
+    expires: t.expires ? $('docExpires').value : '',
+    note: $('docNote').value.trim(),
+    updated: Date.now()
+  };
+
+  var oldDoc = vaultEditDoc ? findDoc(vaultData, vaultEditDoc) : null;
+  var oldFileId = oldDoc && oldDoc.fileId;
+
+  var work = Promise.resolve();
+  if(vaultNewFile){
+    var fileId = newId();
+    work = encryptBytes(vaultKey, vaultNewFile.bytes).then(function(enc){
+      return vFilePut({ id:fileId, iv:enc.iv, ct:enc.ct }).then(function(){
+        patch.fileId = fileId;
+        patch.fileName = vaultNewFile.name;
+        patch.fileType = vaultNewFile.type;
+        patch.fileSize = vaultNewFile.size;
+        if(oldFileId) return vFileDel(oldFileId);
+      });
+    });
+  }
+
+  work.then(function(){
+    vaultData = vaultEditDoc
+      ? updateDoc(vaultData, vaultEditDoc, patch)
+      : addDoc(vaultData, patch);
+    return persistVault();
+  }).then(function(){
+    vaultNewFile = null;
+    hideSheet();
+    renderVault();
+    toast(vaultEditDoc ? 'Saved' : 'Added');
+    vaultEditDoc = null;
+  }).catch(function(){ toast("Couldn't save that."); });
+}
+
+function deleteDocSheet(){
+  var btn = $('docDelete');
+  if(vaultArmed !== 'doc'){
+    vaultArmed = 'doc';
+    btn.textContent = 'Tap again to delete';
+    setTimeout(function(){
+      if(vaultArmed === 'doc'){ vaultArmed = null; btn.textContent = 'Delete this document'; }
+    }, 4000);
+    return;
+  }
+  vaultArmed = null;
+  var d = findDoc(vaultData, vaultEditDoc);
+  var job = d && d.fileId ? vFileDel(d.fileId) : Promise.resolve();
+  job.then(function(){
+    vaultData = removeDoc(vaultData, vaultEditDoc);
+    return persistVault();
+  }).then(function(){
+    hideSheet(); renderVault(); toast('Deleted');
+    vaultEditDoc = null;
+  }).catch(function(){ toast("Couldn't delete that."); });
+}
+
+/* ---- the account sheet ---- */
+function openAccSheet(id){
+  vaultEditAcc = id || null;
+  vaultArmed = null;
+  var a = null;
+  if(id){
+    (vaultData.accounts || []).forEach(function(x){ if(x.id === id) a = x; });
+  }
+  fillSelect($('accKind'), ACCOUNT_KINDS);
+  $('accSheetTitle').textContent = a ? 'Edit account' : 'Add an account';
+  $('accService').value = a ? a.service : '';
+  $('accEmail').value = a ? a.email : '';
+  $('accUser').value = a ? a.username : '';
+  $('accKind').value = a ? a.kind : 'personal';
+  $('accNote').value = a ? a.note : '';
+  $('accDelete').classList.toggle('hidden', !a);
+  $('accDelete').textContent = 'Delete this account';
+  showSheet('accSheet');
+  touchVault();
+}
+
+function saveAccSheet(){
+  var service = $('accService').value.trim();
+  if(!service){ toast('Which service is it?'); return; }
+  var patch = {
+    service: service,
+    email: $('accEmail').value.trim(),
+    username: $('accUser').value.trim(),
+    kind: $('accKind').value,
+    note: $('accNote').value.trim(),
+    updated: Date.now()
+  };
+  vaultData = vaultEditAcc
+    ? updateAccount(vaultData, vaultEditAcc, patch)
+    : addAccount(vaultData, patch);
+  persistVault().then(function(){
+    hideSheet(); renderVault();
+    toast(vaultEditAcc ? 'Saved' : 'Added');
+    vaultEditAcc = null;
+  }).catch(function(){ toast("Couldn't save that."); });
+}
+
+function deleteAccSheet(){
+  var btn = $('accDelete');
+  if(vaultArmed !== 'acc'){
+    vaultArmed = 'acc';
+    btn.textContent = 'Tap again to delete';
+    setTimeout(function(){
+      if(vaultArmed === 'acc'){ vaultArmed = null; btn.textContent = 'Delete this account'; }
+    }, 4000);
+    return;
+  }
+  vaultArmed = null;
+  vaultData = removeAccount(vaultData, vaultEditAcc);
+  persistVault().then(function(){
+    hideSheet(); renderVault(); toast('Deleted');
+    vaultEditAcc = null;
+  });
+}
+
+/* ---- security actions ---- */
+/* Two prompts, not one. A mistyped new passcode would lock the vault
+   forever with no way back, so it has to be typed twice and matched
+   before anything is re-encrypted. */
+function startChangePasscode(){
+  ask({
+    title: 'New passcode',
+    hint: 'Everything gets re-encrypted under it, files included. The old one stops working.',
+    inputmode: 'text', value: '', okLabel: 'Next',
+    onOk: function(first){
+      var check = passcodeCheck(first || '');
+      if(!check.ok){ toast(check.why); return; }
+      setTimeout(function(){
+        ask({
+          title: 'Type it again',
+          hint: 'Once more, to be sure. There is no recovery if this is wrong.',
+          inputmode: 'text', value: '', okLabel: 'Change it',
+          onOk: function(second){
+            if(second !== first){ toast('Those did not match — nothing changed.'); return; }
+            applyNewPasscode(first);
+          }
+        });
+      }, 300);
+    }
+  });
+}
+
+function applyNewPasscode(pass){
+  toast('Re-encrypting…');
+  vFileAll().then(function(files){
+    return changePasscode(vaultKey, vaultMeta, vaultData, files || [], pass);
+  }).then(function(res){
+    var puts = res.files.map(function(f){ return vFilePut(f); });
+    return Promise.all(puts).then(function(){
+      vaultMeta = res.meta; vaultKey = res.key;
+      saveVaultMeta();
+      toast('Passcode changed');
+      touchVault();
+    });
+  }).catch(function(){ toast("Couldn't change it — nothing was altered."); });
+}
+
+function wipeVault(){
+  ask({
+    title: 'Delete the vault',
+    hint: 'Type DELETE to confirm. Every document, file and account in here goes, and the passcode with them.',
+    inputmode: 'text', value: '', okLabel: 'Delete', danger: true,
+    onOk: function(val){
+      if((val || '').trim().toUpperCase() !== 'DELETE'){ toast('Not deleted.'); return; }
+      vFileClear().then(function(){
+        try{ localStorage.removeItem(VAULT_KEY_NAME); }catch(e){}
+        vaultMeta = null;
+        lockVault(true);
+        renderVault();
+        toast('Vault deleted');
+      }).catch(function(){ toast("Couldn't delete it."); });
+    }
+  });
+}
+
 /* ============================================================
    wiring
    ============================================================ */
@@ -3363,10 +4210,11 @@ function wire(){
     b.onclick = function(){
       mode = b.dataset.mode;
       try{ localStorage.setItem(MODE_KEY, mode); }catch(e){}
-      var tabs = mode === 'food' ? $('foodTabs') : $('moneyTabs');
+      var tabs = mode === 'food' ? $('foodTabs')
+              : mode === 'vault' ? $('vaultTabs') : $('moneyTabs');
       tabs.querySelectorAll('.tab').forEach(function(x,i){ x.classList.toggle('on', i===0); });
       document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
-      $({food:'v-eat', nihongo:'v-nihongo', notes:'v-notes'}[mode] || 'v-today').classList.add('on');
+      $({food:'v-eat', nihongo:'v-nihongo', notes:'v-notes', vault:'v-docs'}[mode] || 'v-today').classList.add('on');
       window.scrollTo({top:0, behavior:'instant'});
       render();
     };
@@ -3926,12 +4774,46 @@ function maybeFetchRates(){
   if(Date.now() - last > 6 * 3600000) fetchRates();
 }
 
+function wireVault(){
+  $('vlockGo').onclick = vlockSubmit;
+  [$('vlockPass'), $('vlockPass2')].forEach(function(i){
+    i.onkeydown = function(e){ if(e.key === 'Enter') vlockSubmit(); };
+  });
+  $('addDocBtn').onclick = function(){ openDocSheet(null); };
+  $('closeDoc').onclick = hideSheet;
+  $('docCancel').onclick = hideSheet;
+  $('docSave').onclick = saveDocSheet;
+  $('docDelete').onclick = deleteDocSheet;
+  $('docType').onchange = syncDocDates;
+  $('docFileInput').onchange = pickDocFile;
+  $('addAccBtn').onclick = function(){ openAccSheet(null); };
+  $('closeAcc').onclick = hideSheet;
+  $('accCancel').onclick = hideSheet;
+  $('accSave').onclick = saveAccSheet;
+  $('accDelete').onclick = deleteAccSheet;
+  $('lockNowBtn').onclick = function(){ lockVault(); };
+  $('changePassBtn').onclick = startChangePasscode;
+  $('wipeVaultBtn').onclick = wipeVault;
+
+  /* Any touch inside the vault pushes the idle timer out. */
+  ['pointerdown','keydown'].forEach(function(ev){
+    document.addEventListener(ev, function(){ if(mode === 'vault') touchVault(); }, true);
+  });
+  /* Leaving the app locks it. A document wallet left open on a
+     backgrounded phone is the case this is actually guarding. */
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden && vaultKey) lockVault(true);
+  });
+}
+
 /* ---------------- boot ---------------- */
+loadVaultMeta();
 wire();
+wireVault();
 wireSignIn();
 wirePWA();
 maybeFetchRates();
-try{ var m0 = localStorage.getItem(MODE_KEY); mode = (m0 === 'food' || m0 === 'nihongo' || m0 === 'notes') ? m0 : 'money'; }catch(e){}
+try{ var m0 = localStorage.getItem(MODE_KEY); mode = (m0 === 'food' || m0 === 'nihongo' || m0 === 'notes' || m0 === 'vault') ? m0 : 'money'; }catch(e){}
 if(mode !== 'money'){
   document.querySelectorAll('.view').forEach(function(x){ x.classList.remove('on'); });
   $({food:'v-eat', nihongo:'v-nihongo', notes:'v-notes'}[mode]).classList.add('on');

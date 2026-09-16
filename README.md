@@ -1,6 +1,6 @@
 # Fiver
 
-Four small apps sharing one shell, switched with a toggle in the top bar,
+Five small apps sharing one shell, switched from a single bar at the bottom,
 and a behaviour layer over the spending side.
 
 **Money** — round every spend up to the next five. Watch the day fill up as a
@@ -26,6 +26,12 @@ Later with a count, and after three carries the app says, once, do it or let
 it go. Type a time on the end of a line ("call mum tomorrow 9am", "wax board
 tonight", "pay rent fri", "check lifts in 2h") and it becomes a reminder;
 reminders alert while Fiver is open, and as notifications if you allow them.
+
+**Personal** — a vault for the documents you are always asked for and can
+never find: passport, licences, CV, certifications. Files and details, with a
+countdown on anything that expires. Plus a register of which account sits under
+which email address. It is locked by default and encrypted with a passcode —
+see [The vault](#the-vault).
 
 **Score** — the behaviour layer. A weekly discipline score, your current week
 ranked against your own past weeks, forgiving streaks, and a pause that speaks
@@ -121,6 +127,7 @@ logic.js         the money maths — pure functions, no DOM, fully tested
 calories.js      the food maths — same deal, and deliberately isolated
 curb.js          the behaviour maths — score, league, freezes, the pause
 notes.js         notes & reminders — the when-parser, the plan of three, basics
+vault.js         the vault — key derivation, encryption, expiry maths
 template.html    the app: markup, styles, and the UI layer over logic.js
 nihongo.html     the Japanese trainer — self-contained, framed into the shell
 sw-template.js   service worker; the build stamps a version into it
@@ -132,12 +139,13 @@ test-cal.js      77 food logic tests
 test-fx.js       64 currency tests
 test-curb.js     100 behaviour tests
 test-notes.js    95 notes tests
-uitest.js        199 browser tests against the built app
+test-vault.js    101 vault tests, crypto included
+uitest.js        231 browser tests against the built app
 pwatest.js       16 tests that the hosted build installs and works offline
 ```
 
-`logic.js`, `calories.js` and `curb.js` are DOM-free so the maths can be tested
-exhaustively without a browser. `build.js` concatenates `dates.js`, then the
+`logic.js`, `calories.js`, `curb.js` and `vault.js` are DOM-free so the maths —
+and the crypto — can be tested exhaustively without a browser. `build.js` concatenates `dates.js`, then the
 rest, into the page. `curb.js` is a pure reader: it takes the spending state
 and returns numbers, and never writes to it — deleting its storage key
 (`fiver.curb.v1`) resets the score and leaves every logged spend untouched.
@@ -147,6 +155,34 @@ and returns numbers, and never writes to it — deleting its storage key
 state — the one thing it borrows is the day-boundary setting, so both halves
 agree on when "today" ends. Moving it to its own service means taking
 `calories.js`, `dates.js` and that key; nothing has to be untangled first.
+
+### The vault
+
+The passcode is not a screen lock, it is the key. It is stretched with
+PBKDF2-SHA256 (250,000 rounds) into an AES-GCM key that exists only in memory
+and only while unlocked. Records are one encrypted blob in localStorage,
+re-encrypted whole on every change. File bytes are encrypted individually and
+kept in IndexedDB, raw rather than base64'd, so a 5 MB scan stays 5 MB and is
+not rewritten because you renamed an account.
+
+Locking drops the key, and with it everything on screen. There is no cached
+plaintext, which is also why there is no expiry badge on the nav while locked:
+the app cannot read its own data until you type the passcode. It locks itself
+after five idle minutes and whenever the app goes to the background.
+
+There is no recovery. No server means no reset, so a forgotten passcode is lost
+data — the setup screen says so before it lets you choose one. Changing a
+passcode asks for it twice and re-encrypts every file before it commits.
+
+**There is deliberately no password field.** Knowing which service sits under
+which email solves the problem of losing track. Storing the passwords themselves
+would mean competing with a real password manager on the one axis — surviving
+attack — where a single-file app maintained by one person should not be asking
+for that trust. Keep those in Bitwarden, 1Password, or your phone's keychain.
+
+What it stops: someone picking up an unlocked phone, anyone reading browser
+storage, anything that copies the files off the device. What it does not: malware
+watching you type, or someone who knows the passcode.
 
 ### Build outputs
 
@@ -203,6 +239,9 @@ status.
 
 ## Not done yet
 
+- **The vault is one device.** It cannot sync without either weakening the
+  encryption or putting a key on a server. Export does not include it either —
+  keep the original documents somewhere else as well.
 - **No sync.** Your phone and your laptop are separate databases. That needs a
   backend, and everything below follows from it.
 - **Sign in with Apple / Google** are on the welcome screen and say plainly that

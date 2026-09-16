@@ -5,8 +5,8 @@
   "description": "Four small apps in one shell: round-up spending, calorie estimates, Japanese practice, and notes.",
   "scripts": {
     "build": "node build.js",
-    "test": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js && node test-notes.js && node uitest.js && node pwatest.js",
-    "test:logic": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js && node test-notes.js",
+    "test": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js && node test-notes.js && node test-vault.js && node uitest.js && node pwatest.js",
+    "test:logic": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js && node test-notes.js && node test-vault.js",
     "test:app": "node uitest.js",
     "test:offline": "node pwatest.js",
     "icons": "python3 icons.py",

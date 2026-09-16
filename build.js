@@ -25,11 +25,15 @@ function moduleSource(file) {
 // behaviour layer, which reads the money maths and so must follow it
 var logic;
 logic = [moduleSource('dates.js'), moduleSource('currency.js'), moduleSource('logic.js'),
-         moduleSource('calories.js'), moduleSource('curb.js'), moduleSource('notes.js')].join('\n');
+         moduleSource('calories.js'), moduleSource('curb.js'), moduleSource('notes.js'),
+         moduleSource('vault.js')].join('\n');
 ['roundUp','dayTotals','baselineFor','sweepOffer','dayIncome','rangeIncome',
  'netFor','totalSwept','sweptByDest','series','fmt','convert','fmtMoneyIn','dailyMove',
  'disciplineScore','personalLeague','leagueStanding','streakWithFreezes','pausePattern',
- 'landmarkPending','weekSummary','avertedTotals','parseNote','planToday','rollover','basicStreak'].forEach(function (fn) {
+ 'landmarkPending','weekSummary','avertedTotals','parseNote','planToday','rollover','basicStreak',
+ 'blankVault','expiryState','expiryLabel','needsAttention','sortedDocs','accountsByEmail',
+ 'deriveKey','encryptJSON','decryptJSON','newVaultMeta','unlockVault','readVault','writeVault',
+ 'changePasscode','passcodeCheck'].forEach(function (fn) {
   if (logic.indexOf('function ' + fn + '(') === -1) throw new Error('the bundle lost ' + fn);
 });
 var tpl = fs.readFileSync('template.html', 'utf8');
