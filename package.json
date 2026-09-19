@@ -2,15 +2,15 @@
   "name": "fiver",
   "version": "1.0.0",
   "private": true,
-  "description": "Four small apps in one shell: round-up spending, calorie estimates, Japanese practice, and notes.",
+  "description": "Less, but better. One number, one question, a no that counts, and a vault for what must be kept.",
   "scripts": {
     "build": "node build.js",
-    "test": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js && node test-notes.js && node test-vault.js && node uitest.js && node pwatest.js",
-    "test:logic": "node test.js && node test-cal.js && node test-fx.js && node test-curb.js && node test-notes.js && node test-vault.js",
+    "test": "node test.js && node test-fx.js && node test-curb.js && node test-notes.js && node test-vault.js && node test-less.js && node uitest.js && node pwatest.js",
+    "test:logic": "node test.js && node test-fx.js && node test-curb.js && node test-notes.js && node test-vault.js && node test-less.js",
     "test:app": "node uitest.js",
     "test:offline": "node pwatest.js",
     "icons": "python3 icons.py",
-    "shots": "node shots.js && node curbshots.js && node foodshots.js",
+    "shots": "node shots.js",
     "serve": "node -e \"const h=require('http'),f=require('fs'),p=require('path');const T={'.html':'text/html','.js':'text/javascript','.json':'application/json','.webmanifest':'application/manifest+json','.png':'image/png','.ico':'image/x-icon'};h.createServer((q,r)=>{let u=q.url.split('?')[0];if(u==='/')u='/index.html';const x=p.join('dist',u);if(!f.existsSync(x)){r.writeHead(404);return r.end()}r.writeHead(200,{'Content-Type':T[p.extname(x)]||'application/octet-stream'});r.end(f.readFileSync(x))}).listen(8080,()=>console.log('http://localhost:8080'))\""
   },
   "devDependencies": {

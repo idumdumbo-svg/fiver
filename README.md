@@ -1,48 +1,32 @@
 # Fiver
 
-Five small apps sharing one shell, switched from a single bar at the bottom,
-and a behaviour layer over the spending side.
+Less, but better.
 
-**Money** — round every spend up to the next five. Watch the day fill up as a
-wall of $5 blocks. The gap between what you spent and what you logged gets
-swept somewhere you won't spend it.
+One line at the top — your intent — and three movements, borrowed from the
+book: **Explore**, **Eliminate**, **Execute**. The app opens to one number and
+one question. Behind a lock, a vault for the things that must be kept.
 
-**Food** — calorie estimates against a daily budget. One tap for a snack or a
-meal, and anything you eat often becomes its own chip. It is a daily tracker:
-the day turns over at midnight and the Today screen shows today and nothing
-else. Previous days are kept, out of the way, under Foods — open one to see
-what you logged.
+**Execute** — *What's important now?* The number is buffer left under your
+line, not spend so far. Today's three (three is the cap, on purpose). The
+basics you protect every day — sleep, movement, fifteen minutes of the
+language — one tap each, never counted.
 
-**日本語** — Nihongo 15, a fifteen-minute-a-day Japanese trainer (phrases,
-conversations, and a texting practice partner). A complete page of its own,
-`nihongo.html`, framed into the shell and cached for offline like the rest.
+**Eliminate** — *What can go?* Every spend rounds up to the next five. Before a
+discretionary spend with a pattern behind it, one question: *is this a clear
+yes?* If it isn't a 90 out of 100, it's a no — and a no is logged, not
+discarded. The screen opens with how many noes this week and what they kept.
+Every recurring bill gets the closet test: if you weren't already paying,
+would you sign up today? Uncommitting shows the yearly figure it frees.
 
-**Notes** — notes and reminders, built around three things that actually
-change behaviour. *Today* is a plan of at most three items you pick yourself;
-three is the cap on purpose. *Basics* are the few things you want to do every
-day — one tap each, reset at midnight, with a quiet count of days in a row.
-*Carry-over* is honest: a Today item not finished by midnight goes back to
-Later with a count, and after three carries the app says, once, do it or let
-it go. Type a time on the end of a line ("call mum tomorrow 9am", "wax board
-tonight", "pay rent fri", "check lifts in 2h") and it becomes a reminder;
-reminders alert while Fiver is open, and as notifications if you allow them.
+**Explore** — *What is essential?* A weekly ritual, not a dashboard. Days
+inside the line, the week as seven squares, the three biggest spends with one
+question each — was it essential? — and one line in your words.
 
-**Personal** — a vault for the documents you are always asked for and can
-never find: passport, licences, CV, certifications. Files and details, with a
-countdown on anything that expires. Plus a register of which account sits under
-which email address. It is locked by default and encrypted with a passcode —
-see [The vault](#the-vault).
+**Protect** — *What must be kept?* Passport, licences, CV, certifications, and
+which account sits under which email. Encrypted with a passcode that nothing
+can reset. See [The vault](#the-vault).
 
-**Score** — the behaviour layer. A weekly discipline score, your current week
-ranked against your own past weeks, forgiving streaks, and a pause that speaks
-up before a spend you've already made three times this week.
-
-Same idea on both trackers: one big number for today, an average of the days
-you actually logged, and rounding that always goes **up** so you never flatter
-yourself.
-
-One dark theme, no light mode. No accounts and no server — everything lives in
-the browser on your device. A
+No accounts and no server — everything lives in the browser on your device. A
 bank connection is optional, off by default, read-only, and needs a small
 Worker of your own; see [Your bank](#your-bank-optional).
 
@@ -52,137 +36,70 @@ Worker of your own; see [Your bank](#your-bank-optional).
 
 **Rounding.** Every spend rounds up to the next $5. Spend $14, log $15. The $1
 difference is the round-up change — you've already mentally spent it, so it's
-free to save.
+free to save. It lands in the jar, and once a day you put it somewhere.
 
-**Fixed costs.** Rent and bills count toward the day's total but sit outside
-the comparison. Without that, rent week looks like a spending disaster and
-wrecks your baseline for the week after.
+**The line** is a ceiling with room under it. Set one in setup, or leave it
+blank and your own seven-day average is the line. Rent and bills count toward
+the day's total but sit outside it — otherwise rent week would look like a
+spending disaster.
+
+**The pause** fires on discretionary spends over $20 when there's a real
+pattern: the third of a category this week, a cluster after 8pm, or something
+much larger than usual. Never on rent, bills or groceries. It can do exactly
+two things — log it, or record a no. It cannot change the amount.
+
+**Noes** are kept, dated, and shown in the day's list struck through. Taking
+one back is possible but asks first.
 
 **Forgotten days.** A day you never opened is skipped, not counted as $0. Only
 days with entries — or a tapped no-spend day — feed the average, so forgetting
 to log can't quietly make tomorrow impossible to beat.
 
-**Income** is logged exactly, never rounded, and never touches the day total,
-the blocks or the baseline. Those are about spending.
+**Income** is logged exactly, never rounded, and never touches the number.
 
-**Money you have** is one figure for everything you own. You read it off your
-bank once; after that every spend and every payday moves it. Spending moves it
-by what you *actually* paid, not the rounded figure, so it keeps matching
-reality. Sweeps don't move it — parking money in a savings account doesn't make
-you richer.
+**Money you have** is one figure for everything you own. Read it off your bank
+once; every spend and every payday moves it. Re-checking shows the drift —
+the honest measure of whether the logging habit is sticking.
 
-**Currency.** NZD, AUD or JPY. The symbol, the decimals and the round-up step
-all follow it — $5 in dollar countries, ¥500 in Japan, because ¥5 is not a unit
-anyone thinks in. Every entry is stamped with the currency it was logged in, so
-switching converts old entries *for display* at today's rate and never rewrites
-what you actually spent. Rates are ECB reference rates via
-[Frankfurter](https://frankfurter.dev), fetched at most once every six hours and
-cached, with a small indicator showing how your currency moved against the US
-dollar that day. A failed fetch is silent — logging works offline regardless.
-
-**The score** measures adherence, not thrift: days inside your own target, days
-logged, and plans kept. It is deliberately not a function of how much you
-spent, so it says nothing about your income. Days you didn't log still count
-against the target — otherwise skipping a bad day would score better than
-admitting to it, and the app would be teaching you to look away.
-
-**The league** is you against your own previous weeks. Nobody else is ever in
-it. The research this came from is one-directional: seeing you're above average
-moves overspenders a lot, and seeing you're *below* average moves people about
-1% — in the wrong direction. So there is no cohort, no friends, and no message
-that ever implies you have room to spend more.
-
-**Freezes.** One earned per seven logged days, two held at most, spent
-automatically to bridge a missed day. A freeze only ever joins two stretches of
-logging — it can't extend a streak backwards into the time before you started.
-
-**The pause** fires on discretionary spends above $20 when there's a real
-pattern to show: the third of a category this week, a cluster after 8pm, or
-something much larger than usual for that category. Never on rent, bills or
-groceries. It can only do two things — log what you were going to log anyway,
-or record that you didn't. It cannot change the amount.
-
-**Fresh starts** only appear on real landmarks (the 1st of a month, New Year).
-In the trial this came from, placebo dates did nothing at all, so a random
-Tuesday gets no prompt.
-
-**Past days (food).** There is no stepping back. The Today screen is today;
-yesterday appears under Foods → Previous days the moment the clock passes
-midnight, with its total and every entry, read-only. Nothing about earlier
-days is shown on the logging screen, so today never has anything to live up
-to.
-
-**The drift check.** When you re-check your balance, the app tells you what it
-expected first, then remembers the difference. That number is the honest
-measure of whether the logging habit is sticking.
+**Currency.** NZD, AUD or JPY. Every entry is stamped with the currency it was
+logged in; switching converts old entries for display and never rewrites what
+you spent. Rates are ECB reference rates via Frankfurter, fetched at most once
+every six hours.
 
 ---
 
 ## Layout
 
 ```
-dates.js         day/week helpers shared by every tracker, backdating included
+dates.js         day/week helpers shared by everything
 currency.js      currencies, conversion and the round-up step
-logic.js         the money maths — pure functions, no DOM, fully tested
-calories.js      the food maths — same deal, and deliberately isolated
-curb.js          the behaviour maths — score, league, freezes, the pause
-notes.js         notes & reminders — the when-parser, the plan of three, basics
+logic.js         the money maths — pure functions, no DOM
+curb.js          the pause: patterns, and the memory of your noes
+notes.js         today's three, the basics, the when-parser
 vault.js         the vault — key derivation, encryption, expiry maths
-template.html    the app: markup, styles, and the UI layer over logic.js
-nihongo.html     the Japanese trainer — self-contained, framed into the shell
+less.js          the essentialist layer — intent, closet test, marks, buffer, the wall
+template.html    the app: markup, styles, and the UI over the modules
+nihongo.html     the Japanese trainer — self-contained, opened from a basic
 sw-template.js   service worker; the build stamps a version into it
 build.js         assembles the three outputs below
-icons.py         regenerates assets/icons — run only when the mark changes
-assets/          committed icons and favicon
-test.js          157 money logic tests
-test-cal.js      77 food logic tests
+test.js          157 money tests
 test-fx.js       64 currency tests
-test-curb.js     100 behaviour tests
+test-curb.js     100 pause tests
 test-notes.js    95 notes tests
 test-vault.js    101 vault tests, crypto included
-uitest.js        231 browser tests against the built app
+test-less.js     51 essentialist-layer tests
+uitest.js        109 browser tests against the built app
 pwatest.js       16 tests that the hosted build installs and works offline
 ```
 
-`logic.js`, `calories.js`, `curb.js` and `vault.js` are DOM-free so the maths —
-and the crypto — can be tested exhaustively without a browser. `build.js` concatenates `dates.js`, then the
-rest, into the page. `curb.js` is a pure reader: it takes the spending state
-and returns numbers, and never writes to it — deleting its storage key
-(`fiver.curb.v1`) resets the score and leaves every logged spend untouched.
+Every module is DOM-free so the maths — and the crypto — can be tested
+without a browser. `build.js` concatenates `dates.js`, then the rest, into the
+page.
 
-**The food side is built to be liftable.** It has its own state shape, its own
-`localStorage` key (`fiver.food.v1`), and reads nothing from the spending
-state — the one thing it borrows is the day-boundary setting, so both halves
-agree on when "today" ends. Moving it to its own service means taking
-`calories.js`, `dates.js` and that key; nothing has to be untangled first.
-
-### The vault
-
-The passcode is not a screen lock, it is the key. It is stretched with
-PBKDF2-SHA256 (250,000 rounds) into an AES-GCM key that exists only in memory
-and only while unlocked. Records are one encrypted blob in localStorage,
-re-encrypted whole on every change. File bytes are encrypted individually and
-kept in IndexedDB, raw rather than base64'd, so a 5 MB scan stays 5 MB and is
-not rewritten because you renamed an account.
-
-Locking drops the key, and with it everything on screen. There is no cached
-plaintext, which is also why there is no expiry badge on the nav while locked:
-the app cannot read its own data until you type the passcode. It locks itself
-after five idle minutes and whenever the app goes to the background.
-
-There is no recovery. No server means no reset, so a forgotten passcode is lost
-data — the setup screen says so before it lets you choose one. Changing a
-passcode asks for it twice and re-encrypts every file before it commits.
-
-**There is deliberately no password field.** Knowing which service sits under
-which email solves the problem of losing track. Storing the passwords themselves
-would mean competing with a real password manager on the one axis — surviving
-attack — where a single-file app maintained by one person should not be asking
-for that trust. Keep those in Bitwarden, 1Password, or your phone's keychain.
-
-What it stops: someone picking up an unlocked phone, anyone reading browser
-storage, anything that copies the files off the device. What it does not: malware
-watching you type, or someone who knows the passcode.
+`calories.js` and `test-cal.js` are still in the repo but no longer built or
+run: the food tracker was cut when the app was reframed, and the file is kept
+because it was written to be lifted into its own service. `curbshots.js` and
+`foodshots.js` are stale for the same reason and can go.
 
 ### Build outputs
 
@@ -202,55 +119,60 @@ npx playwright install chromium   # first time only
 npm run build
 npm test                          # logic + app + offline
 npm run serve                     # http://localhost:8080
+npm run shots                     # phone-sized screenshots of every screen
 ```
 
-`npm run shots` writes phone-sized screenshots of every screen — useful for
-eyeballing a change without picking up your phone.
+Every push to `main` runs all the suites in CI and only deploys if they pass.
 
-Every push to `main` runs all five suites in CI and only deploys if they pass.
+---
+
+## The vault
+
+The passcode is not a screen lock, it is the key. It is stretched with
+PBKDF2-SHA256 (250,000 rounds) into an AES-GCM key that exists only in memory
+and only while unlocked. Records are one encrypted blob in localStorage;
+file bytes are encrypted individually and kept in IndexedDB.
+
+Locking drops the key, and with it everything on screen. It locks itself after
+five idle minutes and whenever the app goes to the background. There is no
+recovery: no server means no reset. Changing a passcode asks for it twice and
+re-encrypts every file before it commits.
+
+**There is deliberately no password field.** Knowing which service sits under
+which email solves the problem of losing track. Storing passwords would mean
+competing with a real password manager on the one axis — surviving attack —
+where a single-file app should not be asking for that trust.
+
+The vault is not in the export. Keep the original documents somewhere else too.
 
 ---
 
 ## Your bank (optional)
 
-Fiver works with nothing connected and that is the default. If you want your
-actual spending in it, `bank-proxy/` is a small Cloudflare Worker that holds an
-Akahu personal token so your phone never has to. Read-only, one user, no
-payment path. Setup is in [bank-proxy/README.md](bank-proxy/README.md).
-
-Imported rows are never added silently: you see them, tick the ones you want,
-and they round up to the next five like anything else. Anything that looks like
-a spend you already logged by hand is flagged and left unticked.
+`bank-proxy/` is a small Cloudflare Worker that holds an Akahu personal token
+so your phone never has to. Read-only, one user, no payment path. Setup is in
+[bank-proxy/README.md](bank-proxy/README.md). Imported rows are never added
+silently: you see them, tick the ones you want, and they round up like
+anything else.
 
 ---
 
 ## Deploying
 
-Covered in [DEPLOY.md](DEPLOY.md). Short version: push to `main` and GitHub
-Actions builds, tests and publishes to Pages.
-
-After it's live, open it on your phone and **Add to Home Screen**. That is not
-housekeeping — an uninstalled site can have its storage cleared by Safari after
-about a week of not being opened, and installing is what makes the browser treat
-your data as worth keeping. Setup → *Keep it on your phone* tells you your real
-status.
+Covered in [DEPLOY.md](DEPLOY.md). Push to `main` and GitHub Actions builds,
+tests and publishes to Pages. Then open it on your phone and **Add to Home
+Screen** — an uninstalled site can have its storage cleared by Safari after
+about a week, and for the vault that means your documents.
 
 ---
 
 ## Not done yet
 
-- **The vault is one device.** It cannot sync without either weakening the
-  encryption or putting a key on a server. Export does not include it either —
-  keep the original documents somewhere else as well.
-- **No sync.** Your phone and your laptop are separate databases. That needs a
-  backend, and everything below follows from it.
-- **Sign in with Apple / Google** are on the welcome screen and say plainly that
-  they aren't connected. Real OAuth needs a server to verify the token.
-- **No cloud backup.** Export is manual, from Setup.
-- **Recurring bills** aren't automated — rent gets logged by hand every time.
-- **No friends or shared leagues.** The league is your own weeks only. Anything
-  social needs a backend and real accounts.
-- **The bank feed is read-only and manual.** It fetches when you ask it to;
-  nothing syncs on its own, and nothing can move money.
+- **No sync.** Your phone and your laptop are separate databases. The vault
+  cannot sync without weakening the encryption or putting a key on a server.
+- **Sign in with Apple / Google** are on the welcome screen and say plainly
+  that they aren't connected.
+- **Recurring bills** are in the closet test, not automated — rent still gets
+  logged by hand.
 - **Fonts** load from Google. Self-hosting them would make the app fully
-  offline and drop the third-party request.
+  offline.

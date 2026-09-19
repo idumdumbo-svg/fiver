@@ -56,948 +56,246 @@ function launchOpts() {
 
   await page.goto('file://' + path.join(__dirname, 'fiver-standalone.html'));
   await page.waitForTimeout(600);
-
-  check('page boots without JS errors', errors.length === 0, errors.join(' | '));
-
-  /* ---- welcome / sign-in ---- */
-  check('welcome shows on a fresh install', (await page.locator('#welcome.on').count()) === 1);
-  await page.click('.signin.apple');
-  await page.waitForTimeout(300);
-  const signinNote = await page.textContent('#signinNote');
-  check('sign-in is honest about not being connected',
-    /isn't connected yet/.test(signinNote) && /server/.test(signinNote), signinNote);
-  check('sign-in did not fake a session', (await page.locator('#welcome.on').count()) === 1);
-  await page.click('.signin.google');
-  await page.waitForTimeout(250);
-  check('google behaves the same', (await page.locator('#welcome.on').count()) === 1);
-  await page.click('#useLocal');
-  await page.waitForTimeout(400);
-  check('device-only dismisses the welcome', (await page.locator('#welcome.on').count()) === 0);
-  await page.reload();
-  await page.waitForTimeout(500);
-  check('welcome does not come back', (await page.locator('#welcome.on').count()) === 0);
-
-  check('hero starts at $0', (await page.textContent('#heroVal')) === '0', await page.textContent('#heroVal'));
-  await page.click('#moneyTabs .tab[data-view="savings"]');
-  await page.waitForTimeout(250);
-  check('total cash starts unset', (await page.textContent('#cashVal')) === '—', await page.textContent('#cashVal'));
-  check('unset cash explains itself', /banking app/.test(await page.textContent('#cashLedger')),
-    await page.textContent('#cashLedger'));
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(200);
-
-  /* ---- log $14.00 via the keypad ---- */
-  await page.click('#openAdd');
-  await page.waitForTimeout(350);
-  for (const k of ['1', '4']) await page.click(`.key:text-is("${k}")`);
-  const note = await page.textContent('#amtNote');
-  check('keypad shows the round-up', /15/.test(note) && /\$1/.test(note), note);
-  await page.click('.chip:text-is("Eating out")');
-  await page.click('#saveEntry');
-  await page.waitForTimeout(400);
-  check('hero shows 15 after logging 14', (await page.textContent('#heroVal')) === '15', await page.textContent('#heroVal'));
-  check('hero shows the NZ$ symbol', (await page.textContent('#heroCur')) === 'NZ$', await page.textContent('#heroCur'));
-  check('3 blocks rendered', (await page.locator('.blk:not(.ghost):not(.more)').count()) === 3,
-    await page.locator('.blk:not(.ghost):not(.more)').count());
-
-  /* ---- log rent as a fixed cost ---- */
-  await page.click('#openAdd');
-  await page.waitForTimeout(300);
-  for (const k of ['2', '7', '5']) await page.click(`.key:text-is("${k}")`);
-  await page.click('.chip:text-is("Rent")');
-  const swOn = await page.locator('#fixedSw.on').count();
-  check('Rent auto-flags as fixed', swOn === 1, swOn);
-  await page.click('#saveEntry');
-  await page.waitForTimeout(400);
-  check('hero total includes rent ($290)', (await page.textContent('#heroVal')) === '290', await page.textContent('#heroVal'));
-  check('blocks still show only flex (3)', (await page.locator('.blk:not(.ghost):not(.more)').count()) === 3,
-    await page.locator('.blk:not(.ghost):not(.more)').count());
-  check('fixed bar explains itself', !(await page.locator('#fixedBar').getAttribute('class')).includes('hidden'));
-
-  /* ---- jar + sweep ---- */
-  const jar = await page.textContent('#jarToday');
-  check('jar shows $1 of round-up change', /\$1/.test(jar), jar);
-  await page.click('#moneyTabs .tab[data-view="savings"]');
-  await page.waitForTimeout(250);
-  check('sweep button offers the jar', /\$1/.test(await page.textContent('#doSweep')), await page.textContent('#doSweep'));
-  await page.click('#doSweep');
-  await page.waitForTimeout(400);
-  check('sweep asks where the money goes', (await page.locator('#destSheet.on').count()) === 1);
-  await page.fill('#destNew', 'Wise savings');
-  await page.fill('#destNote', 'Japan fund');
-  await page.click('#destConfirm');
-  await page.waitForTimeout(400);
-  check('banked-by-app total is NZ$1', (await page.textContent('#bankVal')) === 'NZ$1', await page.textContent('#bankVal'));
-  check('destination recorded', /Wise savings/.test(await page.textContent('#dests')), await page.textContent('#dests'));
-  check('note recorded in the log', /Japan fund/.test(await page.textContent('#sweepLog')), await page.textContent('#sweepLog'));
-  check('jar cannot be swept twice', await page.locator('#doSweep').isDisabled(), await page.textContent('#doSweep'));
-
-  /* ---- persistence across reload ---- */
-  await page.reload();
-  await page.waitForTimeout(500);
-  check('data survives a reload', (await page.textContent('#heroVal')) === '290', await page.textContent('#heroVal'));
-
-  /* ---- edit + delete ---- */
-  await page.click('.entry >> nth=1');
-  await page.waitForTimeout(300);
-  check('edit sheet opens with delete', (await page.locator('#delEntry:visible').count()) === 1);
-  await page.click('#delEntry');
-  await page.waitForTimeout(350);
-  const heroAfterDel = await page.textContent('#heroVal');
-  check('deleting removes it from the total', heroAfterDel === '15' || heroAfterDel === '275', heroAfterDel);
-  await page.click('#toastAct');
-  await page.waitForTimeout(300);
-  check('undo restores it', (await page.textContent('#heroVal')) === '290', await page.textContent('#heroVal'));
-
-  /* ---- demo data, trends, baselines ---- */
-  page.on('dialog', d => d.accept());
-  await page.click('#moneyTabs .tab[data-view="setup"]');
-  await page.waitForTimeout(200);
-  await page.click('#demoBtn');
-  await page.waitForTimeout(400);
-  check('demo asks before overwriting', await page.locator('#askSheet.on').count() === 1);
-  await page.click('#askOk');
-  await page.waitForTimeout(700);
-  const verdict = await page.textContent('#verdict');
-  check('verdict compares against a baseline', /under|over/.test(verdict), verdict);
-  await page.click('#moneyTabs .tab[data-view="trends"]');
-  await page.waitForTimeout(300);
-  check('chart drew 14 columns', (await page.locator('#chart .bwrap').count()) === 14,
-    await page.locator('#chart .bwrap').count());
-  check('untracked days render as gaps', (await page.locator('#chart .gap').count()) >= 1,
-    await page.locator('#chart .gap').count());
-  check('baseline line drawn', (await page.locator('.baseline-line').count()) === 1);
-  check('categories listed', (await page.locator('#cats .catrow').count()) >= 1,
-    await page.locator('#cats .catrow').count());
-  check('history grouped by day', (await page.locator('#history .daygroup').count()) >= 10,
-    await page.locator('#history .daygroup').count());
-
-  /* ---- baseline mode switch ---- */
-  await page.click('#moneyTabs .tab[data-view="setup"]');
-  await page.selectOption('#baseMode', 'yesterday');
-  await page.waitForTimeout(300);
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(250);
-  check('yesterday mode changes the verdict copy', /yesterday/.test(await page.textContent('#verdict')),
-    await page.textContent('#verdict'));
-
-  /* ---- goal line ---- */
-  await page.click('#moneyTabs .tab[data-view="setup"]');
-  await page.fill('#goalDaily', '40');
-  await page.waitForTimeout(300);
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(250);
-  check('goal sets the block line', /target line/.test(await page.textContent('#lineNote')),
-    await page.textContent('#lineNote'));
-
-  /* ---- total cash (prompt() is unreliable in a sandboxed frame, so it's in-page) ---- */
-  await page.click('#moneyTabs .tab[data-view="savings"]');
-  await page.waitForTimeout(250);
-  await page.click('#setBal');
-  await page.waitForTimeout(400);
-  check('cash modal opens in-page', await page.locator('#askSheet.on').count() === 1);
-  await page.fill('#askInput', '3000');
-  await page.click('#askOk');
-  await page.waitForTimeout(350);
-  check('cash anchored from the modal', (await page.textContent('#cashVal')) === 'NZ$3,000', await page.textContent('#cashVal'));
-  const bankedNow = await page.textContent('#bankVal');
-  check('sweeps do not change total cash', (await page.textContent('#cashVal')) === 'NZ$3,000' && bankedNow !== 'NZ$0',
-    (await page.textContent('#cashVal')) + ' / ' + bankedNow);
-  check('yesterday card offers unswept money', (await page.locator('#ydayCard:not(.hidden)').count()) === 1,
-    await page.locator('#ydayCard').getAttribute('class'));
-  var bankBefore = await page.textContent('#bankVal');
-  var cashBefore = await page.textContent('#cashVal');
-  await page.click('#ydaySweep');
-  await page.waitForTimeout(400);
-  check('yesterday sweep also asks for a destination', (await page.locator('#destSheet.on').count()) === 1);
-  await page.click('#destChips .chip >> nth=0');
-  await page.click('#destConfirm');
-  await page.waitForTimeout(400);
-  check('yesterday sweep raises the banked total', (await page.textContent('#bankVal')) !== bankBefore,
-    await page.textContent('#bankVal'));
-  check('yesterday card clears once swept', (await page.locator('#ydayCard.hidden').count()) === 1);
-  check('total cash still untouched after a sweep', (await page.textContent('#cashVal')) === cashBefore,
-    (await page.textContent('#cashVal')) + ' was ' + cashBefore);
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(250);
-
-  /* ---- income ---- */
-  await page.click('#openIncome');
-  await page.waitForTimeout(450);
-  check('no preset amount chips', (await page.locator('#quickChips').count()) === 0);
-  check('income button opens straight into income mode',
-    (await page.locator('.seg-btn[data-kind="income"].on').count()) === 1);
-  check('sheet title follows the mode', (await page.textContent('#addTitle')) === 'Log what you earned',
-    await page.textContent('#addTitle'));
-  for (const kk of ['1','6','5']) await page.click(`.key:text-is("${kk}")`);
-  const inote = await page.textContent('#amtNote');
-  check('income is not rounded', /never rounded/.test(inote) && /165/.test(inote), inote);
-  check('fixed-cost toggle hidden for income', (await page.locator('#fixedToggle.hidden').count()) === 1);
-  await page.click('.chip:text-is("Lessons")');
-  const heroBeforeIncome = await page.textContent('#heroVal');
-  await page.click('#saveEntry');
-  await page.waitForTimeout(450);
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(300);
-  check('income does not change the day total', (await page.textContent('#heroVal')) === heroBeforeIncome,
-    (await page.textContent('#heroVal')) + ' was ' + heroBeforeIncome);
-  const strip = await page.textContent('#incomeBar');
-  check('income strip appears', /in today/.test(strip) && /Lessons/.test(strip) && /kept/.test(strip), strip);
-  check('income row in the day list', (await page.locator('.badge.in').count()) >= 1);
-  const verdictAfter = await page.textContent('#verdict');
-  check('income does not change the verdict', /under|over/.test(verdictAfter), verdictAfter);
-  await page.click('#moneyTabs .tab[data-view="trends"]');
-  await page.waitForTimeout(300);
-  check('in vs out card populated', /in/.test(await page.textContent('#flows')) && (await page.locator('.netpill').count()) === 2,
-    await page.locator('.netpill').count());
-  /* ---- income and spending move total cash; the round-up gap does not ---- */
-  await page.click('#moneyTabs .tab[data-view="savings"]');
-  await page.waitForTimeout(300);
-  const cashPre = await page.textContent('#cashVal');
-  await page.click('#openIncome');
-  await page.waitForTimeout(400);
-  for (const kk of ['1','0','0']) await page.click(`.key:text-is("${kk}")`);
-  await page.click('#saveEntry');
-  await page.waitForTimeout(400);
-  await page.click('#moneyTabs .tab[data-view="savings"]');
-  await page.waitForTimeout(300);
-  const cashAfterIncome = await page.textContent('#cashVal');
-  check('income raises total cash', cashAfterIncome !== cashPre, cashAfterIncome + ' was ' + cashPre);
-  check('ledger shows what moved', /Earned since/.test(await page.textContent('#cashLedger')),
-    await page.textContent('#cashLedger'));
-
-  await page.click('#openAdd');
-  await page.waitForTimeout(400);
-  for (const kk of ['1','2']) await page.click(`.key:text-is("${kk}")`);
-  await page.click('#saveEntry');
-  await page.waitForTimeout(400);
-  await page.click('#moneyTabs .tab[data-view="savings"]');
-  await page.waitForTimeout(300);
-  const ledger = await page.textContent('#cashLedger');
-  check('cash comes off by the real amount, not the rounded one',
-    /−NZ\$12(\D|$)/.test(ledger.replace(/\s+/g, ' ')) || /12\.00/.test(ledger), ledger);
-
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(250);
-
-  /* ---- backdating ---- */
-  await page.click('#openAdd');
-  await page.waitForTimeout(400);
-  check('day defaults to today', (await page.locator('.chip.when[data-when="0"].on').count()) === 1);
-  await page.click('.chip.when[data-when="1"]');
-  await page.waitForTimeout(200);
-  check('yesterday selectable', (await page.locator('.chip.when[data-when="1"].on').count()) === 1);
-  const heroBeforeBackdate = await page.textContent('#heroVal');
-  for (const kk of ['9']) await page.click(`.key:text-is("${kk}")`);
-  await page.click('#saveEntry');
-  await page.waitForTimeout(450);
-  check('a backdated spend does not touch today', (await page.textContent('#heroVal')) === heroBeforeBackdate,
-    (await page.textContent('#heroVal')) + ' was ' + heroBeforeBackdate);
-  await page.click('#moneyTabs .tab[data-view="trends"]');
-  await page.waitForTimeout(300);
-  check('backdated spend lands in history', /Yesterday/.test(await page.textContent('#history')));
-  check('date picker refuses the future',
-    (await page.locator('#dayPick').getAttribute('max')) !== null);
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(250);
-
-  /* ---- food: a separate app in the same shell ---- */
-  const moneyHero = await page.textContent('#heroVal');   // snapshot before we touch food
-  await page.click('.mode-btn[data-mode="food"]');
-  await page.waitForTimeout(400);
-  check('food mode swaps the views', (await page.locator('#v-eat.on').count()) === 1);
-  check('food tabs replace the money tabs',
-    (await page.locator('#moneyTabs').isVisible()) === false && await page.locator('#foodTabs').isVisible());
-  check('food starts at zero', (await page.textContent('#eatVal')) === '0', await page.textContent('#eatVal'));
-
-  /* ---- the slider ---- */
-  check('log button starts disabled', await page.locator('#logSlider').isDisabled());
-  check('slider steps in 50s', (await page.locator('#kcalSlider').getAttribute('step')) === '50');
-  check('slider tops out at 1000', (await page.locator('#kcalSlider').getAttribute('max')) === '1000');
-  await page.locator('#kcalSlider').fill('600');
-  await page.waitForTimeout(250);
-  check('slider readout follows', (await page.textContent('#sliderVal')) === '600',
-    await page.textContent('#sliderVal'));
-  check('log button lights up once set', !(await page.locator('#logSlider').isDisabled()));
-  check('log button names the amount', /600/.test(await page.textContent('#logSlider')),
-    await page.textContent('#logSlider'));
-  await page.click('#logSlider');
-  await page.waitForTimeout(400);
-  check('slider logs the amount', (await page.textContent('#eatVal')) === '600', await page.textContent('#eatVal'));
-  check('slider resets after logging', (await page.textContent('#sliderVal')) === '0',
-    await page.textContent('#sliderVal'));
-  check('log button disabled again', await page.locator('#logSlider').isDisabled());
-  await page.locator('#kcalSlider').fill('200');
-  await page.waitForTimeout(200);
-  await page.click('#logSlider');
-  await page.waitForTimeout(400);
-  check('amounts add up', (await page.textContent('#eatVal')) === '800', await page.textContent('#eatVal'));
-  check('budget verdict shown', /left/.test(await page.textContent('#eatVerdict')),
-    await page.textContent('#eatVerdict'));
-  check('entries listed', (await page.locator('#eatEntries .entry').count()) === 2,
-    await page.locator('#eatEntries .entry').count());
-
-  // saving a food, then logging it in one tap
-  await page.click('#foodTabs .tab[data-view="foods"]');
-  await page.waitForTimeout(300);
-  await page.fill('#foodName', 'Porridge');
-  await page.fill('#foodKcal', '347');
-  await page.click('#addFood');
-  await page.waitForTimeout(400);
-  check('saved food rounds up to 350', /350/.test(await page.textContent('#foodList')),
-    await page.textContent('#foodList'));
-  await page.click('#foodTabs .tab[data-view="eat"]');
-  await page.waitForTimeout(300);
-  check('saved food appears as a chip', (await page.locator('#favChips .chip').count()) >= 1,
-    await page.locator('#favChips .chip').count());
-  const beforeChip = await page.textContent('#eatVal');
-  await page.click('#favChips .chip:text-is("Porridge 350")');
-  await page.waitForTimeout(400);
-  check('one tap logs the saved food', (await page.textContent('#eatVal')) !== beforeChip,
-    (await page.textContent('#eatVal')) + ' was ' + beforeChip);
-
-  /* ---- naming a food must give a text keyboard, not a number pad ---- */
-  await page.click('#openEat');
-  await page.waitForTimeout(400);
-  check('amount step asks for digits',
-    (await page.locator('#askInput').getAttribute('inputmode')) === 'decimal',
-    await page.locator('#askInput').getAttribute('inputmode'));
-  await page.fill('#askInput', '450');
-  await page.click('#askOk');
-  await page.waitForTimeout(400);
-  check('name step asks for letters',
-    (await page.locator('#askInput').getAttribute('inputmode')) === 'text',
-    await page.locator('#askInput').getAttribute('inputmode'));
-  await page.fill('#askInput', 'Chicken roll');
-  await page.click('#askOk');
-  await page.waitForTimeout(400);
-  check('named entry logged', (await page.textContent('#eatVal')) === '1,600',
-    await page.textContent('#eatVal'));
-  check('naming it saved it as a chip',
-    /Chicken roll/.test(await page.textContent('#favChips')), await page.textContent('#favChips'));
-
-  // budget
-  await page.click('#foodTabs .tab[data-view="foods"]');
-  await page.waitForTimeout(300);
-  await page.fill('#dailyBudget', '1000');
-  await page.waitForTimeout(400);
-  await page.click('#foodTabs .tab[data-view="eat"]');
-  await page.waitForTimeout(300);
-  check('going over is flagged', /over/.test(await page.textContent('#eatVerdict')),
-    await page.textContent('#eatVerdict'));
-  check('meter fills', (await page.locator('#eatFill').getAttribute('style')).includes('width'),
-    await page.locator('#eatFill').getAttribute('style'));
-
-  // the two apps are genuinely separate
-  await page.click('.mode-btn[data-mode="money"]');
-  await page.waitForTimeout(400);
-  check('money side is untouched by food logging', (await page.textContent('#heroVal')) === moneyHero,
-    (await page.textContent('#heroVal')) + ' was ' + moneyHero);
-  const keys = await page.evaluate(() => Object.keys(localStorage));
-  check('food has its own storage key', keys.includes('fiver.food.v1'), keys.join(','));
-  check('money key untouched', keys.includes('fiver.v1'), keys.join(','));
-  const noLeak = await page.evaluate(() => {
-    const money = JSON.parse(localStorage.getItem('fiver.v1'));
-    return !JSON.stringify(money).includes('Porridge') && !('foods' in money);
-  });
-  check('no food data leaked into the money state', noLeak);
-
-  // mode survives a reload
-  await page.click('.mode-btn[data-mode="food"]');
-  await page.waitForTimeout(300);
-  await page.reload();
-  await page.waitForTimeout(600);
-  check('mode is remembered', (await page.locator('#v-eat.on').count()) === 1);
-  check('food data survives a reload', (await page.textContent('#eatVal')) === '1,600',
-    await page.textContent('#eatVal'));
-  await page.click('.mode-btn[data-mode="money"]');
-  await page.waitForTimeout(300);
-
-  /* ---- food: a daily tracker — today only, past days kept in Foods ---- */
-  await page.click('.mode-btn[data-mode="food"]');
-  await page.waitForTimeout(400);
-
-  const todayTotal = await page.textContent('#eatVal');
-  const todayRows = await page.locator('#eatEntries .entry').count();
-  check('no day stepper on the food screen', (await page.locator('#eatPrev').count()) === 0);
-  check('no date picker on the food screen', (await page.locator('#eatDayPick').count()) === 0);
-  check('the hero is labelled today', (await page.textContent('#eatLabel')).startsWith('TODAY'),
-    await page.textContent('#eatLabel'));
-  check('no week figure on the food screen', (await page.locator('#eatWeek').count()) === 0);
-  check('no history chart on the food screen', (await page.locator('#eatChart').count()) === 0);
-  await page.locator('#kcalSlider').fill('450'); await page.waitForTimeout(250);
-  check('the log button no longer names a day', (await page.textContent('#logSlider')).trim() === 'Log 450',
-    await page.textContent('#logSlider'));
-  await page.locator('#kcalSlider').fill('0'); await page.waitForTimeout(200);
-
-  // plant two past days straight into storage — the UI has no way to
-  // create them, which is the point
-  const twoBack = await page.evaluate(() => {
-    const pad = n => (n < 10 ? '0' : '') + n;
-    const key = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-    const f = JSON.parse(localStorage.getItem('fiver.food.v1'));
-    const d2 = new Date(); d2.setDate(d2.getDate() - 2); d2.setHours(13, 0, 0, 0);
-    const d1 = new Date(); d1.setDate(d1.getDate() - 1); d1.setHours(19, 30, 0, 0);
-    f.entries.push({ id:'h1', ts:d2.getTime(), day:key(d2), kcal:700, label:'Ramen' });
-    f.entries.push({ id:'h2', ts:d2.getTime() + 3600e3, day:key(d2), kcal:300, label:'Snack' });
-    f.entries.push({ id:'h3', ts:d1.getTime(), day:key(d1), kcal:2500, label:'Big dinner' });
-    localStorage.setItem('fiver.food.v1', JSON.stringify(f));
-    return key(d2);
-  });
-  await page.reload(); await page.waitForTimeout(700);
-  check('past days never touch today\'s total', (await page.textContent('#eatVal')) === todayTotal,
-    (await page.textContent('#eatVal')) + ' was ' + todayTotal);
-  check('past entries are not listed on today', (await page.locator('#eatEntries .entry').count()) === todayRows,
-    await page.locator('#eatEntries .entry').count());
-
-  await page.click('#foodTabs .tab[data-view="foods"]'); await page.waitForTimeout(300);
-  check('no weekly budget field any more', (await page.locator('#weeklyBudget').count()) === 0);
-  check('previous days are listed in Foods', (await page.locator('#histList .foodrow').count()) === 2,
-    await page.locator('#histList .foodrow').count());
-  check('newest past day first', /Yesterday/.test(await page.textContent('#histList .foodrow')),
-    await page.textContent('#histList .foodrow'));
-  check('a past day shows its total', /1,000/.test(await page.textContent('#histList')),
-    await page.textContent('#histList'));
-  await page.click('#histList .foodrow >> nth=1'); await page.waitForTimeout(400);
-  check('opening a past day shows its entries', (await page.locator('#histEntries .entry').count()) === 2,
-    await page.locator('#histEntries .entry').count());
-  check('and the sheet sums it', /1,000 kcal in 2 entries/.test(await page.textContent('#histSum')),
-    await page.textContent('#histSum'));
-  await page.click('#closeHist'); await page.waitForTimeout(350);
-  check('the past-day sheet closes', (await page.locator('#histSheet.on').count()) === 0);
-  await page.click('#foodTabs .tab[data-view="eat"]'); await page.waitForTimeout(300);
-
-  await page.click('.mode-btn[data-mode="money"]');
-  await page.waitForTimeout(300);
-
-  /* ---- notes: three for today, basics, honest carry-over ---- */
-  await page.click('.mode-btn[data-mode="notes"]');
-  await page.waitForTimeout(400);
-  check('the notes view opens', (await page.locator('#v-notes.on').count()) === 1);
-  check('no dock on notes', !(await page.locator('.dock').isVisible()));
-  check('starts with an empty plan', (await page.textContent('#ntVal')) === '0');
-
-  await page.fill('#ntInp', 'wax the board tomorrow 9am'); await page.waitForTimeout(150);
-  check('typing a time previews it', /Tomorrow 9am/i.test(await page.textContent('#whenHint')),
-    await page.textContent('#whenHint'));
-  await page.press('#ntInp', 'Enter'); await page.waitForTimeout(300);
-  check('enter adds it', (await page.locator('#laterList .noterow').count()) === 1);
-  check('the time was split off the text', (await page.textContent('#laterList .nt')) === 'wax the board',
-    await page.textContent('#laterList .nt'));
-  check('and shown as meta', /Tomorrow 9am/.test(await page.textContent('#laterList .nmeta')),
-    await page.textContent('#laterList .nmeta'));
-  check('the input clears', (await page.inputValue('#ntInp')) === '');
-
-  for (const t of ['book lift pass', 'reply to mum', 'sort visa docs', 'buy wax']) {
-    await page.fill('#ntInp', t); await page.press('#ntInp', 'Enter'); await page.waitForTimeout(150);
-  }
-  check('five in later', (await page.locator('#laterList .noterow').count()) === 5);
-  check('nothing in today yet', (await page.locator('#ntTodayEmpty:not(.hidden)').count()) === 1);
-
-  // plan three
-  for (let i = 0; i < 3; i++) { await page.click('#laterList .nplan >> nth=0'); await page.waitForTimeout(150); }
-  check('three moved to today', (await page.locator('#todayList .noterow').count()) === 3);
-  check('two left in later', (await page.locator('#laterList .noterow').count()) === 2);
-  check('the fourth cannot be planned', await page.locator('#laterList .nplan >> nth=0').isDisabled());
-  check('hero says 0 of 3', (await page.textContent('#ntVal')) === '0' && /of 3/.test(await page.textContent('#ntUnit')));
-  check('plan full is announced', /PLAN FULL/.test(await page.textContent('#ntPlanCount')));
-
-  // finish one
-  await page.click('#todayList .ncheck >> nth=0'); await page.waitForTimeout(150);
-  check('the row animates before it goes', (await page.locator('#todayList .noterow.doing').count()) === 1);
-  await page.waitForTimeout(1000);
-  check('then it leaves today', (await page.locator('#todayList .noterow').count()) === 2);
-  check('hero counts it', (await page.textContent('#ntVal')) === '1');
-  check('two to go', /2 to go/.test(await page.textContent('#ntSub')), await page.textContent('#ntSub'));
-  check('a slot opens up for later items', !(await page.locator('#laterList .nplan >> nth=0').isDisabled()));
-  check('the done card appears', (await page.locator('#doneCard:not(.hidden)').count()) === 1);
-  await page.click('#doneToggle'); await page.waitForTimeout(200);
-  check('done opens on request', (await page.locator('#doneList .noterow').count()) === 1);
-  await page.click('#doneList .ncheck'); await page.waitForTimeout(300);
-  check('a done note can be put back', (await page.locator('#todayList .noterow').count()) === 3
-    && (await page.textContent('#ntVal')) === '0');
-  check('an empty done list hides its card', (await page.locator('#doneCard:not(.hidden)').count()) === 0);
-
-  // finish all three → day done
-  for (let i = 0; i < 3; i++) { await page.click('#todayList .ncheck >> nth=0'); await page.waitForTimeout(1000); }
-  check('day done', /Day done/.test(await page.textContent('#ntSub')), await page.textContent('#ntSub'));
-  check('3 of 3', (await page.textContent('#ntVal')) === '3');
-
-  // basics
-  await page.click('#basics .basic.add'); await page.waitForTimeout(300);
-  await page.fill('#askInput', 'Gym'); await page.click('#askOk'); await page.waitForTimeout(350);
-  await page.click('#basics .basic.add'); await page.waitForTimeout(300);
-  await page.fill('#askInput', 'Japanese'); await page.click('#askOk'); await page.waitForTimeout(350);
-  check('two basics', (await page.locator('#basics .basic:not(.add)').count()) === 2);
-  await page.click('#basics .basic:not(.add) >> nth=0'); await page.waitForTimeout(450);
-  check('a basic ticks', (await page.locator('#basics .basic.on').count()) === 1);
-  check('a first tick shows a streak of 1', (await page.textContent('#basics .basic.on small')) === '1');
-  await page.click('#basics .basic.on'); await page.waitForTimeout(300);
-  check('and unticks', (await page.locator('#basics .basic.on').count()) === 0);
-
-  // editing: blank = delete
-  await page.click('#laterList .ntext >> nth=0'); await page.waitForTimeout(300);
-  await page.fill('#askInput', ''); await page.click('#askOk'); await page.waitForTimeout(350);
-  check('clearing the text deletes the note', (await page.locator('#laterList .noterow').count()) === 1);
-
-  // midnight: an unfinished today item is carried, honestly
-  await page.evaluate(() => {
-    const n = JSON.parse(localStorage.getItem('fiver.notes.v1'));
-    const pad = x => (x < 10 ? '0' : '') + x;
-    const d = new Date(); d.setDate(d.getDate() - 1);
-    const yday = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-    const open = n.notes.find(x => !x.done);
-    open.today = yday; open.carried = 2; n.lastDay = yday;
-    n.notes.filter(x => x.done).forEach(x => { x.today = yday; });   // pretend all that was yesterday
-    localStorage.setItem('fiver.notes.v1', JSON.stringify(n));
-  });
-  await page.reload(); await page.waitForTimeout(800);
-  check('notes mode is remembered', (await page.locator('#v-notes.on').count()) === 1);
-  check('the carried note is back in later', (await page.locator('#laterList .noterow').count()) === 1);
-  check('with its count', /carried ×3/.test(await page.textContent('#laterList .nmeta')),
-    await page.textContent('#laterList .nmeta'));
-  check('and after three carries it asks for a decision', /Do it today or let it go/.test(await page.textContent('#laterList')));
-  check('yesterday\'s finished plan does not count today', (await page.textContent('#ntVal')) === '0');
-  check('the basics survived the reload', (await page.locator('#basics .basic:not(.add)').count()) === 2);
-
-  await page.click('.mode-btn[data-mode="money"]');
-  await page.waitForTimeout(300);
-
-  /* ---- Japanese: a third app, framed in ---- */
-  await page.click('.mode-btn[data-mode="nihongo"]');
-  await page.waitForTimeout(1200);
-  check('the Japanese view opens', (await page.locator('#v-nihongo.on').count()) === 1);
-  check('the money dock is hidden while Japanese is up',
-    !(await page.locator('.dock').isVisible()));
-  const jpFrame = page.frameLocator('#jpFrame');
-  check('the Japanese app boots inside the frame',
-    /NIHONGO 15/.test(await jpFrame.locator('#app').textContent()));
-  await page.reload(); await page.waitForTimeout(1200);
-  check('Japanese mode is remembered', (await page.locator('#v-nihongo.on').count()) === 1);
-  await page.click('.mode-btn[data-mode="money"]');
-  await page.waitForTimeout(300);
-  check('money comes back with its dock', await page.locator('.dock').isVisible());
-
-  /* ---- currency ---- */
-  await page.click('#moneyTabs .tab[data-view="setup"]');
-  await page.waitForTimeout(300);
-  check('three currencies offered', (await page.locator('#curChips .chip').count()) === 3,
-    await page.locator('#curChips .chip').count());
-  check('NZD selected by default', (await page.locator('#curChips .chip.on').textContent()).includes('NZD'),
-    await page.locator('#curChips .chip.on').textContent());
-  check('rates degrade gracefully when the API is unreachable',
-    /unavailable|not fetched/.test(await page.textContent('#fxLabel')), await page.textContent('#fxLabel'));
-
-  // with rates cached, switching converts the history instead of rewriting it
-  await page.evaluate(() => {
-    localStorage.setItem('fiver.rates.v1', JSON.stringify({
-      today: { NZD: 1.6, AUD: 1.5, JPY: 150 },
-      prev:  { NZD: 1.62, AUD: 1.5, JPY: 151 },
-      date: '2026-08-28', fetchedAt: Date.now()
-    }));
-  });
-  await page.reload();
-  await page.waitForTimeout(600);
-  await page.click('#moneyTabs .tab[data-view="setup"]');
-  await page.waitForTimeout(300);
-  check('rate line shows USD value', /US\$/.test(await page.textContent('#fxLabel')),
-    await page.textContent('#fxLabel'));
-  check('daily move against USD shown', /▲|▼|flat/.test(await page.textContent('#fxLabel')),
-    await page.textContent('#fxLabel'));
-
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(300);
-  const nzTotal = await page.textContent('#heroVal');
-  await page.click('#moneyTabs .tab[data-view="setup"]');
-  await page.waitForTimeout(250);
-  await page.click('#curChips .chip:has-text("JPY")');
-  await page.waitForTimeout(500);
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(400);
-  check('symbol switches to yen', (await page.textContent('#heroCur')) === '¥',
-    await page.textContent('#heroCur'));
-  const jpyTotal = await page.textContent('#heroVal');
-  check('history converts rather than staying put', jpyTotal !== nzTotal, jpyTotal + ' vs ' + nzTotal);
-  check('yen total is roughly 94x the NZ one',
-    Math.abs((parseFloat(jpyTotal.replace(/,/g,'')) / parseFloat(nzTotal.replace(/,/g,''))) - 93.75) < 5,
-    jpyTotal + ' / ' + nzTotal);
-
-  // the round-up step follows the currency
-  await page.click('#openAdd');
-  await page.waitForTimeout(400);
-  for (const kk of ['1','3','2','0']) await page.click(`.key:text-is("${kk}")`);
-  const yenNote = await page.textContent('#amtNote');
-  check('yen rounds up to the next 500', /1,500/.test(yenNote), yenNote);
-  await page.click('#closeAdd');
-  await page.waitForTimeout(300);
-
-  // and the stored data is untouched by the display switch
-  const untouched = await page.evaluate(() => {
-    const m = JSON.parse(localStorage.getItem('fiver.v1'));
-    return m.entries.every(e => e.currency === 'NZD');
-  });
-  check('stored entries keep the currency they were logged in', untouched);
-
-  await page.click('#moneyTabs .tab[data-view="setup"]');
-  await page.waitForTimeout(250);
-  await page.click('#curChips .chip:has-text("NZD")');
-  await page.waitForTimeout(400);
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.waitForTimeout(300);
-  check('switching back restores the original total', (await page.textContent('#heroVal')) === nzTotal,
-    (await page.textContent('#heroVal')) + ' was ' + nzTotal);
-
-  /* ---- no horizontal scroll ---- */
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  check('no horizontal overflow', overflow <= 0, overflow);
-
-  /* ================= curb: the behaviour layer ================= */
-
-  /* Log a spend through the real UI, answering the pause if it appears.
-     `expectPause` asserts which way it should go. */
-  async function logSpend(amount, category, opts) {
-    opts = opts || {};
-    await page.click('#moneyTabs .tab[data-view="today"]');
-    await page.waitForTimeout(120);
-    await page.click('#openAdd');
-    await page.waitForTimeout(380);
-    for (const ch of String(amount)) await page.click(`.key:text-is("${ch}")`);
-    if (category) {
-      await page.click(`#catChips .chip:text-is("${category}")`);
-      await page.waitForTimeout(120);
-    }
-    await page.click('#saveEntry');
-    await page.waitForTimeout(420);
+  const spend = async (digits, cat, expectPause) => {
+    await page.click('#openAdd'); await page.waitForTimeout(350);
+    for (const k of digits) await page.click(`.key:text-is("${k}")`);
+    await page.click(`.chip:text-is("${cat}")`);
+    await page.click('#saveEntry'); await page.waitForTimeout(450);
     const paused = await page.locator('#pauseSheet.on').count() === 1;
-    if (paused) {
-      await page.click(opts.avert ? '#pauseAvert' : '#pauseGo');
-      await page.waitForTimeout(420);
-    }
+    if (expectPause === true) check('the pause fired for ' + digits.join(''), paused);
+    if (expectPause === false) check('no pause for ' + digits.join(''), !paused);
     return paused;
+  };
+
+  /* ---- welcome ---- */
+  check('welcome shows on a fresh install', (await page.locator('#welcome.on').count()) === 1);
+  await page.click('#useLocal'); await page.waitForTimeout(400);
+  check('device-only dismisses the welcome', (await page.locator('#welcome.on').count()) === 0);
+
+  /* ---- the shell ---- */
+  check('opens on Execute', await page.locator('#p-execute').isVisible());
+  check('Execute is the active word', (await page.getAttribute('.mode-btn[data-mode="execute"]', 'class')).indexOf('on') !== -1);
+  check('three words in the nav, no more', (await page.locator('.mode-btn').count()) === 3);
+  check('the question is asked', (await page.textContent('#question')) === "What's important now?");
+  check('the intent line prompts when empty', /intent/.test(await page.textContent('#intentLine')));
+  check('the number starts at 0', (await page.textContent('#heroVal')) === '0');
+  check('and shows the NZ$ symbol', (await page.textContent('#heroCur')) === 'NZ$');
+
+  /* ---- the intent ---- */
+  await page.click('#intentBtn'); await page.waitForTimeout(300);
+  check('tapping the intent opens setup', await page.locator('#p-setup').isVisible());
+  check('with its own question', (await page.textContent('#question')) === 'What is this for?');
+  await page.fill('#intentInp', 'A season in Japan'); await page.waitForTimeout(200);
+  check('the header updates as you type', (await page.textContent('#intentLine')) === 'A season in Japan');
+  await page.fill('#goalDaily', '80'); await page.waitForTimeout(200);
+  await page.click('#setupDone'); await page.waitForTimeout(300);
+  check('done returns to Execute', await page.locator('#p-execute').isVisible());
+  check('the intent stays above the page', (await page.textContent('#intentLine')) === 'A season in Japan');
+  check('with a line set, the number is buffer', (await page.textContent('#heroVal')) === '80');
+  check('and says so', /buffer/.test(await page.textContent('#heroSub')));
+
+  /* ---- today's three ---- */
+  const addNote = async (t) => { await page.fill('#ntInp', t); await page.click('#ntAdd'); await page.waitForTimeout(250); };
+  await addNote('Wax the board');
+  check('a note lands in Later first', (await page.locator('#laterList .trow').count()) === 1);
+  await page.click('#laterList .trow .side'); await page.waitForTimeout(250);
+  check('and moves to today', (await page.locator('#todayList .trow').count()) === 1);
+  await addNote('Book the L3 assessment'); await page.click('#laterList .trow .side'); await page.waitForTimeout(200);
+  await addNote('Reply to GALA'); await page.click('#laterList .trow .side'); await page.waitForTimeout(200);
+  await addNote('A fourth thing'); await page.click('#laterList .trow .side'); await page.waitForTimeout(300);
+  check('three is the cap', (await page.locator('#todayList .trow').count()) === 3);
+  check('the fourth stays in Later', (await page.locator('#laterList .trow').count()) === 1);
+  check('the head counts them', (await page.textContent('#todayHead')) === '0 of 3');
+  await page.click('#todayList .trow .bx'); await page.waitForTimeout(1100);
+  check('finishing one counts', (await page.textContent('#todayHead')) === '1 of 3');
+
+  /* ---- basics ---- */
+  await page.click('.basic.add'); await page.waitForTimeout(300);
+  await page.fill('#askInput', 'Japanese 15'); await page.click('#askOk'); await page.waitForTimeout(300);
+  check('a basic is added', (await page.locator('.basic:not(.add)').count()) === 1);
+  check('a Japanese basic gets the arrow to the trainer', (await page.locator('.basic.jp .go').count()) === 1);
+  await page.click('.basic.jp'); await page.waitForTimeout(400);
+  check('ticking it opens the trainer', await page.locator('#jpPage').isVisible());
+  check('the frame is mounted', (await page.getAttribute('#jpFrame', 'data-mounted')) === '1');
+  await page.click('#jpClose'); await page.waitForTimeout(300);
+  check('done closes it', !(await page.locator('#jpPage').isVisible()));
+  check('and the basic is on', (await page.locator('.basic.jp.on').count()) === 1);
+
+  /* ---- spending, and the buffer ---- */
+  await spend(['1','4'], 'Eating out', false);
+  check('14 rounds to 15 and comes off the buffer', (await page.textContent('#heroVal')) === '65');
+  await page.click('.mode-btn[data-mode="eliminate"]'); await page.waitForTimeout(300);
+  check('Eliminate shows the spend', (await page.locator('#todayEntries .spend').count()) === 1);
+  check('with the real amount under it', /was NZ\$14/.test(await page.textContent('#todayEntries')));
+  check('the day total is the rounded figure', /NZ\$15/.test(await page.textContent('#dayTotal')));
+  check('noes start at zero', (await page.textContent('#noCount')) === '0');
+
+  /* ---- the pause: third eating-out spend over $20 ---- */
+  await page.click('.mode-btn[data-mode="execute"]'); await page.waitForTimeout(200);
+  await spend(['2','2'], 'Eating out', false);
+  const paused = await spend(['3','4','.','5','0'], 'Eating out', true);
+  if (paused) {
+    check('the pause asks the question', /clear yes/.test(await page.textContent('#pauseSheet .pause-q')));
+    check('and names the rule', /90 out of 100/.test(await page.textContent('#pauseSheet')));
+    check('and the reason', /3rd eating out/i.test(await page.textContent('#pauseReasons')));
+    check('the amount is shown', (await page.textContent('#pauseVal')) === '34.50');
+    check('there is no way to change the amount', (await page.locator('#pauseSheet input').count()) === 0);
+    await page.click('#pauseAvert'); await page.waitForTimeout(500);
   }
+  check('a no logs nothing', (await page.textContent('#heroVal')) === '40');
+  await page.click('.mode-btn[data-mode="eliminate"]'); await page.waitForTimeout(300);
+  check('the no counts', (await page.textContent('#noCount')) === '1');
+  check('and says what it kept', /NZ\$35/.test(await page.textContent('#noSub')));
+  check('the no sits in the day list', (await page.locator('#todayEntries .spend.no').count()) === 1);
+  check('struck through, not hidden', /said no/.test(await page.textContent('#todayEntries .spend.no')));
 
-  await page.click('#moneyTabs .tab[data-view="score"]');
-  await page.waitForTimeout(350);
-  check('score tab opens', await page.locator('#v-score.on').count() === 1);
-  check('the dial renders a number', (await page.textContent('#dialNum')).length > 0);
-  check('the score is explained, not just asserted',
-    (await page.locator('#scoreParts .part').count()) === 3,
-    await page.locator('#scoreParts .part').count());
-  check('the league lists more than one week',
-    (await page.locator('#leagueRows .lgrow').count()) >= 2,
-    await page.locator('#leagueRows .lgrow').count());
-  check('the current week is marked in the league',
-    (await page.locator('#leagueRows .lgrow.me').count()) === 1);
-  check('freeze pips render', (await page.locator('#freezePips .pip').count()) === 2);
+  /* the 90 path */
+  await page.click('.mode-btn[data-mode="execute"]'); await page.waitForTimeout(200);
+  const paused2 = await spend(['2','1'], 'Eating out', true);
+  if (paused2) { await page.click('#pauseGo'); await page.waitForTimeout(500); }
+  check('a 90 logs the spend', (await page.textContent('#heroVal')) === '15');
+  check('and the buffer keeps counting down', /over|buffer/.test(await page.textContent('#heroSub')));
 
-  const dialNum = await page.textContent('#dialNum');
-  check('the demo history produces a real score', /^\d+$/.test(dialNum), dialNum);
+  /* over the line */
+  await spend(['1','7'], 'Groceries', false);
+  check('over the line, the number is the overshoot', (await page.textContent('#heroVal')) === '5');
+  check('and it says over', /over/.test(await page.textContent('#heroSub')));
+  check('and is marked', (await page.getAttribute('#heroVal', 'class')).indexOf('over') !== -1);
 
-  /* --- the pause ---
-     The demo generator is deliberately random, so these run against a
-     known history injected first: two clean weeks, nothing eaten out. */
-  await page.evaluate(() => {
-    const pad = n => (n < 10 ? '0' : '') + n;
-    const key = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-    const entries = [];
-    for (let i = 1; i <= 14; i++) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      entries.push({ id: 'seed' + i, ts: d.getTime(), day: key(d), actual: 3000,
-        rounded: 3000, currency: 'NZD', category: 'Groceries', fixed: false,
-        note: '', photo: null });
-    }
-    const st = JSON.parse(localStorage.getItem('fiver.v1'));
-    st.entries = entries;
-    st.income = []; st.sweeps = []; st.noSpend = [];
-    localStorage.setItem('fiver.v1', JSON.stringify(st));
-    localStorage.removeItem('fiver.curb.v1');
-  });
-  await page.reload();
-  await page.waitForTimeout(700);
+  /* ---- the closet test ---- */
+  await page.click('.mode-btn[data-mode="eliminate"]'); await page.waitForTimeout(300);
+  const recur = async (name, amt, period) => {
+    await page.click('#addRecur'); await page.waitForTimeout(350);
+    await page.fill('#recurName', name); await page.fill('#recurAmt', amt);
+    await page.selectOption('#recurPeriod', period);
+    await page.click('#recurSave'); await page.waitForTimeout(350);
+  };
+  await recur('Spotify', '16.99', 'month');
+  await recur('Gym', '22', 'week');
+  await recur('Adobe', '89', 'month');
+  check('three things in the closet', (await page.locator('#closet .crow').count()) === 3);
+  check('nothing freed yet', !(await page.locator('#freed').isVisible()));
+  await page.click('#closet .crow:has-text("Adobe") .pill:text-is("Uncommit")'); await page.waitForTimeout(250);
+  check('uncommitting shows the yearly figure', /NZ\$1,068/.test(await page.textContent('#freed')));
+  check('and a nudge to actually cancel', /Cancel it/.test(await page.textContent('#freed')));
+  check('the row is struck', (await page.locator('#closet .crow.gone').count()) === 1);
+  check('gone sinks to the bottom', /Adobe/.test(await page.textContent('#closet .crow:last-child')));
+  await page.click('#closet .crow:has-text("Adobe") .pill:text-is("Keep")'); await page.waitForTimeout(250);
+  check('keeping takes it back', !(await page.locator('#freed').isVisible()));
+  await page.click('#closet .crow:has-text("Gym") .pill:text-is("Uncommit")'); await page.waitForTimeout(250);
+  check('a weekly bill is yearly-ised', /NZ\$1,144/.test(await page.textContent('#freed')));
 
-  const p1 = await logSpend('40', 'Eating out');
-  const p2 = await logSpend('45', 'Eating out');
-  const p3 = await logSpend('48', 'Eating out');
-  check('the pause holds fire on the first eating-out of the week', !p1, `p1=${p1}`);
-  check('and on the second', !p2, `p2=${p2}`);
-  check('the third one trips the pause', p3, `first:${p1} second:${p2} third:${p3}`);
+  /* ---- the jar ---- */
+  check('the jar holds the round-up change', /NZ\$/.test(await page.textContent('#jarVal')));
+  const jarVal = await page.textContent('#jarVal');
+  check('and it is not zero', jarVal !== 'NZ$0', jarVal);
+  check('with a way to move it', await page.locator('#goSweep').isVisible());
+  await page.click('#jarCard'); await page.waitForTimeout(400);
+  check('moving opens the destination sheet', await page.locator('#destSheet.on').isVisible());
+  await page.click('#destConfirm'); await page.waitForTimeout(400);
+  check('a sweep is recorded', await page.evaluate(() => JSON.parse(localStorage.getItem('fiver.v1')).sweeps.length) === 1);
 
-  /* it never fires on a fixed cost, however many times */
-  await page.click('#moneyTabs .tab[data-view="today"]');
-  await page.click('#openAdd'); await page.waitForTimeout(380);
-  for (const ch of '250') await page.click(`.key:text-is("${ch}")`);
-  await page.click('#catChips .chip:text-is("Rent")'); await page.waitForTimeout(150);
-  await page.click('#saveEntry'); await page.waitForTimeout(420);
-  check('rent never trips the pause', await page.locator('#pauseSheet.on').count() === 0);
-  await page.waitForTimeout(200);
+  /* ---- explore ---- */
+  await page.click('.mode-btn[data-mode="explore"]'); await page.waitForTimeout(300);
+  check('Explore asks its question', (await page.textContent('#question')) === 'What is essential?');
+  check('seven squares', (await page.locator('#wall .day').count()) === 7);
+  check('today is over the line', (await page.locator('#wall .sq.over').count()) === 1);
+  check('the count says so', (await page.textContent('#insideVal')) === '0');
+  check('of one judged day', /of 1 day/.test(await page.textContent('#insideUnit')));
+  check('three biggest listed', (await page.locator('#biggest .brow').count()) === 3);
+  check('biggest first', /NZ\$25/.test(await page.textContent('#biggest .brow:first-child .amt')));
+  await page.click('#biggest .brow:first-child .pill:text-is("No")'); await page.waitForTimeout(250);
+  check('marking no strikes it', (await page.locator('#biggest .brow.not').count()) === 1);
+  await page.fill('#oneLine', 'Sent the email. Everything else was maintenance.');
+  await page.locator('#oneLine').blur(); await page.waitForTimeout(300);
+  const lessRaw = await page.evaluate(() => localStorage.getItem('fiver.less.v1'));
+  check('the line is saved', /maintenance/.test(lessRaw));
+  check('the mark is saved', /"no"/.test(lessRaw));
+  check('the intent is saved', /A season in Japan/.test(lessRaw));
 
-  /* --- "didn't buy it" logs nothing and banks the amount --- */
-  const beforeCount = await page.locator('#todayEntries .entry').count();
-  const paused4 = await logSpend('60', 'Eating out', { avert: true });
-  check('a fourth eating-out still pauses', paused4);
-  const afterCount = await page.locator('#todayEntries .entry').count();
-  check('declining logs nothing', afterCount === beforeCount, `${beforeCount} -> ${afterCount}`);
+  /* ---- what is not here ---- */
+  check('no calorie tracker', (await page.locator('#kcalSlider').count()) === 0);
+  check('no score dial', (await page.locator('#dial').count()) === 0);
+  check('no sub-tabs', (await page.locator('.tab').count()) === 0);
+  check('no icons in the nav', (await page.locator('.mode-btn svg').count()) === 0);
 
-  await page.click('#moneyTabs .tab[data-view="score"]');
-  await page.waitForTimeout(350);
-  check('the averted card appears once something is averted',
-    await page.locator('#avertedCard:not(.hidden)').count() === 1);
-  check('and shows the amount not spent',
-    (await page.textContent('#avertVal')).replace(/,/g, '') === '60',
-    await page.textContent('#avertVal'));
-
-  /* --- plans --- */
-  await page.click('#addPlan'); await page.waitForTimeout(400);
-  await page.fill('#askInput', "it's a weeknight after 8pm");
-  await page.click('#askOk'); await page.waitForTimeout(500);
-  await page.fill('#askInput', "eat what's in the fridge");
-  await page.click('#askOk'); await page.waitForTimeout(500);
-  check('a plan is saved', (await page.locator('#planList .planrow').count()) === 1,
-    await page.locator('#planList .planrow').count());
-  const planTxt = await page.textContent('#planList');
-  check('the plan reads back as if-then', /If .*then .*fridge/.test(planTxt), planTxt.slice(0, 90));
-
-  /* the plan is now offered inside the pause */
-  await logSpend('55', 'Eating out');
-  await page.click('#moneyTabs .tab[data-view="score"]'); await page.waitForTimeout(300);
-  check('breaking a plan is counted',
-    /\/\s*1|1\/1|0\/1/.test(await page.textContent('#scoreParts')),
-    await page.textContent('#scoreParts'));
-
-  /* a plan can be removed again */
-  await page.click('#planList .planrow .x'); await page.waitForTimeout(350);
-  check('a plan can be removed', (await page.locator('#planList .planrow').count()) === 0);
-
-  /* --- text typed into a plan is escaped, not executed --- */
-  await page.click('#addPlan'); await page.waitForTimeout(400);
-  await page.fill('#askInput', '<img src=x onerror=window.__xss=1>');
-  await page.click('#askOk'); await page.waitForTimeout(500);
-  await page.fill('#askInput', 'be careful');
-  await page.click('#askOk'); await page.waitForTimeout(500);
-  check('markup typed into a plan is escaped',
-    await page.evaluate(() => !window.__xss && document.querySelectorAll('#planList img').length === 0));
-  await page.click('#planList .planrow .x'); await page.waitForTimeout(300);
-
-  /* --- the pause can be switched off --- */
-  await page.click('#moneyTabs .tab[data-view="setup"]'); await page.waitForTimeout(250);
-  await page.selectOption('#pauseSw', 'off'); await page.waitForTimeout(200);
-  const p5 = await logSpend('70', 'Eating out');
-  check('switching the pause off silences it', !p5);
-  await page.click('#moneyTabs .tab[data-view="setup"]'); await page.waitForTimeout(250);
-  await page.selectOption('#pauseSw', 'on'); await page.waitForTimeout(200);
-
-  /* --- the bank panel is inert until it is configured --- */
-  check('bank starts disconnected',
-    /Not connected/.test(await page.textContent('#bankStatusText')),
-    await page.textContent('#bankStatusText'));
-  await page.click('#bankFetch'); await page.waitForTimeout(400);
-  check('fetching without a proxy asks for one rather than throwing',
-    await page.locator('#bankSheet.on').count() === 0);
-
-  /* with a proxy that answers, rows appear and nothing lands unasked */
-  await page.route('**/fake-proxy.test/**', route => {
-    const u = route.request().url();
-    if (/\/health/.test(u)) return route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' });
-    if (/\/accounts/.test(u)) return route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ accounts: [{ id: 'a1', name: 'Everyday', bank: 'ASB' }] }) });
-    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-      count: 2, truncated: false, transactions: [
-        { id: 'tx1', ts: Date.now() - 3600000, cents: 1240, currency: 'NZD',
-          merchant: 'Kaffeine', description: 'EFTPOS', akahuCategory: 'Cafes' },
-        { id: 'tx2', ts: Date.now() - 7200000, cents: 8650, currency: 'NZD',
-          merchant: '<b>New World</b>', description: 'Groceries', akahuCategory: 'Supermarket' }
-      ] }) });
-  });
-  await page.fill('#bankUrl', 'https://fake-proxy.test');
-  await page.fill('#bankKey', 'test-key');
-  await page.waitForTimeout(150);
-  await page.click('#bankTest'); await page.waitForTimeout(600);
-  check('a working proxy reports connected',
-    /Connected/.test(await page.textContent('#bankStatusText')),
-    await page.textContent('#bankStatusText'));
-
-  const entriesBeforeBank = await page.evaluate(() => JSON.parse(localStorage.getItem('fiver.v1')).entries.length);
-  await page.click('#bankFetch'); await page.waitForTimeout(700);
-  check('the review sheet opens', await page.locator('#bankSheet.on').count() === 1);
-  check('both transactions are listed', (await page.locator('#bankRows .improw').count()) === 2,
-    await page.locator('#bankRows .improw').count());
-  check('a merchant name is categorised', /Groceries/.test(await page.textContent('#bankRows')),
-    await page.textContent('#bankRows'));
-  check('markup in a merchant name is escaped',
-    await page.evaluate(() => document.querySelectorAll('#bankRows b').length === 0));
-
-  const entriesMidBank = await page.evaluate(() => JSON.parse(localStorage.getItem('fiver.v1')).entries.length);
-  check('opening the sheet adds nothing on its own', entriesMidBank === entriesBeforeBank,
-    `${entriesBeforeBank} -> ${entriesMidBank}`);
-
-  await page.click('#bankNone'); await page.waitForTimeout(200);
-  await page.click('#bankAdd'); await page.waitForTimeout(500);
-  const entriesNone = await page.evaluate(() => JSON.parse(localStorage.getItem('fiver.v1')).entries.length);
-  check('selecting none adds nothing', entriesNone === entriesBeforeBank);
-
-  await page.click('#moneyTabs .tab[data-view="setup"]'); await page.waitForTimeout(200);
-  await page.click('#bankFetch'); await page.waitForTimeout(700);
-  await page.click('#bankAdd'); await page.waitForTimeout(600);
-  const entriesAfter = await page.evaluate(() => JSON.parse(localStorage.getItem('fiver.v1')).entries.length);
-  check('confirmed rows are added', entriesAfter === entriesBeforeBank + 2,
-    `${entriesBeforeBank} -> ${entriesAfter}`);
-  const rounded = await page.evaluate(() => {
-    const e = JSON.parse(localStorage.getItem('fiver.v1')).entries.filter(x => x.bankId === 'tx1')[0];
-    return e && [e.actual, e.rounded];
-  });
-  check('an imported $12.40 still rounds up to $15', JSON.stringify(rounded) === '[1240,1500]', rounded);
-
-  /* re-fetching the same rows must not double-count them */
-  await page.click('#bankFetch'); await page.waitForTimeout(700);
-  const dupeMarks = await page.textContent('#bankRows');
-  check('rows already imported are marked as such', /already logged/.test(dupeMarks));
-  const preTicked = await page.locator('#bankRows .improw.on').count();
-  check('and are not pre-ticked', preTicked === 0, preTicked);
-  await page.click('#closeBank'); await page.waitForTimeout(300);
-
-  /* --- the bank key is kept out of the backup file --- */
-  const backupHasKey = await page.evaluate(() =>
-    JSON.stringify(JSON.parse(localStorage.getItem('fiver.v1'))).indexOf('test-key') >= 0);
-  check('the bank key never enters the exportable state', !backupHasKey);
-  /* ---- the vault ---- */
-  await page.click('.mode-btn[data-mode="vault"]');
-  await page.waitForTimeout(400);
-  check('a fresh vault asks you to set a passcode',
-    (await page.textContent('#vlockTitle')).indexOf('Set') === 0);
-  check('and warns there is no reset',
-    await page.locator('#vlockWarn').isVisible());
-  check('the sub-tabs are hidden while locked',
-    !(await page.locator('#vaultTabs').isVisible()));
-  check('the money dock is gone in the vault',
-    !(await page.locator('.dock').isVisible()));
-  check('but the app nav is still there',
-    await page.locator('#modeSw').isVisible());
-
-  await page.fill('#vlockPass', 'short');
-  await page.click('#vlockGo'); await page.waitForTimeout(200);
-  check('a short passcode is refused',
-    /8 characters/.test(await page.textContent('#vlockNote')));
-
-  await page.fill('#vlockPass', 'a good long passcode');
-  await page.fill('#vlockPass2', 'a good long passcodx');
-  await page.click('#vlockGo'); await page.waitForTimeout(200);
-  check('a mismatch is refused',
-    /do not match/.test(await page.textContent('#vlockNote')));
-
+  /* ---- the vault, behind the lock ---- */
+  await page.click('#lockBtn'); await page.waitForTimeout(300);
+  check('the lock opens Protect', await page.locator('#p-protect').isVisible());
+  check('a fresh vault asks to set a passcode', (await page.textContent('#vlockTitle')).indexOf('Set') === 0);
+  check('no nav word is active there', (await page.locator('.mode-btn.on').count()) === 0);
   await page.fill('#vlockPass', 'a good long passcode');
   await page.fill('#vlockPass2', 'a good long passcode');
   await page.click('#vlockGo'); await page.waitForTimeout(2500);
-  check('setting a passcode unlocks it', await page.locator('#vaultTabs').isVisible());
-  check('and the documents tab is showing', await page.locator('#v-docs').isVisible());
-
+  check('setting a passcode unlocks it', await page.locator('.vbody').isVisible());
   await page.click('#addDocBtn'); await page.waitForTimeout(450);
   await page.selectOption('#docType', 'passport');
   await page.fill('#docLabel', 'AU Passport');
   await page.fill('#docNumber', 'PA9999123');
-  const soon = new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10);
-  await page.fill('#docExpires', soon);
+  await page.fill('#docExpires', new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10));
   await page.click('#docSave'); await page.waitForTimeout(700);
   check('the document is listed', (await page.locator('.drow').count()) === 1);
-  check('with its expiry called out',
-    /days left/.test(await page.textContent('#docList')));
-  check('and a banner at the top', await page.locator('.vbanner').isVisible());
-
+  check('with its expiry called out', /days left/.test(await page.textContent('#docList')));
   const rawStore = await page.evaluate(() => JSON.stringify(localStorage));
   check('the passport number is not in localStorage', rawStore.indexOf('PA9999123') === -1);
   check('nor is its label', rawStore.indexOf('AU Passport') === -1);
-  check('the vault key exists but is ciphertext', /fiver\.vault\.v1/.test(rawStore));
-
-  /* a file, encrypted into IndexedDB */
   await page.click('.drow'); await page.waitForTimeout(450);
-  await page.setInputFiles('#docFileInput', {
-    name: 'passport-scan.png',
-    mimeType: 'image/png',
-    buffer: Buffer.from('PLAINTEXTMARKER-8842-scan-bytes-here', 'utf8')
-  });
+  await page.setInputFiles('#docFileInput', { name: 'scan.png', mimeType: 'image/png',
+    buffer: Buffer.from('PLAINTEXTMARKER-8842-scan-bytes-here', 'utf8') });
   await page.waitForTimeout(400);
-  check('the chosen file is shown before saving',
-    /passport-scan\.png/.test(await page.textContent('#docFileArea')));
   await page.click('#docSave'); await page.waitForTimeout(900);
-  check('the row shows it carries a file',
-    (await page.locator('.drow .dclip').count()) === 1);
-
   const idb = await page.evaluate(() => new Promise(res => {
     const r = indexedDB.open('fiver-vault', 1);
-    r.onsuccess = () => {
-      const db = r.result;
+    r.onsuccess = () => { const db = r.result;
       const g = db.transaction('files', 'readonly').objectStore('files').getAll();
-      g.onsuccess = () => {
-        const out = g.result.map(f => ({
-          id: f.id,
-          ivLen: (f.iv || '').length,
-          bytes: Array.from(new Uint8Array(f.ct))
-        }));
-        db.close(); res(out);
-      };
-    };
+      g.onsuccess = () => { res(g.result.map(f => Array.from(new Uint8Array(f.ct)))); db.close(); }; };
   }));
-  check('exactly one file is stored', idb.length === 1);
-  check('it has an iv', idb[0].ivLen > 0);
-  const asText = String.fromCharCode.apply(null, idb[0].bytes);
-  check('the file bytes on disk are not the plaintext',
-    asText.indexOf('PLAINTEXTMARKER') === -1, asText.slice(0, 40));
-  check('and are longer than the plaintext (GCM tag)',
-    idb[0].bytes.length > 36);
-
-  await page.click('#vaultTabs .tab[data-view="accounts"]'); await page.waitForTimeout(300);
+  check('one file stored', idb.length === 1);
+  check('the file bytes on disk are not the plaintext', String.fromCharCode.apply(null, idb[0]).indexOf('PLAINTEXTMARKER') === -1);
   await page.click('#addAccBtn'); await page.waitForTimeout(450);
-  await page.fill('#accService', 'IRD');
-  await page.fill('#accEmail', 'test@example.com');
+  await page.fill('#accService', 'IRD'); await page.fill('#accEmail', 'test@example.com');
   await page.click('#accSave'); await page.waitForTimeout(600);
-  check('the account is listed', (await page.locator('.arow').count()) === 1);
-  check('grouped under its email',
-    /test@example\.com/.test(await page.textContent('#accList')));
-  check('there is no password field anywhere in the vault',
-    (await page.locator('#accSheet input[type="password"]').count()) === 0);
-
-  await page.click('#vaultTabs .tab[data-view="security"]'); await page.waitForTimeout(300);
+  check('an account is listed under its email', /test@example\.com/.test(await page.textContent('#accList')));
+  check('no password field anywhere', (await page.locator('#accSheet input[type="password"]').count()) === 0);
   await page.click('#lockNowBtn'); await page.waitForTimeout(400);
-  check('locking hides everything again',
-    !(await page.locator('#vaultTabs').isVisible()));
-  check('and asks to unlock, not to set up',
-    (await page.textContent('#vlockTitle')) === 'Locked');
+  check('locking hides everything', !(await page.locator('.vbody').isVisible()));
+  await page.fill('#vlockPass', 'the wrong passcode'); await page.click('#vlockGo'); await page.waitForTimeout(2500);
+  check('a wrong passcode is rejected', /not it/.test(await page.textContent('#vlockNote')));
+  await page.fill('#vlockPass', 'a good long passcode'); await page.click('#vlockGo'); await page.waitForTimeout(2500);
+  check('the right one opens it again', await page.locator('.vbody').isVisible());
+  check('the document survived', (await page.locator('.drow').count()) === 1);
+  await page.click('#lockBtn'); await page.waitForTimeout(300);
+  check('the lock toggles back to Execute', await page.locator('#p-execute').isVisible());
 
-  await page.fill('#vlockPass', 'the wrong passcode');
-  await page.click('#vlockGo'); await page.waitForTimeout(2500);
-  check('a wrong passcode is rejected',
-    /not it/.test(await page.textContent('#vlockNote')));
-  check('and it stays locked', !(await page.locator('#vaultTabs').isVisible()));
+  /* ---- export leaves the vault out ---- */
+  const backup = await page.evaluate(() => localStorage.getItem('fiver.v1'));
+  check('the money backup has no vault in it', backup.indexOf('vault') === -1 && backup.indexOf('PA9999') === -1);
 
-  await page.fill('#vlockPass', 'a good long passcode');
-  await page.click('#vlockGo'); await page.waitForTimeout(2500);
-  check('the right passcode opens it again', await page.locator('#vaultTabs').isVisible());
-  await page.click('#vaultTabs .tab[data-view="docs"]'); await page.waitForTimeout(300);
-  check('the document survived the lock', (await page.locator('.drow').count()) === 1);
-  check('with its number intact', await (async () => {
-    await page.click('.drow'); await page.waitForTimeout(400);
-    const n = await page.inputValue('#docNumber');
-    await page.click('#closeDoc'); await page.waitForTimeout(300);
-    return n === 'PA9999123';
-  })());
+  /* ---- persistence ---- */
+  await page.click('.mode-btn[data-mode="eliminate"]'); await page.waitForTimeout(200);
+  await page.reload(); await page.waitForTimeout(700);
+  check('the mode is remembered', await page.locator('#p-eliminate').isVisible());
+  check('the noes survive a reload', (await page.textContent('#noCount')) === '1');
+  check('the closet survives', (await page.locator('#closet .crow').count()) === 3);
+  check('the intent survives', (await page.textContent('#intentLine')) === 'A season in Japan');
+  check('the vault is locked after a reload', await page.evaluate(() => window.vaultKey === null));
 
-  await page.click('.mode-btn[data-mode="money"]'); await page.waitForTimeout(400);
-  check('money still works after all that',
-    await page.locator('#v-today').isVisible());
+  /* ---- a no-spend day ---- */
+  await page.evaluate(() => { localStorage.removeItem('fiver.v1'); localStorage.removeItem('fiver.curb.v1'); });
+  await page.reload(); await page.waitForTimeout(700);
+  await page.click('#useLocal'); await page.waitForTimeout(300);
+  await page.click('.mode-btn[data-mode="eliminate"]'); await page.waitForTimeout(200);
+  await page.click('#noSpendBtn'); await page.waitForTimeout(400);
+  check('a no-spend day is logged', /No-spend day/.test(await page.textContent('#todayEmpty')));
+  await page.click('.mode-btn[data-mode="explore"]'); await page.waitForTimeout(300);
+  check('and shows green on the wall', (await page.locator('#wall .sq.none').count()) === 1);
 
-  /* ---- screenshots, both themes ---- */
-  await page.screenshot({ path: 'shot-today-light.png', fullPage: false });
-  await page.click('#moneyTabs .tab[data-view="trends"]'); await page.waitForTimeout(300);
-  await page.screenshot({ path: 'shot-trends-light.png' });
-  await page.click('#moneyTabs .tab[data-view="savings"]'); await page.waitForTimeout(300);
-  await page.screenshot({ path: 'shot-savings-light.png' });
-  await page.click('#moneyTabs .tab[data-view="today"]'); await page.waitForTimeout(200);
-  await page.click('#openAdd'); await page.waitForTimeout(450);
-  await page.screenshot({ path: 'shot-add-light.png' });
-  await page.click('#closeAdd'); await page.waitForTimeout(300);
-
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await page.waitForTimeout(300);
-  await page.screenshot({ path: 'shot-today-dark.png' });
+  /* ---- erase ---- */
+  await page.click('#intentBtn'); await page.waitForTimeout(300);
+  await page.click('#resetBtn'); await page.waitForTimeout(300);
+  await page.click('#askOk'); await page.waitForTimeout(400);
+  check('erase clears the intent too', /intent/.test(await page.textContent('#intentLine')));
+  check('but not the vault', await page.evaluate(() => !!localStorage.getItem('fiver.vault.v1')));
 
   check('no JS errors across the whole run', errors.length === 0, errors.join(' | '));
 

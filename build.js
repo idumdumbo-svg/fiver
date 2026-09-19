@@ -25,15 +25,16 @@ function moduleSource(file) {
 // behaviour layer, which reads the money maths and so must follow it
 var logic;
 logic = [moduleSource('dates.js'), moduleSource('currency.js'), moduleSource('logic.js'),
-         moduleSource('calories.js'), moduleSource('curb.js'), moduleSource('notes.js'),
-         moduleSource('vault.js')].join('\n');
+         moduleSource('curb.js'), moduleSource('notes.js'), moduleSource('vault.js'),
+         moduleSource('less.js')].join('\n');
 ['roundUp','dayTotals','baselineFor','sweepOffer','dayIncome','rangeIncome',
  'netFor','totalSwept','sweptByDest','series','fmt','convert','fmtMoneyIn','dailyMove',
  'disciplineScore','personalLeague','leagueStanding','streakWithFreezes','pausePattern',
  'landmarkPending','weekSummary','avertedTotals','parseNote','planToday','rollover','basicStreak',
  'blankVault','expiryState','expiryLabel','needsAttention','sortedDocs','accountsByEmail',
  'deriveKey','encryptJSON','decryptJSON','newVaultMeta','unlockVault','readVault','writeVault',
- 'changePasscode','passcodeCheck'].forEach(function (fn) {
+ 'changePasscode','passcodeCheck',
+ 'blankLess','bufferLeft','weekWall','biggestThisWeek','noesThisWeek','freedYearly','decideRecurring'].forEach(function (fn) {
   if (logic.indexOf('function ' + fn + '(') === -1) throw new Error('the bundle lost ' + fn);
 });
 var tpl = fs.readFileSync('template.html', 'utf8');
@@ -56,7 +57,7 @@ function document_(inner, extraHead) {
   return '<!doctype html>\n<html lang="en">\n<head>\n' +
     '<meta charset="utf-8">\n' +
     '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n' +
-    '<meta name="theme-color" content="#060D0C">\n' +
+    '<meta name="theme-color" content="#F6F6F3">\n' +
     (extraHead || '') +
     '</head>\n<body>\n' + inner + '\n</body>\n</html>\n';
 }
@@ -68,13 +69,13 @@ fs.writeFileSync('fiver-standalone.html', document_(inlineJp + body));
 var pkg = {
   name: 'Fiver',
   short_name: 'Fiver',
-  description: 'Round every spend up to the next five. Watch the day fill up. Keep the difference.',
+  description: 'Less, but better. One number, one question, and a no that counts.',
   start_url: './',
   scope: './',
   display: 'standalone',
   orientation: 'portrait',
-  background_color: '#060D0C',
-  theme_color: '#060D0C',
+  background_color: '#F6F6F3',
+  theme_color: '#151515',
   categories: ['finance', 'productivity'],
   icons: [
     { src: './icons/icon-192.png', sizes: '192x192', type: 'image/png' },
